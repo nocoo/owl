@@ -4,6 +4,28 @@ import OwlCore
 import ServiceManagement
 import SwiftUI
 
+// MARK: - Fixed Size Hosting Controller
+
+/// Prevents NSHostingController from overriding preferredContentSize,
+/// which causes NSPopover to miscalculate position and fly off screen.
+final class FixedSizeHostingController<Content: View>: NSHostingController<Content> {
+    private let fixedSize: NSSize
+
+    init(rootView: Content, size: NSSize) {
+        self.fixedSize = size
+        super.init(rootView: rootView)
+    }
+
+    @MainActor required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override var preferredContentSize: NSSize {
+        get { fixedSize }
+        set { /* intentionally ignore SwiftUI resize attempts */ }
+    }
+}
+
 @main
 struct OwlApp {
     @MainActor
@@ -277,10 +299,17 @@ extension AppDelegate {
             onSettings: { [weak self] in self?.openSettings() },
             onQuit: { [weak self] in self?.quitApp() }
         )
-        popover.contentViewController = NSHostingController(
-            rootView: contentView
+
+        let popoverSize = NSSize(width: 280, height: 580)
+        let hosting = FixedSizeHostingController(
+            rootView: contentView.frame(
+                maxWidth: popoverSize.width,
+                maxHeight: popoverSize.height
+            ),
+            size: popoverSize
         )
-        popover.contentSize = NSSize(width: 280, height: 620)
+
+        popover.contentViewController = hosting
         popover.behavior = .transient
     }
 
