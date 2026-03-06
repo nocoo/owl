@@ -91,7 +91,7 @@ extension AppDelegate {
             pointSize: 16, weight: .medium
         )
         let image = NSImage(
-            systemSymbolName: "owl",
+            systemSymbolName: "bird",
             accessibilityDescription: "Owl"
         )?.withSymbolConfiguration(config)
         button.image = image

@@ -52,7 +52,7 @@ public enum StatusItemMapper {
         switch severity {
         case .normal:
             return StatusItemConfig(
-                symbolName: "owl",
+                symbolName: "bird",
                 accessibilityLabel: "Owl — system normal",
                 isFilled: false,
                 colorName: isRecovering ? .green : .default,
@@ -61,7 +61,7 @@ public enum StatusItemMapper {
             )
         case .info:
             return StatusItemConfig(
-                symbolName: "owl",
+                symbolName: "bird",
                 accessibilityLabel: "Owl — info",
                 isFilled: false,
                 colorName: isRecovering ? .green : .blue,
@@ -70,7 +70,7 @@ public enum StatusItemMapper {
             )
         case .warning:
             return StatusItemConfig(
-                symbolName: "owl.fill",
+                symbolName: "bird.fill",
                 accessibilityLabel: "Owl — warning detected",
                 isFilled: true,
                 colorName: .yellow,
@@ -79,7 +79,7 @@ public enum StatusItemMapper {
             )
         case .critical:
             return StatusItemConfig(
-                symbolName: "owl.fill",
+                symbolName: "bird.fill",
                 accessibilityLabel: "Owl — critical issue",
                 isFilled: true,
                 colorName: .red,

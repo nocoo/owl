@@ -6,9 +6,9 @@ struct StatusItemMapperTests {
 
     // MARK: - Normal State
 
-    @Test func normalUsesOwlSymbol() {
+    @Test func normalUsesBirdSymbol() {
         let config = StatusItemMapper.config(for: .normal)
-        #expect(config.symbolName == "owl")
+        #expect(config.symbolName == "bird")
         #expect(config.isFilled == false)
     }
 
@@ -24,18 +24,18 @@ struct StatusItemMapperTests {
 
     // MARK: - Info State
 
-    @Test func infoUsesOwlSymbolWithBlue() {
+    @Test func infoUsesBirdSymbolWithBlue() {
         let config = StatusItemMapper.config(for: .info)
-        #expect(config.symbolName == "owl")
+        #expect(config.symbolName == "bird")
         #expect(config.isFilled == false)
         #expect(config.colorName == .blue)
     }
 
     // MARK: - Warning State
 
-    @Test func warningUsesFilledOwlWithYellow() {
+    @Test func warningUsesFilledBirdWithYellow() {
         let config = StatusItemMapper.config(for: .warning)
-        #expect(config.symbolName == "owl.fill")
+        #expect(config.symbolName == "bird.fill")
         #expect(config.isFilled == true)
         #expect(config.colorName == .yellow)
     }
@@ -47,9 +47,9 @@ struct StatusItemMapperTests {
 
     // MARK: - Critical State
 
-    @Test func criticalUsesFilledOwlWithRed() {
+    @Test func criticalUsesFilledBirdWithRed() {
         let config = StatusItemMapper.config(for: .critical)
-        #expect(config.symbolName == "owl.fill")
+        #expect(config.symbolName == "bird.fill")
         #expect(config.isFilled == true)
         #expect(config.colorName == .red)
     }
