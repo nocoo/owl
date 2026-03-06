@@ -28,7 +28,8 @@ public struct SMCTemperatureProvider: Sendable {
 
         // SMC key "TC0P" = CPU proximity temperature
         // key "TC0D" = CPU die temperature (preferred)
-        for key in ["TC0D", "TC0P", "TC0E"] {
+        // Tp0T = CPU composite on Apple Silicon; TC0D/TC0P/TC0E = Intel
+        for key in ["Tp0T", "TC0D", "TC0P", "TC0E"] {
             if let temp = readSMCKey(
                 connection: connection, key: key
             ), temp > 0, temp < 150 {
@@ -127,10 +128,11 @@ public struct SMCTemperatureProvider: Sendable {
         }
 
         if dataType == flt, dataSize >= 4 {
-            let bits = UInt32(bytes.0) << 24
-                | UInt32(bytes.1) << 16
-                | UInt32(bytes.2) << 8
-                | UInt32(bytes.3)
+            // Apple Silicon returns flt as little-endian
+            let bits = UInt32(bytes.0)
+                | UInt32(bytes.1) << 8
+                | UInt32(bytes.2) << 16
+                | UInt32(bytes.3) << 24
             return Double(Float(bitPattern: bits))
         }
 

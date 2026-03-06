@@ -81,9 +81,25 @@ public struct BatteryProvider: Sendable {
     private func readTemperature(
         from desc: [String: Any]
     ) -> Double? {
-        guard let raw = desc["Temperature"] as? Int else {
-            return nil
-        }
+        // IOPSCopyPowerSourcesInfo doesn't include Temperature on macOS.
+        // Read directly from AppleSmartBattery IORegistry entry instead.
+        let service = IOServiceGetMatchingService(
+            kIOMainPortDefault,
+            IOServiceMatching("AppleSmartBattery")
+        )
+        guard service != IO_OBJECT_NULL else { return nil }
+        defer { IOObjectRelease(service) }
+
+        guard let prop = IORegistryEntryCreateCFProperty(
+            service,
+            "Temperature" as CFString,
+            kCFAllocatorDefault,
+            0
+        ) else { return nil }
+
+        guard let raw = prop.takeRetainedValue() as? Int,
+              raw > 0 else { return nil }
+        // Value is in centidegrees Celsius
         return Double(raw) / 100.0
     }
 
