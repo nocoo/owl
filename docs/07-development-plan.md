@@ -155,7 +155,7 @@ Atomic execution plan for Owl. Each step is a single commit.
 | 5.4 | Create build + notarization scripts (scripts/build.sh, scripts/notarize.sh) | 0f74494 | [x] |
 | 5.5 | Create DMG packaging script | 898b0d2 | [x] |
 | 5.6 | ~~L4 UI Tests (XCUITest)~~ | N/A | [x] |
-| 5.7 | Final coverage report + README update | | [~] |
+| 5.7 | Final coverage report + README update | e281480 | [x] |
 
 ---
 
