@@ -31,9 +31,21 @@ struct PredicateBuilderTests {
         }
     }
 
-    @Test func buildAllContainsNetworkSubsystem() {
+    @Test func buildAllContainsNetworkCompoundPredicate() {
         let predicate = PredicateBuilder.buildAll()
-        #expect(predicate.contains("subsystem == 'com.apple.network'"))
+        #expect(predicate.contains(
+            "subsystem == 'com.apple.network' AND ("
+        ))
+        #expect(predicate.contains("messageType == 16"))
+        #expect(predicate.contains(
+            "eventMessage CONTAINS 'connection_failed'"
+        ))
+        #expect(predicate.contains(
+            "eventMessage CONTAINS 'Connection reset'"
+        ))
+        #expect(predicate.contains(
+            "eventMessage CONTAINS 'nw_endpoint_flow_failed'"
+        ))
     }
 
     @Test func buildAllUsesORSeparator() {
@@ -41,11 +53,16 @@ struct PredicateBuilderTests {
         #expect(predicate.contains(" OR "))
     }
 
-    @Test func buildAllHasNineClausesTotal() {
-        // 8 processes + 1 subsystem = 9 OR-joined clauses
+    @Test func buildAllHasNineTopLevelClauses() {
+        // 8 processes + 1 compound network predicate = 9 top-level OR clauses
+        // The compound predicate is parenthesized so we count by splitting
+        // outside parentheses. Simpler: count process== + the one compound.
         let predicate = PredicateBuilder.buildAll()
-        let orCount = predicate.components(separatedBy: " OR ").count
-        #expect(orCount == 9)
+        let processCount = predicate
+            .components(separatedBy: "process == ").count - 1
+        #expect(processCount == 8)
+        // Compound predicate is wrapped in parens
+        #expect(predicate.contains("(subsystem == 'com.apple.network'"))
     }
 
     // MARK: - Filtered predicate (subset of patterns)
@@ -80,6 +97,7 @@ struct PredicateBuilderTests {
             enabledPatternIDs: [NetworkPattern.id]
         )
         #expect(predicate.contains("subsystem == 'com.apple.network'"))
+        #expect(predicate.contains("connection_failed"))
         #expect(!predicate.contains("process == 'kernel'"))
     }
 
@@ -123,11 +141,17 @@ struct PredicateBuilderTests {
         #expect(sources.contains(.process("launchservicesd")))
     }
 
-    @Test func networkPatternMapsToSubsystem() {
+    @Test func networkPatternMapsToCompoundSource() {
         let sources = PredicateBuilder.sources(
             for: NetworkPattern.id
         )
-        #expect(sources.contains(.subsystem("com.apple.network")))
+        #expect(sources.count == 1)
+        guard case .compound(let expr) = sources.first else {
+            Issue.record("Expected compound source")
+            return
+        }
+        #expect(expr.contains("subsystem == 'com.apple.network'"))
+        #expect(expr.contains("connection_failed"))
     }
 
     @Test func darkWakePatternMapsToBothKernelAndPowerd() {

@@ -6,6 +6,9 @@ public enum LogSource: Hashable, Sendable {
     case process(String)
     /// Filter by subsystem (e.g. `subsystem == 'com.apple.network'`).
     case subsystem(String)
+    /// A compound predicate expression (parenthesized in output).
+    /// Use for complex filters that combine multiple conditions.
+    case compound(String)
 }
 
 /// Builds the `--predicate` string for `log stream` based on enabled patterns.
@@ -41,8 +44,16 @@ public enum PredicateBuilder {
         JetsamPattern.id: [.process("kernel")],
         // P11 — AppHang: WindowServer
         AppHangPattern.id: [.process("WindowServer")],
-        // P12 — Network: com.apple.network subsystem
-        NetworkPattern.id: [.subsystem("com.apple.network")],
+        // P12 — Network: precise sub-filter on com.apple.network
+        NetworkPattern.id: [.compound(
+            "subsystem == 'com.apple.network'"
+            + " AND ("
+            + "messageType == 16"
+            + " OR eventMessage CONTAINS 'connection_failed'"
+            + " OR eventMessage CONTAINS 'Connection reset'"
+            + " OR eventMessage CONTAINS 'nw_endpoint_flow_failed'"
+            + ")"
+        )],
         // P13 — USB: kernel
         USBPattern.id: [.process("kernel")],
         // P14 — DarkWake: kernel + powerd
@@ -82,9 +93,10 @@ public enum PredicateBuilder {
 
         guard !allSources.isEmpty else { return "" }
 
-        // Separate into process and subsystem clauses for stable ordering
+        // Separate into process, subsystem, and compound clauses
         var processClauses: [String] = []
         var subsystemClauses: [String] = []
+        var compoundClauses: [String] = []
 
         for source in allSources {
             switch source {
@@ -92,14 +104,18 @@ public enum PredicateBuilder {
                 processClauses.append("process == '\(name)'")
             case .subsystem(let name):
                 subsystemClauses.append("subsystem == '\(name)'")
+            case .compound(let expr):
+                compoundClauses.append("(\(expr))")
             }
         }
 
         // Sort for deterministic output
         processClauses.sort()
         subsystemClauses.sort()
+        compoundClauses.sort()
 
         let allClauses = processClauses + subsystemClauses
+            + compoundClauses
         return allClauses.joined(separator: " OR ")
     }
 }

@@ -222,6 +222,8 @@ public actor LogStreamReader {
         "memorystatus_kill",            // P10
         "abortGated",                   // P11
         "connection_failed",            // P12
+        "Connection reset",             // P12
+        "nw_endpoint_flow_failed",      // P12
         "abort",                        // P13
         "DarkWake"                      // P14
     ]
