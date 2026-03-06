@@ -37,11 +37,8 @@ struct PowerSection: View {
                 rightValue: "\(batt.cycleCount)"
             )
 
-            // Bottom row: condition · temperature (only if there's content)
-            let parts = buildBottomParts(batt)
-            if !parts.isEmpty {
-                bottomRow(parts)
-            }
+            // Bottom row: condition · temperature
+            bottomRow(batt)
         }
     }
 
@@ -59,38 +56,16 @@ struct PowerSection: View {
     }
 
     private func bottomRow(
-        _ parts: [String]
-    ) -> some View {
-        HStack(spacing: 4) {
-            Text("")
-                .frame(width: 40)
-
-            Text(parts.joined(separator: " · "))
-                .font(
-                    .system(size: 9, design: .monospaced)
-                )
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
-
-            Spacer()
-        }
-        .frame(height: 12)
-    }
-
-    private func buildBottomParts(
         _ batt: BatteryMetrics
-    ) -> [String] {
-        var parts: [String] = []
-
-        if batt.condition != "Unavailable" {
-            parts.append(batt.condition)
-        }
-
-        if let temp = batt.temperature {
-            parts.append(String(format: "%.1f°C", temp))
-        }
-
-        return parts
+    ) -> some View {
+        let condText = batt.condition == "Unavailable" ? "N/A" : batt.condition
+        let tempText = batt.temperature.map { String(format: "%.1f°C", $0) } ?? "N/A"
+        return TwoColumnInfoRow(
+            leftLabel: condText,
+            leftValue: "",
+            rightLabel: "Temp",
+            rightValue: tempText
+        )
     }
 
     private func formatTimeRemaining(_ minutes: Int) -> String {
