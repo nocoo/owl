@@ -121,16 +121,16 @@ Atomic execution plan for Owl. Each step is a single commit.
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 3.1 | Create `OwlApp.swift` @main entry + `AppDelegate` with NSStatusItem + LSUIElement | | [ ] |
-| 3.2 | Implement `StatusItemController` (4 icon states with SF Symbols + color) + UT | | [ ] |
-| 3.3 | Add icon animations (pulse for critical, flash green for recovery) | | [ ] |
-| 3.4 | Create NSPopover + left-click toggle + right-click context menu | | [ ] |
-| 3.5 | Implement `SystemOverviewBar` (CPU/MEM/TEMP gauges with color thresholds) | | [ ] |
-| 3.6 | Implement `ActiveAlertsSection` + `AlertRow` (severity icon, title, description, suggestion) | | [ ] |
-| 3.7 | Implement empty state ("系统运行正常") | | [ ] |
-| 3.8 | Implement `RecentHistorySection` (last 5 expired alerts) | | [ ] |
-| 3.9 | Implement `BottomBar` (Settings + Quit buttons) | | [ ] |
-| 3.10 | Wire data binding: AlertStateManager → SwiftUI, SystemMetricsPoller → SwiftUI | | [ ] |
+| 3.1 | Create `OwlApp.swift` @main entry + `AppDelegate` with NSStatusItem + LSUIElement | 32401d4 | [x] |
+| 3.2 | Implement `StatusItemConfig` + `StatusItemMapper` (4 icon states with SF Symbols + color) + UT | c88f6d2 | [x] |
+| 3.3 | Add icon animations (pulse for critical, flash green for recovery) | 32401d4 | [x] |
+| 3.4 | Create NSPopover + left-click toggle + right-click context menu | 32401d4 | [x] |
+| 3.5 | Implement `SystemOverviewBar` + `MetricGauge` (CPU/MEM gauges with color thresholds) | 10d9554 | [x] |
+| 3.6 | Implement `ActiveAlertsSection` + `AlertRow` (severity icon, title, description, suggestion) | 10d9554 | [x] |
+| 3.7 | Implement `AppState` ObservableObject bridging core engine to SwiftUI + UT | c2dcd99 | [x] |
+| 3.8 | Implement `RecentHistorySection` + `HistoryRow` (last 5 expired alerts) | 10d9554 | [x] |
+| 3.9 | Implement `BottomBar` (Settings + Quit buttons) + `PopoverContentView` root | 10d9554 | [x] |
+| 3.10 | Wire data binding: LogStreamReader → Pipeline → AlertStateManager → AppState → UI | 32401d4 | [x] |
 
 ---
 
