@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// Power section: battery level/health bars, charging state,
-/// cycle count, temperature.
+/// Power section: battery level/health bars, state with time remaining,
+/// condition + cycles + temperature merged on bottom row.
 struct PowerSection: View {
     let metrics: SystemMetrics
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
                 "Power", symbol: "bolt.fill", color: .yellow
             )
@@ -29,73 +29,86 @@ struct PowerSection: View {
                 color: healthColor(batt.health)
             )
 
-            // Charging state
-            HStack(spacing: 6) {
-                Text("State")
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-                    .frame(width: 40, alignment: .leading)
-                Image(systemName: chargingIcon(batt))
-                    .font(.system(size: 9))
-                    .foregroundStyle(chargingColor(batt))
-                Text(batt.stateText)
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-            }
-            .frame(height: 14)
+            // State + time remaining on same row
+            stateRow(batt)
 
-            // Cycle count
-            HStack(spacing: 6) {
-                Text("Cycle")
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-                    .frame(width: 40, alignment: .leading)
-                Text("\(batt.cycleCount)")
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-            }
-            .frame(height: 14)
-
-            // Temperature (if available)
-            if let temp = batt.temperature {
-                HStack(spacing: 6) {
-                    Text("Temp")
-                        .font(
-                            .system(size: 10, design: .monospaced)
-                        )
-                        .foregroundStyle(.secondary)
-                        .frame(width: 40, alignment: .leading)
-                    Text(String(format: "%.1f°C", temp))
-                        .font(
-                            .system(size: 10, design: .monospaced)
-                        )
-                        .foregroundStyle(.secondary)
-                }
-                .frame(height: 14)
-            }
-
-            // Condition
-            if batt.condition != "Normal"
-                && batt.condition != "Unavailable" {
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 8))
-                        .foregroundStyle(.orange)
-                    Text(batt.condition)
-                        .font(.system(size: 9))
-                        .foregroundStyle(.orange)
-                }
-                .frame(height: 14)
-            }
+            // Bottom row: condition · cycles · temperature
+            bottomRow(batt)
         }
+    }
+
+    private func stateRow(
+        _ batt: BatteryMetrics
+    ) -> some View {
+        HStack(spacing: 4) {
+            Text("")
+                .frame(width: 40)
+            Image(systemName: chargingIcon(batt))
+                .font(.system(size: 8))
+                .foregroundStyle(chargingColor(batt))
+            Text(batt.stateText)
+                .font(
+                    .system(size: 9, design: .monospaced)
+                )
+                .foregroundStyle(.secondary)
+
+            if let mins = batt.timeRemaining, mins > 0 {
+                Text("·")
+                    .foregroundStyle(.tertiary)
+                Text(formatTimeRemaining(mins))
+                    .font(
+                        .system(size: 9, design: .monospaced)
+                    )
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+        .frame(height: 14)
+    }
+
+    private func bottomRow(
+        _ batt: BatteryMetrics
+    ) -> some View {
+        HStack(spacing: 4) {
+            Text("")
+                .frame(width: 40)
+
+            let parts = buildBottomParts(batt)
+            Text(parts.joined(separator: " · "))
+                .font(
+                    .system(size: 9, design: .monospaced)
+                )
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+
+            Spacer()
+        }
+        .frame(height: 12)
+    }
+
+    private func buildBottomParts(
+        _ batt: BatteryMetrics
+    ) -> [String] {
+        var parts: [String] = []
+
+        if batt.condition != "Unavailable" {
+            parts.append(batt.condition)
+        }
+
+        parts.append("\(batt.cycleCount) cycles")
+
+        if let temp = batt.temperature {
+            parts.append(String(format: "%.1f°C", temp))
+        }
+
+        return parts
+    }
+
+    private func formatTimeRemaining(_ minutes: Int) -> String {
+        let h = minutes / 60
+        let m = minutes % 60
+        return String(format: "%d:%02d", h, m)
     }
 
     private func batteryColor(_ level: Double) -> Color {

@@ -55,15 +55,40 @@ public struct PerCoreCPUProvider: Sendable {
         return cores
     }
 
-    /// Returns load averages (1, 5, 15 min).
+    /// Returns load averages (1, 5, 15 min) with P/E core topology.
     public func loadAverage() -> LoadAverage {
         var averages = [Double](repeating: 0, count: 3)
         let count = getloadavg(&averages, 3)
         guard count == 3 else { return .zero }
+
+        let (pCores, eCores) = Self.coreTopology()
+
         return LoadAverage(
             one: averages[0],
             five: averages[1],
-            fifteen: averages[2]
+            fifteen: averages[2],
+            performanceCores: pCores,
+            efficiencyCores: eCores
         )
+    }
+
+    /// Detect Apple Silicon P-core / E-core counts via sysctl.
+    static func coreTopology() -> (
+        performance: Int, efficiency: Int
+    ) {
+        let pCores = sysctlInt("hw.perflevel0.logicalcpu") ?? 0
+        let eCores = sysctlInt("hw.perflevel1.logicalcpu") ?? 0
+        return (pCores, eCores)
+    }
+
+    private static func sysctlInt(
+        _ name: String
+    ) -> Int? {
+        var value: Int = 0
+        var size = MemoryLayout<Int>.size
+        let result = sysctlbyname(
+            name, &value, &size, nil, 0
+        )
+        return result == 0 ? value : nil
     }
 }

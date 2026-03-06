@@ -33,20 +33,36 @@ public struct ActiveAlertsSection: View {
 
     private var alertList: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Active Alerts")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .padding(.horizontal, 12)
-                .padding(.bottom, 4)
-
-            ForEach(Array(alerts.enumerated()), id: \.offset) { _, alert in
-                AlertRow(alert: alert)
-                if alert != alerts.last {
-                    Divider()
-                        .padding(.leading, 36)
+            HStack {
+                Text("Active Alerts")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                if alerts.count > 3 {
+                    Spacer()
+                    Text("\(alerts.count) total")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
                 }
             }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 4)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(
+                        Array(alerts.enumerated()),
+                        id: \.offset
+                    ) { _, alert in
+                        AlertRow(alert: alert)
+                        if alert != alerts.last {
+                            Divider()
+                                .padding(.leading, 36)
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 260)
         }
     }
 }

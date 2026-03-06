@@ -28,6 +28,12 @@ public final class AppState: ObservableObject {
     /// Latest system metrics snapshot.
     @Published public private(set) var metrics: SystemMetrics = .zero
 
+    /// Network speed history for sparkline (last 30 samples).
+    @Published public private(set) var networkInHistory: [Double] = []
+    @Published public private(set) var networkOutHistory: [Double] = []
+
+    private let maxNetworkSamples = 30
+
     // MARK: - Alert Management
 
     /// Update alerts from AlertStateManager.
@@ -51,5 +57,19 @@ public final class AppState: ObservableObject {
     /// Update system metrics from SystemMetricsPoller.
     public func updateMetrics(_ newMetrics: SystemMetrics) {
         metrics = newMetrics
+
+        // Append to network history for sparkline
+        networkInHistory.append(newMetrics.network.bytesInPerSec)
+        networkOutHistory.append(newMetrics.network.bytesOutPerSec)
+        if networkInHistory.count > maxNetworkSamples {
+            networkInHistory.removeFirst(
+                networkInHistory.count - maxNetworkSamples
+            )
+        }
+        if networkOutHistory.count > maxNetworkSamples {
+            networkOutHistory.removeFirst(
+                networkOutHistory.count - maxNetworkSamples
+            )
+        }
     }
 }

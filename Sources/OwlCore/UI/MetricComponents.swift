@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Reusable section header with icon and title.
+/// Reusable section header with icon, title, and dashed separator.
 struct SectionHeader: View {
     let symbol: String
     let title: String
@@ -22,12 +22,33 @@ struct SectionHeader: View {
                 .font(.system(size: 9, weight: .bold))
                 .foregroundStyle(color)
             Text(title)
-                .font(.system(size: 11, weight: .bold))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(.primary)
-            Rectangle()
-                .fill(.quaternary)
+
+            // Dashed separator fills remaining space
+            DashedLine()
+                .stroke(
+                    style: StrokeStyle(
+                        lineWidth: 0.5,
+                        dash: [3, 2]
+                    )
+                )
+                .foregroundStyle(.quaternary)
                 .frame(height: 1)
         }
+        .frame(height: 14)
+    }
+}
+
+/// A single horizontal dashed line shape.
+private struct DashedLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: rect.midY))
+        path.addLine(
+            to: CGPoint(x: rect.maxX, y: rect.midY)
+        )
+        return path
     }
 }
 
@@ -106,6 +127,30 @@ struct MetricRow: View {
                 .frame(width: 68, alignment: .trailing)
         }
         .frame(height: 14)
+    }
+}
+
+/// A simple label + value text row (no bar).
+struct InfoRow: View {
+    let label: String
+    let value: String
+
+    init(_ label: String, value: String) {
+        self.label = label
+        self.value = value
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(label)
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .frame(width: 40, alignment: .leading)
+            Text(value)
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.tertiary)
+        }
+        .frame(height: 12)
     }
 }
 

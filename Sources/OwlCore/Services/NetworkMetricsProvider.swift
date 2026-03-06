@@ -34,6 +34,116 @@ public struct NetworkMetricsProvider: Sendable {
         return (totalIn, totalOut)
     }
 
+    /// Returns the active network interface name and its local IP.
+    public func activeInterfaceInfo() -> (
+        name: String, ip: String
+    ) {
+        // Get default route interface from `route get default`
+        let defaultIface = getDefaultInterface()
+
+        var ifaddr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0,
+            let first = ifaddr
+        else { return (defaultIface, "") }
+        defer { freeifaddrs(first) }
+
+        // Find IPv4 address for the active interface
+        var current: UnsafeMutablePointer<ifaddrs>? = first
+        while let ifa = current {
+            let name = String(cString: ifa.pointee.ifa_name)
+            if name == defaultIface,
+                let addr = ifa.pointee.ifa_addr,
+                addr.pointee.sa_family == UInt8(AF_INET)
+            {
+                var hostname = [CChar](
+                    repeating: 0, count: Int(NI_MAXHOST)
+                )
+                let result = getnameinfo(
+                    addr,
+                    socklen_t(addr.pointee.sa_len),
+                    &hostname,
+                    socklen_t(hostname.count),
+                    nil, 0, NI_NUMERICHOST
+                )
+                if result == 0 {
+                    return (name, String(cString: hostname))
+                }
+            }
+            current = ifa.pointee.ifa_next
+        }
+
+        // Fallback: find any en0 IPv4
+        current = first
+        while let ifa = current {
+            let name = String(cString: ifa.pointee.ifa_name)
+            if name == "en0",
+                let addr = ifa.pointee.ifa_addr,
+                addr.pointee.sa_family == UInt8(AF_INET)
+            {
+                var hostname = [CChar](
+                    repeating: 0, count: Int(NI_MAXHOST)
+                )
+                let result = getnameinfo(
+                    addr,
+                    socklen_t(addr.pointee.sa_len),
+                    &hostname,
+                    socklen_t(hostname.count),
+                    nil, 0, NI_NUMERICHOST
+                )
+                if result == 0 {
+                    return ("en0", String(cString: hostname))
+                }
+            }
+            current = ifa.pointee.ifa_next
+        }
+
+        return (defaultIface, "")
+    }
+
+    private func getDefaultInterface() -> String {
+        // Use sysctl to get default route interface
+        // Fallback to "en0" if unavailable
+        var ifaddr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0,
+            let first = ifaddr
+        else { return "en0" }
+        defer { freeifaddrs(first) }
+
+        // Find the first active en* interface with an IPv4 addr
+        var current: UnsafeMutablePointer<ifaddrs>? = first
+        while let ifa = current {
+            let name = String(cString: ifa.pointee.ifa_name)
+            let flags = Int32(ifa.pointee.ifa_flags)
+            if name.hasPrefix("en"),
+                flags & IFF_UP != 0,
+                flags & IFF_RUNNING != 0,
+                let addr = ifa.pointee.ifa_addr,
+                addr.pointee.sa_family == UInt8(AF_INET)
+            {
+                return name
+            }
+            current = ifa.pointee.ifa_next
+        }
+
+        // Check for utun (VPN/proxy) interfaces
+        current = first
+        while let ifa = current {
+            let name = String(cString: ifa.pointee.ifa_name)
+            let flags = Int32(ifa.pointee.ifa_flags)
+            if name.hasPrefix("utun"),
+                flags & IFF_UP != 0,
+                flags & IFF_RUNNING != 0,
+                let addr = ifa.pointee.ifa_addr,
+                addr.pointee.sa_family == UInt8(AF_INET)
+            {
+                return name
+            }
+            current = ifa.pointee.ifa_next
+        }
+
+        return "en0"
+    }
+
     private func isPhysicalInterface(
         _ name: String
     ) -> Bool {

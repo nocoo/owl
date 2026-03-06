@@ -109,10 +109,17 @@ public struct CPUTicks: Sendable, Equatable {
 public struct MemoryInfo: Sendable, Equatable {
     public let total: UInt64
     public let used: UInt64
+    public let cached: UInt64
+    public let available: UInt64
 
-    public init(total: UInt64, used: UInt64) {
+    public init(
+        total: UInt64, used: UInt64,
+        cached: UInt64 = 0, available: UInt64 = 0
+    ) {
         self.total = total
         self.used = used
+        self.cached = cached
+        self.available = available
     }
 }
 
@@ -192,10 +199,24 @@ public struct MachMetricsProvider: MetricsProvider {
         let wired = UInt64(vmStats.wire_count) * pageSize
         let compressed = UInt64(vmStats.compressor_page_count)
             * pageSize
+        let purgeable = UInt64(vmStats.purgeable_count)
+            * pageSize
+        let external = UInt64(vmStats.external_page_count)
+            * pageSize
+        let free = UInt64(vmStats.free_count) * pageSize
+
+        let used = active + wired + compressed
+        // File-backed pages (cached) — external + purgeable
+        let cached = external + purgeable
+        // Available = free + purgeable + (inactive pages that can be reclaimed)
+        let inactive = UInt64(vmStats.inactive_count) * pageSize
+        let available = free + inactive + purgeable
 
         return MemoryInfo(
             total: total,
-            used: active + wired + compressed
+            used: used,
+            cached: cached,
+            available: available
         )
     }
 }
@@ -241,6 +262,12 @@ public actor SystemMetricsPoller {
     ) = (0, 0)
     private var prevNetTime: Date = .distantPast
 
+    // Disk I/O previous counters
+    private var prevDiskIO: (
+        readBytes: UInt64, writeBytes: UInt64
+    ) = (0, 0)
+    private var prevDiskTime: Date = .distantPast
+
     // Previous process snapshot for CPU delta
     private var prevProcesses: [ProcessMetric] = []
 
@@ -280,6 +307,8 @@ public actor SystemMetricsPoller {
         prevCoreTicks = perCoreProvider.coreTicks()
         prevNetBytes = networkProvider.totalBytes()
         prevNetTime = Date()
+        prevDiskIO = diskProvider.diskIOBytes()
+        prevDiskTime = Date()
         prevProcesses = processProvider.topProcesses()
 
         pollTask = Task { [weak self] in
@@ -368,6 +397,8 @@ public actor SystemMetricsPoller {
         return ExtendedMemoryInfo(
             total: mem.total,
             used: mem.used,
+            cached: mem.cached,
+            available: mem.available,
             swapTotal: swap.total,
             swapUsed: swap.used
         )
@@ -375,16 +406,37 @@ public actor SystemMetricsPoller {
 
     private func sampleDisk() -> DiskMetrics {
         let diskUsage = diskProvider.diskUsage()
+        let diskIO = diskProvider.diskIOBytes()
+        let now = Date()
+        let elapsed = now.timeIntervalSince(prevDiskTime)
+        defer {
+            prevDiskIO = diskIO
+            prevDiskTime = now
+        }
+
+        var readRate: Double = 0
+        var writeRate: Double = 0
+        if elapsed > 0 {
+            let dRead = diskIO.readBytes >= prevDiskIO.readBytes
+                ? diskIO.readBytes - prevDiskIO.readBytes : 0
+            let dWrite =
+                diskIO.writeBytes >= prevDiskIO.writeBytes
+                ? diskIO.writeBytes - prevDiskIO.writeBytes : 0
+            readRate = Double(dRead) / elapsed
+            writeRate = Double(dWrite) / elapsed
+        }
+
         return DiskMetrics(
             totalBytes: diskUsage.total,
             usedBytes: diskUsage.used,
-            readBytesPerSec: 0,
-            writeBytesPerSec: 0
+            readBytesPerSec: readRate,
+            writeBytesPerSec: writeRate
         )
     }
 
     private func sampleNetwork() -> NetworkMetrics {
         let netBytes = networkProvider.totalBytes()
+        let ifInfo = networkProvider.activeInterfaceInfo()
         let now = Date()
         let elapsed = now.timeIntervalSince(prevNetTime)
         defer {
@@ -392,14 +444,23 @@ public actor SystemMetricsPoller {
             prevNetTime = now
         }
 
-        guard elapsed > 0 else { return .zero }
+        guard elapsed > 0 else {
+            return NetworkMetrics(
+                bytesInPerSec: 0,
+                bytesOutPerSec: 0,
+                activeInterface: ifInfo.name,
+                localIP: ifInfo.ip
+            )
+        }
         let dIn = netBytes.bytesIn >= prevNetBytes.bytesIn
             ? netBytes.bytesIn - prevNetBytes.bytesIn : 0
         let dOut = netBytes.bytesOut >= prevNetBytes.bytesOut
             ? netBytes.bytesOut - prevNetBytes.bytesOut : 0
         return NetworkMetrics(
             bytesInPerSec: Double(dIn) / elapsed,
-            bytesOutPerSec: Double(dOut) / elapsed
+            bytesOutPerSec: Double(dOut) / elapsed,
+            activeInterface: ifInfo.name,
+            localIP: ifInfo.ip
         )
     }
 

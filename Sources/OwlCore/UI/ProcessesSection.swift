@@ -5,7 +5,7 @@ struct ProcessesSection: View {
     let metrics: SystemMetrics
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
                 "Top Processes",
                 symbol: "list.number",
@@ -20,7 +20,7 @@ struct ProcessesSection: View {
                     .foregroundStyle(.tertiary)
                     .frame(height: 14)
             } else {
-                ForEach(procs.prefix(5)) { proc in
+                ForEach(procs.prefix(3)) { proc in
                     processRow(proc)
                 }
             }

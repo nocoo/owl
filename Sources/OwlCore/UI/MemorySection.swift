@@ -1,17 +1,18 @@
 import SwiftUI
 
-/// Memory section: used, free, swap bars + total/avail text.
+/// Memory section: used/free bars, total, cached, available, swap.
 struct MemorySection: View {
     let metrics: SystemMetrics
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
                 "Memory", symbol: "memorychip", color: .purple
             )
 
             let mem = metrics.extendedMemory
 
+            // Used bar
             MetricRow(
                 "Used",
                 value: mem.usedPercent,
@@ -21,14 +22,28 @@ struct MemorySection: View {
                 )
             )
 
+            // Free bar
             MetricRow(
                 "Free",
-                value: freePercent,
-                text: String(format: "%.1f%%", freePercent),
-                color: .cyan
+                value: mem.freePercent,
+                text: String(format: "%.1f%%", mem.freePercent),
+                color: .green
             )
 
-            // Swap
+            // Total row
+            InfoRow("Total", value: "\(formatBytes(mem.used)) / \(formatBytes(mem.total))")
+
+            // Cached row
+            if mem.cached > 0 {
+                InfoRow("Cache", value: formatBytes(mem.cached))
+            }
+
+            // Available row
+            if mem.available > 0 {
+                InfoRow("Avail", value: formatBytes(mem.available))
+            }
+
+            // Swap bar + absolute values
             if mem.swapTotal > 0 {
                 MetricRow(
                     "Swap",
@@ -40,47 +55,12 @@ struct MemorySection: View {
                         mem.swapPercent, yellow: 50, red: 80
                     )
                 )
-            }
 
-            // Total / Available
-            let totalText = formatBytes(mem.total)
-            let availText = formatBytes(mem.free)
-
-            HStack(spacing: 6) {
-                Text("Total")
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-                    .frame(width: 40, alignment: .leading)
-                Text(totalText)
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
+                InfoRow(
+                    "",
+                    value: "\(formatBytes(mem.swapUsed)) / \(formatBytes(mem.swapTotal))"
+                )
             }
-            .frame(height: 14)
-
-            HStack(spacing: 6) {
-                Text("Avail")
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-                    .frame(width: 40, alignment: .leading)
-                Text(availText)
-                    .font(
-                        .system(size: 10, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-            }
-            .frame(height: 14)
         }
-    }
-
-    private var freePercent: Double {
-        let mem = metrics.extendedMemory
-        guard mem.total > 0 else { return 0 }
-        return Double(mem.free) / Double(mem.total) * 100
     }
 }

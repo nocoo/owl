@@ -2,9 +2,9 @@ import SwiftUI
 
 /// Root SwiftUI view for the popover.
 ///
-/// Two-column system dashboard (~580px wide) with active alerts
-/// at the top, CPU/Disk/Processes on the left, and
-/// Memory/Power/Network on the right.
+/// Single-column system dashboard (~280px wide) with app header,
+/// active alerts (scrollable if >4), followed by all metrics
+/// sections displayed in full without scrolling.
 public struct PopoverContentView: View {
     @ObservedObject var appState: AppState
 
@@ -23,21 +23,38 @@ public struct PopoverContentView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Active alerts at top (full width)
+            // App header
+            appHeader
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+
+            Divider()
+
+            // Metrics — no scroll, show everything
+            VStack(alignment: .leading, spacing: 6) {
+                CPUSection(metrics: appState.metrics)
+                MemorySection(metrics: appState.metrics)
+                DiskSection(metrics: appState.metrics)
+                PowerSection(metrics: appState.metrics)
+                ProcessesSection(metrics: appState.metrics)
+                NetworkSection(
+                    metrics: appState.metrics,
+                    inHistory: appState.networkInHistory,
+                    outHistory: appState.networkOutHistory
+                )
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            // Active alerts at bottom (scrollable, ~3 rows)
             if !appState.activeAlerts.isEmpty {
+                Divider()
+
                 ActiveAlertsSection(
                     alerts: appState.activeAlerts
                 )
                 .padding(.vertical, 4)
-
-                Divider()
-            }
-
-            // Two-column metrics dashboard
-            ScrollView {
-                metricsGrid
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
             }
 
             Divider()
@@ -47,27 +64,49 @@ public struct PopoverContentView: View {
                 onQuit: onQuit
             )
         }
-        .frame(width: 580)
+        .frame(width: 280)
         .background(.ultraThinMaterial)
     }
 
-    private var metricsGrid: some View {
-        HStack(alignment: .top, spacing: 16) {
-            // Left column: CPU, Disk, Processes
-            VStack(alignment: .leading, spacing: 12) {
-                CPUSection(metrics: appState.metrics)
-                DiskSection(metrics: appState.metrics)
-                ProcessesSection(metrics: appState.metrics)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private var appHeader: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "bird.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(.primary)
 
-            // Right column: Memory, Power, Network
-            VStack(alignment: .leading, spacing: 12) {
-                MemorySection(metrics: appState.metrics)
-                PowerSection(metrics: appState.metrics)
-                NetworkSection(metrics: appState.metrics)
+            Text("Owl")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.primary)
+
+            Spacer()
+
+            // Status dot
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 6, height: 6)
+                Text(statusText)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var statusColor: Color {
+        switch appState.currentSeverity {
+        case .normal: return .green
+        case .info: return .blue
+        case .warning: return .yellow
+        case .critical: return .red
+        }
+    }
+
+    private var statusText: String {
+        switch appState.currentSeverity {
+        case .normal: return "Normal"
+        case .info: return "Info"
+        case .warning: return "Warning"
+        case .critical: return "Critical"
         }
     }
 }

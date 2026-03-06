@@ -37,16 +37,23 @@ public struct CoreCPUTicks: Sendable, Equatable {
     public var active: UInt64 { user &+ system &+ nice }
 }
 
-/// Load averages (1, 5, 15 minute).
+/// Load averages (1, 5, 15 minute) with core topology.
 public struct LoadAverage: Sendable, Equatable {
     public let one: Double
     public let five: Double
     public let fifteen: Double
+    public let performanceCores: Int
+    public let efficiencyCores: Int
 
-    public init(one: Double, five: Double, fifteen: Double) {
+    public init(
+        one: Double, five: Double, fifteen: Double,
+        performanceCores: Int = 0, efficiencyCores: Int = 0
+    ) {
         self.one = one
         self.five = five
         self.fifteen = fifteen
+        self.performanceCores = performanceCores
+        self.efficiencyCores = efficiencyCores
     }
 
     public static let zero = LoadAverage(
@@ -54,27 +61,38 @@ public struct LoadAverage: Sendable, Equatable {
     )
 }
 
-/// Extended memory info including swap.
+/// Extended memory info including swap, cached, and available.
 public struct ExtendedMemoryInfo: Sendable, Equatable {
     public let total: UInt64
     public let used: UInt64
+    public let cached: UInt64
+    public let available: UInt64
     public let swapTotal: UInt64
     public let swapUsed: UInt64
 
     public init(
         total: UInt64,
         used: UInt64,
+        cached: UInt64 = 0,
+        available: UInt64 = 0,
         swapTotal: UInt64,
         swapUsed: UInt64
     ) {
         self.total = total
         self.used = used
+        self.cached = cached
+        self.available = available
         self.swapTotal = swapTotal
         self.swapUsed = swapUsed
     }
 
     public var free: UInt64 {
         total > used ? total - used : 0
+    }
+
+    public var freePercent: Double {
+        guard total > 0 else { return 0 }
+        return Double(free) / Double(total) * 100
     }
 
     public var usedPercent: Double {
@@ -88,7 +106,8 @@ public struct ExtendedMemoryInfo: Sendable, Equatable {
     }
 
     public static let zero = ExtendedMemoryInfo(
-        total: 0, used: 0, swapTotal: 0, swapUsed: 0
+        total: 0, used: 0, cached: 0, available: 0,
+        swapTotal: 0, swapUsed: 0
     )
 }
 
@@ -177,21 +196,28 @@ public struct BatteryMetrics: Sendable, Equatable {
     )
 }
 
-/// Network throughput.
+/// Network throughput with interface info.
 public struct NetworkMetrics: Sendable, Equatable {
     public let bytesInPerSec: Double
     public let bytesOutPerSec: Double
+    public let activeInterface: String // e.g. "en0", "utun3"
+    public let localIP: String // e.g. "192.168.31.141"
 
     public init(
         bytesInPerSec: Double,
-        bytesOutPerSec: Double
+        bytesOutPerSec: Double,
+        activeInterface: String = "",
+        localIP: String = ""
     ) {
         self.bytesInPerSec = bytesInPerSec
         self.bytesOutPerSec = bytesOutPerSec
+        self.activeInterface = activeInterface
+        self.localIP = localIP
     }
 
     public static let zero = NetworkMetrics(
-        bytesInPerSec: 0, bytesOutPerSec: 0
+        bytesInPerSec: 0, bytesOutPerSec: 0,
+        activeInterface: "", localIP: ""
     )
 }
 
