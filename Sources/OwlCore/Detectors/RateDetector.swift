@@ -124,9 +124,16 @@ public final class RateDetector: PatternDetector {
         severity: Severity,
         timestamp: Date
     ) -> Alert? {
-        // Check cooldown
+        // Check cooldown (but allow severity escalation)
         if let until = cooldownUntil[key] {
             if timestamp < until {
+                // During cooldown, only allow escalation to higher severity
+                if let currentSeverity = groupState[key], severity > currentSeverity {
+                    // Allow escalation — update state and reset cooldown
+                    groupState[key] = severity
+                    cooldownUntil[key] = timestamp.addingTimeInterval(config.cooldownInterval)
+                    return makeAlert(key: key, count: count, severity: severity, timestamp: timestamp)
+                }
                 return nil
             }
             // Cooldown expired — reset state so we can re-alert
