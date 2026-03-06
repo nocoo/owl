@@ -11,6 +11,30 @@ public struct SystemMetrics: Sendable, Equatable {
     /// Used memory in bytes (active + wired + compressed).
     public let memoryUsed: UInt64
 
+    /// Per-core CPU usage (may be empty if unavailable).
+    public let perCoreCPU: [CoreCPUUsage]
+
+    /// CPU temperature in Celsius (nil if unavailable).
+    public let cpuTemperature: Double?
+
+    /// Load averages (1, 5, 15 min).
+    public let loadAverage: LoadAverage
+
+    /// Extended memory info with swap.
+    public let extendedMemory: ExtendedMemoryInfo
+
+    /// Disk usage and I/O.
+    public let disk: DiskMetrics
+
+    /// Battery / power info.
+    public let battery: BatteryMetrics
+
+    /// Network throughput.
+    public let network: NetworkMetrics
+
+    /// Top processes by CPU.
+    public let topProcesses: [ProcessMetric]
+
     /// Memory pressure as a percentage (0.0 to 100.0).
     public var memoryPressure: Double {
         guard memoryTotal > 0 else { return 0 }
@@ -20,11 +44,27 @@ public struct SystemMetrics: Sendable, Equatable {
     public init(
         cpuUsage: Double,
         memoryTotal: UInt64,
-        memoryUsed: UInt64
+        memoryUsed: UInt64,
+        perCoreCPU: [CoreCPUUsage] = [],
+        cpuTemperature: Double? = nil,
+        loadAverage: LoadAverage = .zero,
+        extendedMemory: ExtendedMemoryInfo = .zero,
+        disk: DiskMetrics = .zero,
+        battery: BatteryMetrics = .unavailable,
+        network: NetworkMetrics = .zero,
+        topProcesses: [ProcessMetric] = []
     ) {
         self.cpuUsage = cpuUsage
         self.memoryTotal = memoryTotal
         self.memoryUsed = memoryUsed
+        self.perCoreCPU = perCoreCPU
+        self.cpuTemperature = cpuTemperature
+        self.loadAverage = loadAverage
+        self.extendedMemory = extendedMemory
+        self.disk = disk
+        self.battery = battery
+        self.network = network
+        self.topProcesses = topProcesses
     }
 
     /// Default "zero" metrics for initial state.
@@ -183,6 +223,27 @@ public actor SystemMetricsPoller {
         user: 0, system: 0, idle: 0, nice: 0
     )
 
+    // Extended providers
+    private let perCoreProvider = PerCoreCPUProvider()
+    private let smcProvider = SMCTemperatureProvider()
+    private let swapProvider = SwapProvider()
+    private let diskProvider = DiskMetricsProvider()
+    private let batteryProvider = BatteryProvider()
+    private let networkProvider = NetworkMetricsProvider()
+    private let processProvider = TopProcessProvider()
+
+    // Per-core previous ticks for delta
+    private var prevCoreTicks: [CoreCPUTicks] = []
+
+    // Network previous counters
+    private var prevNetBytes: (
+        bytesIn: UInt64, bytesOut: UInt64
+    ) = (0, 0)
+    private var prevNetTime: Date = .distantPast
+
+    // Previous process snapshot for CPU delta
+    private var prevProcesses: [ProcessMetric] = []
+
     // MARK: - Init
 
     /// Create a SystemMetricsPoller.
@@ -214,6 +275,12 @@ public actor SystemMetricsPoller {
             memoryTotal: mem.total,
             memoryUsed: mem.used
         )
+
+        // Take initial baselines for extended metrics
+        prevCoreTicks = perCoreProvider.coreTicks()
+        prevNetBytes = networkProvider.totalBytes()
+        prevNetTime = Date()
+        prevProcesses = processProvider.topProcesses()
 
         pollTask = Task { [weak self] in
             await self?.pollLoop()
@@ -266,10 +333,104 @@ public actor SystemMetricsPoller {
         // Memory
         let mem = provider.memoryInfo()
 
+        // Per-core CPU
+        let coreTicks = perCoreProvider.coreTicks()
+        let perCore = computePerCoreCPU(
+            prev: prevCoreTicks, curr: coreTicks
+        )
+        prevCoreTicks = coreTicks
+
+        // Temperature
+        let temp = smcProvider.cpuTemperature()
+
+        // Load average
+        let load = perCoreProvider.loadAverage()
+
+        // Swap
+        let swap = swapProvider.swapUsage()
+        let extMem = ExtendedMemoryInfo(
+            total: mem.total, used: mem.used,
+            swapTotal: swap.total, swapUsed: swap.used
+        )
+
+        // Disk
+        let diskUsage = diskProvider.diskUsage()
+        let disk = DiskMetrics(
+            totalBytes: diskUsage.total,
+            usedBytes: diskUsage.used,
+            readBytesPerSec: 0, writeBytesPerSec: 0
+        )
+
+        // Battery
+        let battery = batteryProvider.batteryInfo()
+
+        // Network
+        let netBytes = networkProvider.totalBytes()
+        let now = Date()
+        let netInterval = now.timeIntervalSince(prevNetTime)
+        let network: NetworkMetrics
+        if netInterval > 0 {
+            let dIn = netBytes.bytesIn >= prevNetBytes.bytesIn
+                ? netBytes.bytesIn - prevNetBytes.bytesIn : 0
+            let dOut = netBytes.bytesOut >= prevNetBytes.bytesOut
+                ? netBytes.bytesOut - prevNetBytes.bytesOut : 0
+            network = NetworkMetrics(
+                bytesInPerSec: Double(dIn) / netInterval,
+                bytesOutPerSec: Double(dOut) / netInterval
+            )
+        } else {
+            network = .zero
+        }
+        prevNetBytes = netBytes
+        prevNetTime = now
+
+        // Top processes
+        let curProcesses = processProvider.topProcesses()
+        let topProcs = TopProcessProvider.computeCPUPercent(
+            previous: prevProcesses,
+            current: curProcesses,
+            interval: interval,
+            coreCount: max(coreTicks.count, 1)
+        )
+        prevProcesses = curProcesses
+
         currentMetrics = SystemMetrics(
             cpuUsage: cpuUsage,
             memoryTotal: mem.total,
-            memoryUsed: mem.used
+            memoryUsed: mem.used,
+            perCoreCPU: perCore,
+            cpuTemperature: temp,
+            loadAverage: load,
+            extendedMemory: extMem,
+            disk: disk,
+            battery: battery,
+            network: network,
+            topProcesses: Array(topProcs.prefix(5))
         )
+    }
+
+    private func computePerCoreCPU(
+        prev: [CoreCPUTicks],
+        curr: [CoreCPUTicks]
+    ) -> [CoreCPUUsage] {
+        guard prev.count == curr.count else {
+            return curr.map {
+                CoreCPUUsage(id: $0.coreID, usage: 0)
+            }
+        }
+        return zip(prev, curr).map { old, new in
+            let dTotal = new.total &- old.total
+            let dActive = new.active &- old.active
+            let usage: Double
+            if dTotal > 0 {
+                usage = Double(dActive) / Double(dTotal)
+                    * 100.0
+            } else {
+                usage = 0
+            }
+            return CoreCPUUsage(
+                id: new.coreID, usage: usage
+            )
+        }
     }
 }

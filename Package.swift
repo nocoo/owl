@@ -11,7 +11,10 @@ let package = Package(
         // Core library — all testable business logic lives here
         .target(
             name: "OwlCore",
-            path: "Sources/OwlCore"
+            path: "Sources/OwlCore",
+            linkerSettings: [
+                .linkedFramework("IOKit")
+            ]
         ),
         // Executable — thin app shell, UI entry point
         .executableTarget(
