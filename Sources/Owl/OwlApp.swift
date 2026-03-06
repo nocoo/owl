@@ -8,11 +8,6 @@ import SwiftUI
 struct OwlApp {
     @MainActor
     static func main() {
-        // Signal Dark Mode support for unbundled binary
-        UserDefaults.standard.set(
-            false, forKey: "NSRequiresAquaSystemAppearance"
-        )
-
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
 
@@ -284,20 +279,37 @@ extension AppDelegate {
 
         guard let button = statusItem?.button else { return }
 
-        let symbolConfig = NSImage.SymbolConfiguration(
+        let useTemplate = iconConfig.colorName == .default
+
+        let sizeConfig = NSImage.SymbolConfiguration(
             pointSize: 16, weight: .medium
         )
-        let image: NSImage? = NSImage(
-            systemSymbolName: iconConfig.symbolName,
-            accessibilityDescription: iconConfig.accessibilityLabel
-        )?.withSymbolConfiguration(symbolConfig)
-            .flatMap { $0.copy() as? NSImage }
 
-        let useTemplate = iconConfig.colorName == .default
-        image?.isTemplate = useTemplate
+        let image: NSImage?
+        if useTemplate {
+            image = NSImage(
+                systemSymbolName: iconConfig.symbolName,
+                accessibilityDescription: iconConfig.accessibilityLabel
+            )?.withSymbolConfiguration(sizeConfig)
+                .flatMap { $0.copy() as? NSImage }
+            image?.isTemplate = true
+            button.contentTintColor = nil
+        } else {
+            let colorConfig = NSImage.SymbolConfiguration
+                .preferringHierarchical()
+                .applying(sizeConfig)
+            image = NSImage(
+                systemSymbolName: iconConfig.symbolName,
+                accessibilityDescription: iconConfig.accessibilityLabel
+            )?.withSymbolConfiguration(colorConfig)
+                .flatMap { $0.copy() as? NSImage }
+            image?.isTemplate = false
+            button.contentTintColor = nsColor(
+                for: iconConfig.colorName
+            )
+        }
+
         button.image = image
-        button.contentTintColor = useTemplate
-            ? nil : nsColor(for: iconConfig.colorName)
 
         stopPulseAnimation()
         if iconConfig.shouldPulse {
