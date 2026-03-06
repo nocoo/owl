@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Power section: battery level/health bars, state with time remaining,
-/// condition + cycles + temperature merged on bottom row.
+/// Power section: battery level/health bars, state+cycles two-column row,
+/// condition + temperature bottom row.
 struct PowerSection: View {
     let metrics: SystemMetrics
 
@@ -29,42 +29,30 @@ struct PowerSection: View {
                 color: healthColor(batt.health)
             )
 
-            // State + time remaining on same row
-            stateRow(batt)
+            // State + Cycles — two-column InfoRow style
+            TwoColumnInfoRow(
+                leftLabel: stateLabel(batt),
+                leftValue: timeRemainingText(batt),
+                rightLabel: "Cycles",
+                rightValue: "\(batt.cycleCount)"
+            )
 
-            // Bottom row: condition · cycles · temperature
+            // Bottom row: condition · temperature
             bottomRow(batt)
         }
     }
 
-    private func stateRow(
-        _ batt: BatteryMetrics
-    ) -> some View {
-        HStack(spacing: 4) {
-            Text("")
-                .frame(width: 40)
-            Image(systemName: chargingIcon(batt))
-                .font(.system(size: 8))
-                .foregroundStyle(chargingColor(batt))
-            Text(batt.stateText)
-                .font(
-                    .system(size: 9, design: .monospaced)
-                )
-                .foregroundStyle(.secondary)
+    private func stateLabel(_ batt: BatteryMetrics) -> String {
+        if batt.isCharging { return "⚡ Charging" }
+        if batt.isPluggedIn { return "🔌 Plugged" }
+        return "🔋 Battery"
+    }
 
-            if let mins = batt.timeRemaining, mins > 0 {
-                Text("·")
-                    .foregroundStyle(.tertiary)
-                Text(formatTimeRemaining(mins))
-                    .font(
-                        .system(size: 9, design: .monospaced)
-                    )
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
+    private func timeRemainingText(_ batt: BatteryMetrics) -> String {
+        if let mins = batt.timeRemaining, mins > 0 {
+            return formatTimeRemaining(mins)
         }
-        .frame(height: 14)
+        return ""
     }
 
     private func bottomRow(
@@ -96,8 +84,6 @@ struct PowerSection: View {
             parts.append(batt.condition)
         }
 
-        parts.append("\(batt.cycleCount) cycles")
-
         if let temp = batt.temperature {
             parts.append(String(format: "%.1f°C", temp))
         }
@@ -121,21 +107,5 @@ struct PowerSection: View {
         if health < 50 { return .red }
         if health < 80 { return .yellow }
         return .green
-    }
-
-    private func chargingIcon(
-        _ batt: BatteryMetrics
-    ) -> String {
-        if batt.isCharging { return "bolt.fill" }
-        if batt.isPluggedIn { return "powerplug.fill" }
-        return "battery.100"
-    }
-
-    private func chargingColor(
-        _ batt: BatteryMetrics
-    ) -> Color {
-        if batt.isCharging { return .green }
-        if batt.isPluggedIn { return .yellow }
-        return .secondary
     }
 }

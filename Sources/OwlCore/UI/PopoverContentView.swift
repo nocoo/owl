@@ -37,12 +37,12 @@ public struct PopoverContentView: View {
                 MemorySection(metrics: appState.metrics)
                 DiskSection(metrics: appState.metrics)
                 PowerSection(metrics: appState.metrics)
-                ProcessesSection(metrics: appState.metrics)
                 NetworkSection(
                     metrics: appState.metrics,
                     inHistory: appState.networkInHistory,
                     outHistory: appState.networkOutHistory
                 )
+                ProcessesSection(metrics: appState.metrics)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)

@@ -41,26 +41,13 @@ struct NetworkSection: View {
     private func interfaceRow(
         _ net: NetworkMetrics
     ) -> some View {
-        HStack(spacing: 4) {
-            Text("")
-                .frame(width: 40)
-            Text(interfaceLabel(net.activeInterface))
-                .font(
-                    .system(size: 9, design: .monospaced)
-                )
-                .foregroundStyle(.tertiary)
-            if !net.localIP.isEmpty {
-                Text("·")
-                    .foregroundStyle(.quaternary)
-                Text(net.localIP)
-                    .font(
-                        .system(size: 9, design: .monospaced)
-                    )
-                    .foregroundStyle(.tertiary)
-            }
-            Spacer()
-        }
-        .frame(height: 12)
+        let ipText = net.localIP.isEmpty ? "" : net.localIP
+        return TwoColumnInfoRow(
+            leftLabel: interfaceLabel(net.activeInterface),
+            leftValue: "",
+            rightLabel: "IP",
+            rightValue: ipText
+        )
     }
 
     private func interfaceLabel(_ name: String) -> String {

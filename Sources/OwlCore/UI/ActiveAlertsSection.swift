@@ -62,7 +62,7 @@ public struct ActiveAlertsSection: View {
                     }
                 }
             }
-            .frame(maxHeight: 260)
+            .frame(maxHeight: 200)
         }
     }
 }

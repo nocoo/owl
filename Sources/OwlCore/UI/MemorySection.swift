@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Memory section: used/free bars, total, cached, available, swap.
+/// Memory section: used/free bars, total, cache+avail merged row, swap.
 struct MemorySection: View {
     let metrics: SystemMetrics
 
@@ -33,14 +33,14 @@ struct MemorySection: View {
             // Total row
             InfoRow("Total", value: "\(formatBytes(mem.used)) / \(formatBytes(mem.total))")
 
-            // Cached row
-            if mem.cached > 0 {
-                InfoRow("Cache", value: formatBytes(mem.cached))
-            }
-
-            // Available row
-            if mem.available > 0 {
-                InfoRow("Avail", value: formatBytes(mem.available))
+            // Cache + Available merged into one two-column row
+            if mem.cached > 0 || mem.available > 0 {
+                TwoColumnInfoRow(
+                    leftLabel: "Cache",
+                    leftValue: formatBytes(mem.cached),
+                    rightLabel: "Avail",
+                    rightValue: formatBytes(mem.available)
+                )
             }
 
             // Swap bar + absolute values
@@ -62,5 +62,40 @@ struct MemorySection: View {
                 )
             }
         }
+    }
+}
+
+/// Two-column info row: "Label  Value    Label  Value" in InfoRow-style font.
+struct TwoColumnInfoRow: View {
+    let leftLabel: String
+    let leftValue: String
+    let rightLabel: String
+    let rightValue: String
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Left column
+            HStack(spacing: 4) {
+                Text(leftLabel)
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+                Text(leftValue)
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Right column
+            HStack(spacing: 4) {
+                Text(rightLabel)
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+                Text(rightValue)
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(height: 12)
     }
 }
