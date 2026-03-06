@@ -8,6 +8,11 @@ import SwiftUI
 struct OwlApp {
     @MainActor
     static func main() {
+        // Signal Dark Mode support for unbundled binary
+        UserDefaults.standard.set(
+            false, forKey: "NSRequiresAquaSystemAppearance"
+        )
+
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
 
@@ -90,12 +95,14 @@ extension AppDelegate {
         let config = NSImage.SymbolConfiguration(
             pointSize: 16, weight: .medium
         )
-        let image = NSImage(
+        if let source = NSImage(
             systemSymbolName: "bird",
             accessibilityDescription: "Owl"
-        )?.withSymbolConfiguration(config)
-        image?.isTemplate = true
-        button.image = image
+        )?.withSymbolConfiguration(config),
+            let image = source.copy() as? NSImage {
+            image.isTemplate = true
+            button.image = image
+        }
 
         button.action = #selector(handleClick(_:))
         button.target = self
@@ -280,10 +287,11 @@ extension AppDelegate {
         let symbolConfig = NSImage.SymbolConfiguration(
             pointSize: 16, weight: .medium
         )
-        let image = NSImage(
+        let image: NSImage? = NSImage(
             systemSymbolName: iconConfig.symbolName,
             accessibilityDescription: iconConfig.accessibilityLabel
         )?.withSymbolConfiguration(symbolConfig)
+            .flatMap { $0.copy() as? NSImage }
 
         let useTemplate = iconConfig.colorName == .default
         image?.isTemplate = useTemplate
