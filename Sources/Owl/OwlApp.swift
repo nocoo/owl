@@ -94,6 +94,7 @@ extension AppDelegate {
             systemSymbolName: "bird",
             accessibilityDescription: "Owl"
         )?.withSymbolConfiguration(config)
+        image?.isTemplate = true
         button.image = image
 
         button.action = #selector(handleClick(_:))
@@ -284,8 +285,11 @@ extension AppDelegate {
             accessibilityDescription: iconConfig.accessibilityLabel
         )?.withSymbolConfiguration(symbolConfig)
 
+        let useTemplate = iconConfig.colorName == .default
+        image?.isTemplate = useTemplate
         button.image = image
-        button.contentTintColor = nsColor(for: iconConfig.colorName)
+        button.contentTintColor = useTemplate
+            ? nil : nsColor(for: iconConfig.colorName)
 
         stopPulseAnimation()
         if iconConfig.shouldPulse {
