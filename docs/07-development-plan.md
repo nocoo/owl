@@ -82,24 +82,24 @@ Atomic execution plan for Owl. Each step is a single commit.
 | 1.3.13 | P12 NetworkPattern (RateDetector global aggregate) + UT | aaf0276 | [x] |
 | 1.3.14 | P13 USBPattern (RateDetector config + regex) + UT | ba4368b | [x] |
 | 1.3.15 | P14 DarkWakePattern (RateDetector global aggregate) + UT | f273481 | [x] |
-| 1.3.16 | PatternCatalog factory (creates all 14 detectors) + UT | | [ ] |
+| 1.3.16 | PatternCatalog factory (creates all 14 detectors) + UT | 61c81cb | [x] |
 
 ### Phase 1.4: DetectorPipeline
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 1.4.1 | Implement `DetectorPipeline` actor (dispatch LogEntry to detectors, accepts→process flow) + UT | | [ ] |
-| 1.4.2 | Add performTick() periodic maintenance + UT | | [ ] |
-| 1.4.3 | Integration test: full pipeline with multiple detectors firing simultaneously | | [ ] |
+| 1.4.1 | Implement `DetectorPipeline` actor (dispatch LogEntry to detectors, accepts→process flow) + UT | 4a9aece | [x] |
+| 1.4.2 | Add performTick() periodic maintenance + UT | 4a9aece | [x] |
+| 1.4.3 | Integration test: full pipeline with multiple detectors firing simultaneously | 4a9aece | [x] |
 
 ### Phase 1.5: AlertStateManager
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 1.5.1 | Implement `AlertStateManager` (receive alerts, pending→active debounce) + UT | | [ ] |
-| 1.5.2 | Add TTL expiry + alertHistory + UT | | [ ] |
-| 1.5.3 | Add severity aggregation (currentSeverity = max of all confirmed) + UT | | [ ] |
-| 1.5.4 | Add same-detector alert update/upgrade + UT | | [ ] |
+| 1.5.1 | Implement `AlertStateManager` (receive alerts, pending→active debounce) + UT | 542fd28 | [x] |
+| 1.5.2 | Add TTL expiry + alertHistory + UT | 542fd28 | [x] |
+| 1.5.3 | Add severity aggregation (currentSeverity = max of all confirmed) + UT | 542fd28 | [x] |
+| 1.5.4 | Add same-detector alert update/upgrade + UT | 542fd28 | [x] |
 | 1.5.5 | Coverage check: verify 95%+ on all Phase 1 code | | [ ] |
 
 ---
