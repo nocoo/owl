@@ -9,6 +9,8 @@ import Combine
 @MainActor
 public final class AppState: ObservableObject {
 
+    public init() {}
+
     // MARK: - Published State
 
     /// Current aggregated severity (drives Menu Bar icon).
