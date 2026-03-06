@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+
+    <key>CFBundleExecutable</key>
+    <string>Owl</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.nocoo.owl</string>
+
+    <key>CFBundleName</key>
+    <string>Owl</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>Owl</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+
+    <key>CFBundleVersion</key>
+    <string>1</string>
+
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+
+    <!-- Menu bar app: hide from Dock -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- Minimum macOS version -->
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+
+    <!-- App category -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+
+    <!-- Supports high-resolution displays -->
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <!-- Principal class for NSApplication -->
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+
+    <!-- Human-readable copyright -->
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright 2026 nocoo. All rights reserved.</string>
+</dict>
+</plist>
