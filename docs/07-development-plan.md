@@ -49,8 +49,8 @@ Atomic execution plan for Owl. Each step is a single commit.
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 1.2b.1 | Implement `SlidingWindowCounter` (Ring Buffer time buckets, O(1) increment/advance/total) + UT | | [ ] |
-| 1.2b.2 | UT: Ring Buffer boundary conditions (full window, cross-window advance, full expiry) | | [ ] |
+| 1.2b.1 | Implement `SlidingWindowCounter` (Ring Buffer time buckets, O(1) increment/advance/total) + UT | | [x] |
+| 1.2b.2 | UT: Ring Buffer boundary conditions (full window, cross-window advance, full expiry) | | [x] |
 | 1.2b.3 | Implement `RateDetector` with grouped counting (Dictionary<String, SlidingWindowCounter>) + UT | | [ ] |
 | 1.2b.4 | Add group limit + LRU eviction to RateDetector + UT | | [ ] |
 | 1.2b.5 | Add cooldown mechanism + UT | | [ ] |
