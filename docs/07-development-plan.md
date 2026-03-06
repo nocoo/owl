@@ -138,11 +138,10 @@ Atomic execution plan for Owl. Each step is a single commit.
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 4.1 | Implement `AppSettings` (UserDefaults wrapper for all settings) + UT | | [ ] |
-| 4.2 | Settings Tab 1: General (auto-launch via SMAppService, refresh interval) | | [ ] |
-| 4.3 | Settings Tab 2: Detector toggles (14 switches, default all on) | | [ ] |
-| 4.4 | Settings Tab 3: About (version, name, icon) | | [ ] |
-| 4.5 | Wire settings to DetectorPipeline (enable/disable detectors, refresh interval) | | [ ] |
+| 4.1 | Implement `AppSettings` (UserDefaults wrapper for all settings) + UT | 565a41f | [x] |
+| 4.2 | Implement `DetectorCatalog` with display metadata for all 15 detectors + UT | e771c6a | [x] |
+| 4.3 | Implement Settings views (GeneralTab, DetectorsTab, AboutTab, SettingsView, SettingsViewModel) + UT | 0a01edb | [x] |
+| 4.4 | Wire Settings to AppDelegate (detector toggle sync, launch-at-login, Settings window) | d76ea20 | [x] |
 
 ---
 
