@@ -70,6 +70,18 @@ public struct LogEntry: Sendable {
         )
     }
 
+    /// Parse a LogEntry from a raw ndjson line string.
+    /// Returns `nil` for empty/whitespace-only lines (e.g. between log batches).
+    /// Throws for malformed JSON or missing required fields.
+    public static func fromLine(_ line: String) throws -> LogEntry? {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        guard let data = trimmed.data(using: .utf8) else {
+            throw LogEntryParseError.invalidJSON
+        }
+        return try fromJSON(data)
+    }
+
     /// Extract process name from full image path (e.g. "/usr/libexec/airportd" → "airportd").
     private static func extractProcessName(from path: String) -> String {
         guard !path.isEmpty else { return "" }

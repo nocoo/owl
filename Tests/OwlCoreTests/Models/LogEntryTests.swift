@@ -104,6 +104,39 @@ struct LogEntryTests {
         }
     }
 
+    // MARK: - fromLine() parsing
+
+    @Test func fromLineReturnsNilForEmptyString() throws {
+        #expect(try LogEntry.fromLine("") == nil)
+    }
+
+    @Test func fromLineReturnsNilForWhitespace() throws {
+        #expect(try LogEntry.fromLine("   \n  ") == nil)
+    }
+
+    @Test func fromLineParsesValidJSON() throws {
+        // swiftlint:disable:next line_length
+        let line = #"{"timestamp":"2026-03-06 08:30:44.123456+0800","eventMessage":"test msg","processID":42,"processImagePath":"/usr/bin/foo","subsystem":"","category":"","messageType":"Default"}"#
+        let entry = try LogEntry.fromLine(line)
+        #expect(entry != nil)
+        #expect(entry?.process == "foo")
+        #expect(entry?.eventMessage == "test msg")
+    }
+
+    @Test func fromLineThrowsOnMalformedJSON() {
+        #expect(throws: (any Error).self) {
+            _ = try LogEntry.fromLine("{incomplete json")
+        }
+    }
+
+    @Test func fromLineHandlesTrailingNewline() throws {
+        // swiftlint:disable:next line_length
+        let line = #"{"timestamp":"2026-03-06 08:30:44.123456+0800","eventMessage":"hello","processID":0,"processImagePath":"","subsystem":"","category":"","messageType":"Default"}"# + "\n"
+        let entry = try LogEntry.fromLine(line)
+        #expect(entry != nil)
+        #expect(entry?.eventMessage == "hello")
+    }
+
     // MARK: - Sendable conformance (compile-time check)
 
     @Test func isSendable() async {
