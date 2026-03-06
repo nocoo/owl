@@ -108,12 +108,12 @@ Atomic execution plan for Owl. Each step is a single commit.
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 2.1 | Implement ndjson parser (JSON line → LogEntry) + UT with valid/invalid/incomplete JSON | | [ ] |
-| 2.2 | Implement predicate builder (combine all pattern predicates) + UT | | [ ] |
-| 2.3 | Implement `LogStreamReader` (Foundation.Process lifecycle, stdout Pipe, async line reading) + UT | | [ ] |
-| 2.4 | Add exponential backoff restart on crash (max 30s) + UT | | [ ] |
-| 2.5 | Implement `SystemMetricsPoller` (CPU via host_statistics, memory via host_statistics64) + UT | | [ ] |
-| 2.6 | Integration test: real log stream start/read/stop | | [ ] |
+| 2.1 | Implement ndjson parser (JSON line → LogEntry) + UT with valid/invalid/incomplete JSON | b6c5ce9 | [x] |
+| 2.2 | Implement predicate builder (combine all pattern predicates) + UT | 1736022 | [x] |
+| 2.3 | Implement `LogStreamReader` (Foundation.Process lifecycle, stdout Pipe, async line reading) + UT | da5363f | [x] |
+| 2.4 | Add exponential backoff restart on crash (max 30s) + UT | 1622a61 | [x] |
+| 2.5 | Implement `SystemMetricsPoller` (CPU via host_statistics, memory via host_statistics64) + UT | e36c6a7 | [x] |
+| 2.6 | Integration test: full pipeline end-to-end (11 tests covering all detector types) | 3937214 | [x] |
 
 ---
 
