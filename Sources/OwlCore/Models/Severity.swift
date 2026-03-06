@@ -1,7 +1,7 @@
 import Foundation
 
 /// Alert severity levels, ordered from least to most severe.
-public enum Severity: Int, Comparable, Codable, Sendable {
+public enum Severity: Int, Comparable, Codable, Sendable, CaseIterable {
     case normal = 0
     case info = 1
     case warning = 2
