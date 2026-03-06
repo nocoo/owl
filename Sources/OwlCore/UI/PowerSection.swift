@@ -37,8 +37,11 @@ struct PowerSection: View {
                 rightValue: "\(batt.cycleCount)"
             )
 
-            // Bottom row: condition · temperature
-            bottomRow(batt)
+            // Bottom row: condition · temperature (only if there's content)
+            let parts = buildBottomParts(batt)
+            if !parts.isEmpty {
+                bottomRow(parts)
+            }
         }
     }
 
@@ -56,13 +59,12 @@ struct PowerSection: View {
     }
 
     private func bottomRow(
-        _ batt: BatteryMetrics
+        _ parts: [String]
     ) -> some View {
         HStack(spacing: 4) {
             Text("")
                 .frame(width: 40)
 
-            let parts = buildBottomParts(batt)
             Text(parts.joined(separator: " · "))
                 .font(
                     .system(size: 9, design: .monospaced)
