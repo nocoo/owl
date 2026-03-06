@@ -151,8 +151,8 @@ Atomic execution plan for Owl. Each step is a single commit.
 |---|------|--------|--------|
 | 5.1 | Full pipeline integration: LogStreamReader → Pipeline → AlertStateManager → UI | 3937214 | [x] |
 | 5.2 | Performance validation: CPU < 1%, RAM < 30 MB | 74997f6 | [x] |
-| 5.3 | Add Info.plist + Hardened Runtime entitlements | | [~] |
-| 5.4 | Create build + notarization scripts (scripts/build.sh, scripts/notarize.sh) | | [ ] |
+| 5.3 | Add Info.plist + Hardened Runtime entitlements | 898ab22 | [x] |
+| 5.4 | Create build + notarization scripts (scripts/build.sh, scripts/notarize.sh) | | [~] |
 | 5.5 | Create DMG packaging script | | [ ] |
 | 5.6 | L4 UI Tests (XCUITest): Menu Bar click → Popover, Settings navigation | | [ ] |
 | 5.7 | Final coverage report + README update | | [ ] |

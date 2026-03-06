@@ -17,7 +17,8 @@ let package = Package(
         .executableTarget(
             name: "Owl",
             dependencies: ["OwlCore"],
-            path: "Sources/Owl"
+            path: "Sources/Owl",
+            exclude: ["Resources"]
         ),
         // Unit + Integration tests for OwlCore
         .testTarget(
