@@ -40,10 +40,10 @@ Atomic execution plan for Owl. Each step is a single commit.
 | # | Task | Commit | Status |
 |---|------|--------|--------|
 | 1.2a.1 | Define `PatternDetector` protocol (id, isEnabled, accepts, process, tick) | | [x] |
-| 1.2a.2 | Define `Comparison` enum (.lessThan/.greaterThan) and `ThresholdConfig` | | [ ] |
-| 1.2a.3 | Implement `ThresholdDetector` state machine (Normal→Pending→Warning→Critical→Recovery) + UT for all transitions | | [ ] |
-| 1.2a.4 | Add debounce logic to ThresholdDetector + UT for timing | | [ ] |
-| 1.2a.5 | Add recovery threshold with hysteresis + UT | | [ ] |
+| 1.2a.2 | Define `Comparison` enum (.lessThan/.greaterThan) and `ThresholdConfig` | | [x] |
+| 1.2a.3 | Implement `ThresholdDetector` state machine (Normal→Pending→Warning→Critical→Recovery) + UT for all transitions | | [x] |
+| 1.2a.4 | Add debounce logic to ThresholdDetector + UT for timing | | [x] |
+| 1.2a.5 | Add recovery threshold with hysteresis + UT | | [x] |
 
 #### 1.2b: RateDetector
 
