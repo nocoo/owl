@@ -47,4 +47,24 @@ struct DetectorCatalogTests {
             #expect(!entry.description.isEmpty)
         }
     }
+
+    @Test func groupedCoversAllDetectors() {
+        let grouped = DetectorCatalog.grouped
+        let totalCount = grouped.reduce(0) { $0 + $1.1.count }
+        #expect(totalCount == DetectorCatalog.all.count)
+    }
+
+    @Test func groupedCategoriesAreUnique() {
+        let categories = DetectorCatalog.grouped.map(\.0)
+        #expect(Set(categories).count == categories.count)
+    }
+
+    @Test func allEntriesHaveCategory() {
+        for entry in DetectorCatalog.all {
+            // Verify category is a valid DetectorCategory
+            #expect(
+                DetectorCategory.allCases.contains(entry.category)
+            )
+        }
+    }
 }

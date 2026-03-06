@@ -1,11 +1,20 @@
+import AppKit
 import SwiftUI
 
-/// Root settings window view with three tabs.
+/// Root settings window view with tabs.
 public struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
+    @ObservedObject var appState: AppState
+    let appIcon: NSImage?
 
-    public init(viewModel: SettingsViewModel) {
+    public init(
+        viewModel: SettingsViewModel,
+        appState: AppState,
+        appIcon: NSImage? = nil
+    ) {
         self.viewModel = viewModel
+        self.appState = appState
+        self.appIcon = appIcon
     }
 
     public var body: some View {
@@ -14,23 +23,40 @@ public struct SettingsView: View {
                 launchAtLogin: $viewModel.launchAtLogin
             )
             .tabItem {
-                Label("General", systemImage: "gearshape")
+                Label(
+                    "General",
+                    systemImage: "gearshape"
+                )
             }
 
             DetectorsTab(
-                detectors: DetectorCatalog.all,
                 enabledStates: $viewModel.detectorStates
             )
             .tabItem {
-                Label("Detectors", systemImage: "sensor")
+                Label(
+                    "Detectors",
+                    systemImage: "sensor"
+                )
             }
 
-            AboutTab()
+            AlertsTab(appState: appState)
                 .tabItem {
-                    Label("About", systemImage: "info.circle")
+                    Label(
+                        "Alerts",
+                        systemImage:
+                            "exclamationmark.bubble"
+                    )
+                }
+
+            AboutTab(appIcon: appIcon)
+                .tabItem {
+                    Label(
+                        "About",
+                        systemImage: "info.circle"
+                    )
                 }
         }
-        .frame(width: 420, height: 380)
+        .frame(width: 520, height: 480)
     }
 }
 
@@ -47,14 +73,17 @@ public final class SettingsViewModel: ObservableObject {
     @Published public var detectorStates: [String: Bool] {
         didSet {
             for (id, enabled) in detectorStates {
-                settings.setDetectorEnabled(id, enabled: enabled)
+                settings.setDetectorEnabled(
+                    id, enabled: enabled
+                )
             }
         }
     }
 
-    /// Callback invoked whenever a detector toggle changes.
-    /// The wiring layer uses this to update the pipeline.
-    public var onDetectorToggle: ((_ id: String, _ enabled: Bool) -> Void)?
+    /// Callback invoked when a detector toggle changes.
+    public var onDetectorToggle: ((
+        _ id: String, _ enabled: Bool
+    ) -> Void)?
 
     public init(settings: AppSettings = AppSettings()) {
         self.settings = settings

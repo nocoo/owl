@@ -41,6 +41,21 @@ public struct Alert: Sendable, Equatable {
         self.ttl = ttl ?? Self.defaultTTL(for: severity)
     }
 
+    /// Formatted text for copying to clipboard.
+    public var clipboardText: String {
+        var lines = [
+            "[\(severity)] \(title)",
+            description
+        ]
+        if !suggestion.isEmpty {
+            lines.append("Suggestion: \(suggestion)")
+        }
+        lines.append(
+            "Detector: \(detectorID) | \(timestamp)"
+        )
+        return lines.joined(separator: "\n")
+    }
+
     /// Check whether this alert has expired at a given point in time.
     public func isExpired(at date: Date) -> Bool {
         date.timeIntervalSince(timestamp) > ttl

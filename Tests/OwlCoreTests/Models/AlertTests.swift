@@ -217,4 +217,35 @@ struct AlertTests {
         )
         #expect(alert1 != alert2)
     }
+
+    // MARK: - Clipboard text
+
+    @Test func clipboardTextContainsSeverityAndTitle() {
+        let alert = Alert(
+            detectorID: "thermal_throttling",
+            severity: .warning,
+            title: "Thermal Throttling",
+            description: "CPU power budget dropped",
+            suggestion: "Close apps",
+            timestamp: Date()
+        )
+        let text = alert.clipboardText
+        #expect(text.contains("[warning] Thermal Throttling"))
+        #expect(text.contains("CPU power budget dropped"))
+        #expect(text.contains("Suggestion: Close apps"))
+        #expect(text.contains("Detector: thermal_throttling"))
+    }
+
+    @Test func clipboardTextOmitsSuggestionWhenEmpty() {
+        let alert = Alert(
+            detectorID: "P01",
+            severity: .info,
+            title: "Info",
+            description: "desc",
+            suggestion: "",
+            timestamp: Date()
+        )
+        let text = alert.clipboardText
+        #expect(!text.contains("Suggestion:"))
+    }
 }

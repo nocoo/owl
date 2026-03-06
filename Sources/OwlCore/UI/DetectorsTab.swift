@@ -19,30 +19,47 @@ struct DetectorToggleRow: View {
     }
 }
 
-/// Detectors settings tab: toggle each detector on/off.
+/// Detectors settings tab: toggle each detector on/off, grouped.
 public struct DetectorsTab: View {
-    let detectors: [DetectorInfo]
     @Binding var enabledStates: [String: Bool]
 
     public init(
-        detectors: [DetectorInfo],
         enabledStates: Binding<[String: Bool]>
     ) {
-        self.detectors = detectors
         self._enabledStates = enabledStates
     }
 
     public var body: some View {
-        List(detectors) { detector in
-            DetectorToggleRow(
-                info: detector,
-                isEnabled: binding(for: detector.id)
-            )
+        List {
+            ForEach(
+                DetectorCatalog.grouped,
+                id: \.0
+            ) { category, detectors in
+                Section {
+                    ForEach(detectors) { detector in
+                        DetectorToggleRow(
+                            info: detector,
+                            isEnabled: binding(
+                                for: detector.id
+                            )
+                        )
+                    }
+                } header: {
+                    Label(
+                        category.rawValue,
+                        systemImage: category.symbolName
+                    )
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                }
+            }
         }
-        .listStyle(.inset)
+        .listStyle(.inset(alternatesRowBackgrounds: true))
     }
 
-    private func binding(for id: String) -> Binding<Bool> {
+    private func binding(
+        for id: String
+    ) -> Binding<Bool> {
         Binding(
             get: { enabledStates[id] ?? true },
             set: { enabledStates[id] = $0 }
