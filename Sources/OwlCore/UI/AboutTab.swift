@@ -4,7 +4,7 @@ import SwiftUI
 public struct AboutTab: View {
     let version: String
 
-    public init(version: String = OwlCore.version) {
+    public init(version: String = OwlInfo.version) {
         self.version = version
     }
 

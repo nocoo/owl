@@ -137,6 +137,146 @@ struct LogEntryTests {
         #expect(entry?.eventMessage == "hello")
     }
 
+    // MARK: - fromLine() fast parser: edge cases
+
+    @Test func fromLineHandlesEscapedQuotesInMessage() throws {
+        // swiftlint:disable:next line_length
+        let line = #"{"eventMessage":"QUIT: pid = 85412, name = \"com.example.app\"","processID":100,"processImagePath":"/usr/sbin/launchservicesd","subsystem":"","category":"","messageType":"Default","timestamp":"2026-03-06 08:30:44.123456+0800"}"#
+        let entry = try LogEntry.fromLine(line)
+        #expect(entry != nil)
+        #expect(entry?.eventMessage == #"QUIT: pid = 85412, name = "com.example.app""#)
+        #expect(entry?.process == "launchservicesd")
+        #expect(entry?.processID == 100)
+    }
+
+    @Test func fromLineHandlesEscapedSlashesInPath() throws {
+        // Real ndjson uses \/ for path separators
+        // swiftlint:disable:next line_length
+        let line = #"{"eventMessage":"test","processID":0,"processImagePath":"\/System\/Library\/Extensions\/IOSurface.kext","subsystem":"","category":"","messageType":"Default","timestamp":"2026-03-06 08:30:44.123456+0800"}"#
+        let entry = try LogEntry.fromLine(line)
+        #expect(entry != nil)
+        #expect(entry?.process == "IOSurface.kext")
+    }
+
+    @Test func fromLineHandlesMissingOptionalFields() throws {
+        // Only eventMessage is required; all others default
+        let line = #"{"eventMessage":"minimal entry"}"#
+        let entry = try LogEntry.fromLine(line)
+        #expect(entry != nil)
+        #expect(entry?.eventMessage == "minimal entry")
+        #expect(entry?.process.isEmpty == true)
+        #expect(entry?.processID == 0)
+        #expect(entry?.subsystem.isEmpty == true)
+        #expect(entry?.category.isEmpty == true)
+        #expect(entry?.messageType == "Default")
+    }
+
+    @Test func fromLineThrowsOnNonJSONContent() {
+        #expect(throws: LogEntryParseError.self) {
+            _ = try LogEntry.fromLine("Filtering the log data")
+        }
+    }
+
+    @Test func fromLineParsesRealLogStreamOutput() throws {
+        // Realistic ndjson line with many extra fields (backtrace, UUIDs, etc.)
+        // swiftlint:disable:next line_length
+        let line = #"{"timezoneName":"","messageType":"Error","eventType":"logEvent","source":null,"formatString":"SID: 0x%X","userID":0,"activityIdentifier":0,"subsystem":"com.apple.iokit","category":"power","threadID":4939,"senderImageUUID":"C332CE63","processImagePath":"\/kernel","senderImagePath":"\/System\/Library\/Extensions\/IOSurface.kext\/Contents\/MacOS\/IOSurface","timestamp":"2026-03-06 13:30:09.202323+0800","machTimestamp":432123150336,"eventMessage":"DarkWake from Normal Sleep [CDNPB] due to EC.LidOpen","processImageUUID":"5E5C46C9","traceID":103147935109124,"processID":0,"senderProgramCounter":120448,"parentActivityIdentifier":0}"#
+        let entry = try LogEntry.fromLine(line)
+        #expect(entry != nil)
+        #expect(entry?.process == "kernel")
+        #expect(entry?.processID == 0)
+        #expect(entry?.subsystem == "com.apple.iokit")
+        #expect(entry?.category == "power")
+        #expect(entry?.messageType == "Error")
+        #expect(
+            entry?.eventMessage ==
+            "DarkWake from Normal Sleep [CDNPB] due to EC.LidOpen"
+        )
+    }
+
+    @Test func fromLineParsesNegativeProcessID() throws {
+        // swiftlint:disable:next line_length
+        let line = #"{"eventMessage":"test","processID":-1,"processImagePath":"","subsystem":"","category":"","messageType":"Default"}"#
+        let entry = try LogEntry.fromLine(line)
+        #expect(entry?.processID == -1)
+    }
+
+    // MARK: - extractStringValue unit tests
+
+    @Test func extractStringValueFindsSimpleValue() {
+        let json = #"{"key":"value","other":"stuff"}"#
+        let result = LogEntry.extractStringValue(
+            from: json, key: "key"
+        )
+        #expect(result == "value")
+    }
+
+    @Test func extractStringValueHandlesEscapedQuotes() {
+        let json = #"{"msg":"hello \"world\""}"#
+        let result = LogEntry.extractStringValue(
+            from: json, key: "msg"
+        )
+        #expect(result == #"hello "world""#)
+    }
+
+    @Test func extractStringValueHandlesEscapedBackslash() {
+        let json = #"{"path":"C:\\Users\\test"}"#
+        let result = LogEntry.extractStringValue(
+            from: json, key: "path"
+        )
+        #expect(result == #"C:\Users\test"#)
+    }
+
+    @Test func extractStringValueReturnsNilForMissingKey() {
+        let json = #"{"key":"value"}"#
+        let result = LogEntry.extractStringValue(
+            from: json, key: "missing"
+        )
+        #expect(result == nil)
+    }
+
+    @Test func extractStringValueHandlesEmptyString() {
+        let json = #"{"key":""}"#
+        let result = LogEntry.extractStringValue(
+            from: json, key: "key"
+        )
+        #expect(result?.isEmpty == true)
+    }
+
+    // MARK: - extractIntValue unit tests
+
+    @Test func extractIntValueFindsNumber() {
+        let json = #"{"pid":42,"name":"test"}"#
+        let result = LogEntry.extractIntValue(
+            from: json, key: "pid"
+        )
+        #expect(result == 42)
+    }
+
+    @Test func extractIntValueFindsZero() {
+        let json = #"{"pid":0}"#
+        let result = LogEntry.extractIntValue(
+            from: json, key: "pid"
+        )
+        #expect(result == 0)
+    }
+
+    @Test func extractIntValueReturnsNilForMissingKey() {
+        let json = #"{"key":"value"}"#
+        let result = LogEntry.extractIntValue(
+            from: json, key: "missing"
+        )
+        #expect(result == nil)
+    }
+
+    @Test func extractIntValueReturnsNilForStringValue() {
+        let json = #"{"pid":"not_a_number"}"#
+        let result = LogEntry.extractIntValue(
+            from: json, key: "pid"
+        )
+        #expect(result == nil)
+    }
+
     // MARK: - Sendable conformance (compile-time check)
 
     @Test func isSendable() async {

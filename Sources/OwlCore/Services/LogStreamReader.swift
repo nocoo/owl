@@ -77,7 +77,9 @@ public actor LogStreamReader {
 
         // Create the stream only on first start (survives restarts)
         if _entries == nil {
-            let stream = AsyncStream<LogEntry> { continuation in
+            let stream = AsyncStream<LogEntry>(
+                bufferingPolicy: .bufferingNewest(256)
+            ) { continuation in
                 self.entryContinuation = continuation
             }
             _entries = stream
@@ -203,6 +205,36 @@ public actor LogStreamReader {
 
     // MARK: - Line reading (static, runs outside actor)
 
+    /// Keywords that appear in eventMessage of our 14 patterns.
+    /// Used for fast pre-filtering before expensive JSON parsing.
+    /// If a line does not contain any of these, it cannot match
+    /// any detector and can be safely skipped.
+    private static let preFilterKeywords: [String] = [
+        "PMRD", "power budget",        // P01
+        "QUIT",                         // P02
+        "tx_flush",                     // P03
+        "LQM", "RSSI",                 // P04
+        "deny",                         // P05
+        "PreventSleep",                 // P06
+        "exited due to signal",         // P07
+        "disconnect", "AUTHREQ_RESULT", // P08
+        "DENIED",                       // P09
+        "memorystatus_kill",            // P10
+        "abortGated",                   // P11
+        "connection_failed",            // P12
+        "abort",                        // P13
+        "DarkWake"                      // P14
+    ]
+
+    /// Fast check: does the raw line contain any keyword?
+    private static func passesPreFilter(_ line: String) -> Bool {
+        for keyword in preFilterKeywords
+            where line.contains(keyword) {
+            return true
+        }
+        return false
+    }
+
     /// Read lines from the file handle and yield parsed LogEntry values.
     /// This is a static method to avoid actor isolation — it runs on a
     /// detached task and communicates via the continuation.
@@ -214,28 +246,38 @@ public actor LogStreamReader {
 
         // Use synchronous blocking read in a detached task.
         // availableData blocks until data arrives or EOF.
+        // Wrap in autoreleasepool to prevent Foundation Data
+        // objects from accumulating in detached task context.
         while true {
-            let data = fileHandle.availableData
-            guard !data.isEmpty else {
-                // EOF — pipe closed
-                break
-            }
-
-            guard let text = String(data: data, encoding: .utf8) else {
-                continue
-            }
-
-            let lines = text.components(separatedBy: "\n")
-            for line in lines {
-                do {
-                    if let entry = try LogEntry.fromLine(line) {
-                        continuation.yield(entry)
-                    }
-                } catch {
-                    // Skip invalid lines (malformed JSON, etc.)
-                    continue
+            let shouldBreak = autoreleasepool { () -> Bool in
+                let data = fileHandle.availableData
+                guard !data.isEmpty else {
+                    return true  // EOF
                 }
+
+                guard let text = String(
+                    data: data, encoding: .utf8
+                ) else {
+                    return false
+                }
+
+                text.enumerateLines { line, _ in
+                    guard passesPreFilter(line) else {
+                        return
+                    }
+                    do {
+                        if let entry = try LogEntry.fromLine(
+                            line
+                        ) {
+                            continuation.yield(entry)
+                        }
+                    } catch {
+                        // Skip invalid lines
+                    }
+                }
+                return false
             }
+            if shouldBreak { break }
         }
         // Do NOT finish the continuation here — it survives restarts.
         // Continuation is finished only by explicit stop() or max retries.

@@ -63,12 +63,18 @@ struct LogStreamReaderTests {
 
     // MARK: - Helpers
 
+    /// Build a valid ndjson line. The message must contain at least
+    /// one pre-filter keyword to survive `LogStreamReader.readLines()`
+    /// fast-path filtering. Default includes "DarkWake" as keyword.
     private func makeValidLogJSON(
-        message: String = "test message",
+        message: String = "DarkWake test message",
         process: String = "kernel"
     ) -> String {
+        let escaped = message.replacingOccurrences(
+            of: "\"", with: "\\\""
+        )
         // swiftlint:disable:next line_length
-        "{\"traceID\":1,\"eventMessage\":\"\(message)\",\"processID\":0,\"processImagePath\":\"/usr/libexec/\(process)\",\"subsystem\":\"\",\"category\":\"\",\"timestamp\":\"2026-03-06 08:30:44.123456+0800\",\"messageType\":\"Default\"}"
+        return "{\"traceID\":1,\"eventMessage\":\"\(escaped)\",\"processID\":0,\"processImagePath\":\"/usr/libexec/\(process)\",\"subsystem\":\"\",\"category\":\"\",\"timestamp\":\"2026-03-06 08:30:44.123456+0800\",\"messageType\":\"Default\"}"
     }
 
     // MARK: - Initialization
@@ -175,7 +181,9 @@ struct LogStreamReaderTests {
         await reader.start()
 
         let stream = await reader.entries
-        let json = makeValidLogJSON(message: "hello from kernel")
+        let json = makeValidLogJSON(
+            message: "DarkWake hello from kernel"
+        )
         factory.lastProcess?.writeLine(json)
         factory.lastProcess?.closeStdout()
 
@@ -185,7 +193,10 @@ struct LogStreamReaderTests {
         }
 
         #expect(entries.count == 1)
-        #expect(entries.first?.eventMessage == "hello from kernel")
+        #expect(
+            entries.first?.eventMessage ==
+            "DarkWake hello from kernel"
+        )
     }
 
     @Test func skipsEmptyLines() async throws {
@@ -200,7 +211,7 @@ struct LogStreamReaderTests {
         let stream = await reader.entries
         factory.lastProcess?.writeLine("")
         factory.lastProcess?.writeLine(
-            makeValidLogJSON(message: "real entry")
+            makeValidLogJSON(message: "DarkWake real entry")
         )
         factory.lastProcess?.writeLine("")
         factory.lastProcess?.closeStdout()
@@ -225,7 +236,7 @@ struct LogStreamReaderTests {
         let stream = await reader.entries
         factory.lastProcess?.writeLine("not json at all")
         factory.lastProcess?.writeLine(
-            makeValidLogJSON(message: "valid entry")
+            makeValidLogJSON(message: "DarkWake valid entry")
         )
         factory.lastProcess?.closeStdout()
 
@@ -235,7 +246,9 @@ struct LogStreamReaderTests {
         }
 
         #expect(entries.count == 1)
-        #expect(entries.first?.eventMessage == "valid entry")
+        #expect(
+            entries.first?.eventMessage == "DarkWake valid entry"
+        )
     }
 
     @Test func readsMultipleEntries() async throws {
@@ -250,7 +263,9 @@ struct LogStreamReaderTests {
         let stream = await reader.entries
         for idx in 0..<5 {
             factory.lastProcess?.writeLine(
-                makeValidLogJSON(message: "msg \(idx)")
+                makeValidLogJSON(
+                    message: "DarkWake msg \(idx)"
+                )
             )
         }
         factory.lastProcess?.closeStdout()

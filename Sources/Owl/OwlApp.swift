@@ -368,26 +368,59 @@ extension AppDelegate {
 
     func startEngine() {
         let reader = LogStreamReader()
+        startLogProcessing(reader: reader)
+        startTickLoop()
+        startMetricsLoop()
+    }
+
+    func deliverAlerts(_ alerts: [OwlCore.Alert]) {
+        guard !alerts.isEmpty else { return }
+        for alert in alerts {
+            alertManager.receive(alert)
+        }
+        appState.updateAlerts(
+            active: alertManager.activeAlerts,
+            history: alertManager.alertHistory,
+            severity: alertManager.currentSeverity
+        )
+    }
+
+    private func startLogProcessing(reader: LogStreamReader) {
         let pipeline = self.pipeline
-        let alertManager = self.alertManager
-        let appState = self.appState
 
         engineTask = Task {
             await reader.start()
 
+            var batch: [LogEntry] = []
+            batch.reserveCapacity(64)
+            var lastFlush = ContinuousClock.now
+
             for await entry in await reader.entries {
-                let alerts = await pipeline.process(entry)
-                for alert in alerts {
-                    alertManager.receive(alert)
+                batch.append(entry)
+
+                let now = ContinuousClock.now
+                let elapsed = now - lastFlush
+                guard batch.count >= 64
+                    || elapsed >= .milliseconds(250)
+                else {
+                    continue
                 }
 
-                appState.updateAlerts(
-                    active: alertManager.activeAlerts,
-                    history: alertManager.alertHistory,
-                    severity: alertManager.currentSeverity
-                )
+                let alerts = await pipeline.processBatch(batch)
+                batch.removeAll(keepingCapacity: true)
+                lastFlush = now
+                self.deliverAlerts(alerts)
+            }
+
+            if !batch.isEmpty {
+                let alerts = await pipeline.processBatch(batch)
+                self.deliverAlerts(alerts)
             }
         }
+    }
+
+    private func startTickLoop() {
+        let pipeline = self.pipeline
 
         tickTask = Task {
             while !Task.isCancelled {
@@ -396,19 +429,21 @@ extension AppDelegate {
                 )
 
                 let tickAlerts = await pipeline.tick()
-                for alert in tickAlerts {
-                    alertManager.receive(alert)
-                }
-                alertManager.performMaintenance(at: Date())
+                self.deliverAlerts(tickAlerts)
+                self.alertManager.performMaintenance(
+                    at: Date()
+                )
 
-                appState.updateAlerts(
-                    active: alertManager.activeAlerts,
-                    history: alertManager.alertHistory,
-                    severity: alertManager.currentSeverity
+                self.appState.updateAlerts(
+                    active: self.alertManager.activeAlerts,
+                    history: self.alertManager.alertHistory,
+                    severity: self.alertManager.currentSeverity
                 )
             }
         }
+    }
 
+    private func startMetricsLoop() {
         metricsTask = Task {
             await metricsPoller.start()
 

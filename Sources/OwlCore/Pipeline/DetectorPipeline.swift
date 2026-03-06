@@ -42,6 +42,22 @@ public actor DetectorPipeline {
         return alerts
     }
 
+    /// Dispatches a batch of log entries through the pipeline.
+    /// More efficient than calling `process(_:)` for each entry
+    /// individually, as it requires only a single actor hop.
+    public func processBatch(_ entries: [LogEntry]) -> [Alert] {
+        var alerts: [Alert] = []
+        for entry in entries {
+            for detector in detectors where detector.isEnabled {
+                guard detector.accepts(entry) else { continue }
+                if let alert = detector.process(entry) {
+                    alerts.append(alert)
+                }
+            }
+        }
+        return alerts
+    }
+
     /// Calls `tick()` on all enabled detectors to perform periodic maintenance.
     /// Returns any time-based alerts (e.g., leaked assertion warnings).
     public func tick() -> [Alert] {
