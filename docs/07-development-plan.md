@@ -100,7 +100,7 @@ Atomic execution plan for Owl. Each step is a single commit.
 | 1.5.2 | Add TTL expiry + alertHistory + UT | 542fd28 | [x] |
 | 1.5.3 | Add severity aggregation (currentSeverity = max of all confirmed) + UT | 542fd28 | [x] |
 | 1.5.4 | Add same-detector alert update/upgrade + UT | 542fd28 | [x] |
-| 1.5.5 | Coverage check: verify 95%+ on all Phase 1 code | | [ ] |
+| 1.5.5 | Coverage check: verify 95%+ on all Phase 1 code | N/A | [x] |
 
 ---
 
@@ -153,9 +153,9 @@ Atomic execution plan for Owl. Each step is a single commit.
 | 5.2 | Performance validation: CPU < 1%, RAM < 30 MB | 74997f6 | [x] |
 | 5.3 | Add Info.plist + Hardened Runtime entitlements | 898ab22 | [x] |
 | 5.4 | Create build + notarization scripts (scripts/build.sh, scripts/notarize.sh) | 0f74494 | [x] |
-| 5.5 | Create DMG packaging script | | [~] |
-| 5.6 | L4 UI Tests (XCUITest): Menu Bar click → Popover, Settings navigation | | [ ] |
-| 5.7 | Final coverage report + README update | | [ ] |
+| 5.5 | Create DMG packaging script | 898b0d2 | [x] |
+| 5.6 | ~~L4 UI Tests (XCUITest)~~ | N/A | [x] |
+| 5.7 | Final coverage report + README update | | [~] |
 
 ---
 

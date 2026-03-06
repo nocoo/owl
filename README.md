@@ -15,7 +15,7 @@ macOS already logs every significant system event. Thermal throttling, process c
 3. Each detector uses one of three simple algorithms: **Threshold**, **Rate counting**, or **State tracking**
 4. Alerts appear as color changes on the Menu Bar icon; click for details
 
-**Performance target**: CPU < 1%, RAM < 30 MB, zero external dependencies.
+**Performance**: RAM ~12 MB, zero external dependencies, 100% native Swift.
 
 ## Detectable Patterns
 
@@ -39,8 +39,74 @@ macOS already logs every significant system event. Thermal throttling, process c
 ## Requirements
 
 - macOS 14 Sonoma or later
-- Distributed outside App Store (requires unsandboxed access to system logs)
-- Signed with Developer ID + Apple Notarization
+- No external dependencies — 100% Apple native frameworks
+
+## Install
+
+Download the latest `Owl.dmg` from [Releases](https://github.com/nocoo/owl/releases), open it, and drag `Owl.app` to `/Applications`.
+
+Owl runs as a Menu Bar app (no Dock icon). Click the owl icon to see system status, active alerts, and recent history. Right-click for Settings and Quit.
+
+## Build from Source
+
+```bash
+# Clone
+git clone https://github.com/nocoo/owl.git
+cd owl
+
+# Build and run (debug)
+swift build && .build/debug/Owl
+
+# Build release .app bundle
+./scripts/build.sh
+
+# Build with code signing (for distribution)
+./scripts/build.sh --sign "Developer ID Application: Your Name (TEAMID)"
+
+# Package as DMG
+./scripts/package-dmg.sh
+
+# Notarize (requires Apple Developer credentials)
+./scripts/notarize.sh        # notarize .app
+./scripts/notarize.sh --dmg  # notarize .dmg
+```
+
+## Test
+
+```bash
+# Run all 366 tests (38 suites)
+swift test
+
+# Run only integration tests
+swift test --filter Integration
+
+# Lint
+swiftlint --strict
+```
+
+Test architecture:
+- **L1**: 366 unit + integration tests via Swift Testing framework
+- **L2**: SwiftLint strict mode (zero violations)
+- **L3**: 11 end-to-end integration tests (log stream → pipeline → alerts)
+
+## Project Structure
+
+```
+owl/
+├── Sources/
+│   ├── Owl/                    # App entry point (AppDelegate, Menu Bar)
+│   └── OwlCore/                # Core library (all testable logic)
+│       ├── Models/             # LogEntry, Alert, Severity
+│       ├── Detectors/          # ThresholdDetector, RateDetector, StateDetector
+│       ├── Patterns/           # 14 pattern configs + PatternCatalog
+│       ├── Pipeline/           # DetectorPipeline, AlertStateManager
+│       ├── Services/           # LogStreamReader, SystemMetricsPoller
+│       ├── Settings/           # AppSettings, DetectorCatalog
+│       └── UI/                 # SwiftUI views, AppState, StatusItemMapper
+├── Tests/OwlCoreTests/         # 366 tests in 38 suites
+├── scripts/                    # build, notarize, DMG packaging
+└── docs/                       # Design documentation
+```
 
 ## Documentation
 
@@ -52,6 +118,7 @@ Detailed design docs in [`docs/`](docs/):
 4. [Detection Algorithm Design](docs/04-detection-algorithms.md)
 5. [Menu Bar UI Design](docs/05-ui-design.md)
 6. [Build & Distribution](docs/06-distribution.md)
+7. [Development Plan](docs/07-development-plan.md)
 
 ## License
 
