@@ -59,9 +59,9 @@ Atomic execution plan for Owl. Each step is a single commit.
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 1.2c.1 | Implement `StateDetector` (Created/Released pair tracking) + UT for normal pairing | | [ ] |
-| 1.2c.2 | Add tick()-based leak detection (warning/critical age thresholds) + UT | | [ ] |
-| 1.2c.3 | Add maxTracked limit + FIFO eviction + cleanup + UT | | [ ] |
+| 1.2c.1 | Implement `StateDetector` (Created/Released pair tracking) + UT for normal pairing | | [x] |
+| 1.2c.2 | Add tick()-based leak detection (warning/critical age thresholds) + UT | | [x] |
+| 1.2c.3 | Add maxTracked limit + FIFO eviction + cleanup + UT | | [x] |
 
 ### Phase 1.3: Pattern Configurations (14 patterns)
 
