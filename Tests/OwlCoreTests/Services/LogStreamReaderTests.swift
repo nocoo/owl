@@ -34,20 +34,25 @@ final class MockLogProcess: LogProcess, @unchecked Sendable {
         stdout.fileHandleForWriting.write(data)
     }
 
-    /// Close the pipe and invoke termination handler.
-    func closeAndExit(status: Int32 = 0) {
-        mockExitStatus = status
+    /// Close the pipe (simulates process exit / EOF).
+    func closeStdout() {
         stdout.fileHandleForWriting.closeFile()
-        terminationHandler?(self)
     }
 }
 
-/// Factory that returns a mock process.
-final class MockProcessFactory: LogProcessFactory {
-    let mockProcess = MockLogProcess()
+/// Factory that returns mock processes. Supports multiple launches (restart).
+final class MockProcessFactory: @unchecked Sendable, LogProcessFactory {
+    private(set) var processes: [MockLogProcess] = []
+    private(set) var launchCount = 0
+
+    /// The most recently created mock process.
+    var lastProcess: MockLogProcess? { processes.last }
 
     func makeProcess() -> LogProcess {
-        mockProcess
+        let process = MockLogProcess()
+        processes.append(process)
+        launchCount += 1
+        return process
     }
 }
 
@@ -86,17 +91,19 @@ struct LogStreamReaderTests {
         let factory = MockProcessFactory()
         let reader = LogStreamReader(
             predicate: "process == 'kernel'",
+            autoRestart: false,
             processFactory: factory
         )
 
         await reader.start()
 
-        #expect(factory.mockProcess.isLaunched)
+        let process = factory.lastProcess
+        #expect(process?.isLaunched == true)
         #expect(
-            factory.mockProcess.executableURL ==
+            process?.executableURL ==
             URL(fileURLWithPath: "/usr/bin/log")
         )
-        let args = factory.mockProcess.arguments ?? []
+        let args = process?.arguments ?? []
         #expect(args.contains("stream"))
         #expect(args.contains("--style"))
         #expect(args.contains("ndjson"))
@@ -110,7 +117,10 @@ struct LogStreamReaderTests {
 
     @Test func startTransitionsToRunning() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         await reader.start()
         #expect(await reader.state == .running)
@@ -120,22 +130,29 @@ struct LogStreamReaderTests {
 
     @Test func stopTerminatesProcess() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         await reader.start()
         await reader.stop()
 
-        #expect(factory.mockProcess.isTerminated)
+        #expect(factory.lastProcess?.isTerminated == true)
         #expect(await reader.state == .stopped)
     }
 
     @Test func doubleStartIsNoOp() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         await reader.start()
         await reader.start() // should not crash
         #expect(await reader.state == .running)
+        #expect(factory.launchCount == 1)
 
         await reader.stop()
     }
@@ -150,14 +167,17 @@ struct LogStreamReaderTests {
 
     @Test func readsValidLogEntries() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         await reader.start()
 
         let stream = await reader.entries
         let json = makeValidLogJSON(message: "hello from kernel")
-        factory.mockProcess.writeLine(json)
-        factory.mockProcess.closeAndExit()
+        factory.lastProcess?.writeLine(json)
+        factory.lastProcess?.closeStdout()
 
         var entries: [LogEntry] = []
         for await entry in stream {
@@ -170,17 +190,20 @@ struct LogStreamReaderTests {
 
     @Test func skipsEmptyLines() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         await reader.start()
 
         let stream = await reader.entries
-        factory.mockProcess.writeLine("")
-        factory.mockProcess.writeLine(
+        factory.lastProcess?.writeLine("")
+        factory.lastProcess?.writeLine(
             makeValidLogJSON(message: "real entry")
         )
-        factory.mockProcess.writeLine("")
-        factory.mockProcess.closeAndExit()
+        factory.lastProcess?.writeLine("")
+        factory.lastProcess?.closeStdout()
 
         var entries: [LogEntry] = []
         for await entry in stream {
@@ -192,16 +215,19 @@ struct LogStreamReaderTests {
 
     @Test func skipsInvalidJSON() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         await reader.start()
 
         let stream = await reader.entries
-        factory.mockProcess.writeLine("not json at all")
-        factory.mockProcess.writeLine(
+        factory.lastProcess?.writeLine("not json at all")
+        factory.lastProcess?.writeLine(
             makeValidLogJSON(message: "valid entry")
         )
-        factory.mockProcess.closeAndExit()
+        factory.lastProcess?.closeStdout()
 
         var entries: [LogEntry] = []
         for await entry in stream {
@@ -214,17 +240,20 @@ struct LogStreamReaderTests {
 
     @Test func readsMultipleEntries() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         await reader.start()
 
         let stream = await reader.entries
         for idx in 0..<5 {
-            factory.mockProcess.writeLine(
+            factory.lastProcess?.writeLine(
                 makeValidLogJSON(message: "msg \(idx)")
             )
         }
-        factory.mockProcess.closeAndExit()
+        factory.lastProcess?.closeStdout()
 
         var entries: [LogEntry] = []
         for await entry in stream {
@@ -238,7 +267,10 @@ struct LogStreamReaderTests {
 
     @Test func stateTransitionsIdleToRunningToStopped() async throws {
         let factory = MockProcessFactory()
-        let reader = LogStreamReader(processFactory: factory)
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
 
         #expect(await reader.state == .idle)
 
@@ -247,5 +279,128 @@ struct LogStreamReaderTests {
 
         await reader.stop()
         #expect(await reader.state == .stopped)
+    }
+
+    // MARK: - Auto restart (disabled)
+
+    @Test func noRestartWhenAutoRestartDisabled() async throws {
+        let factory = MockProcessFactory()
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
+
+        await reader.start()
+
+        let stream = await reader.entries
+        factory.lastProcess?.closeStdout()
+
+        // Consume all entries (stream should end)
+        var entries: [LogEntry] = []
+        for await entry in stream {
+            entries.append(entry)
+        }
+
+        // Give a moment for handleProcessExit to run
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        #expect(factory.launchCount == 1)
+        let state = await reader.state
+        #expect(state == .failed("Process exited unexpectedly"))
+    }
+
+    // MARK: - Auto restart (enabled)
+
+    @Test func restartsAfterProcessExit() async throws {
+        let factory = MockProcessFactory()
+        let reader = LogStreamReader(
+            autoRestart: true,
+            maxRestarts: 1,
+            backoff: BackoffStrategy(
+                baseDelay: 0.05,
+                maxDelay: 0.1
+            ),
+            processFactory: factory
+        )
+
+        await reader.start()
+        #expect(factory.launchCount == 1)
+
+        // Simulate process exit
+        factory.lastProcess?.closeStdout()
+
+        // Wait for restart (50ms backoff + some margin)
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        #expect(factory.launchCount == 2)
+        #expect(await reader.restartCount == 1)
+        let state = await reader.state
+        #expect(state == .running)
+
+        await reader.stop()
+    }
+
+    @Test func stopsAfterMaxRestarts() async throws {
+        let factory = MockProcessFactory()
+        let reader = LogStreamReader(
+            autoRestart: true,
+            maxRestarts: 2,
+            backoff: BackoffStrategy(
+                baseDelay: 0.05,
+                maxDelay: 0.1
+            ),
+            processFactory: factory
+        )
+
+        await reader.start()
+
+        // Simulate first crash
+        factory.lastProcess?.closeStdout()
+        try await Task.sleep(nanoseconds: 200_000_000)
+        #expect(factory.launchCount == 2)
+
+        // Simulate second crash
+        factory.lastProcess?.closeStdout()
+        try await Task.sleep(nanoseconds: 200_000_000)
+        #expect(factory.launchCount == 3)
+
+        // Simulate third crash — should NOT restart
+        factory.lastProcess?.closeStdout()
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        let state = await reader.state
+        #expect(state == .failed("Max restarts (2) reached"))
+        #expect(await reader.restartCount == 2)
+    }
+
+    @Test func restartCountIsZeroInitially() async {
+        let reader = LogStreamReader()
+        #expect(await reader.restartCount == 0)
+    }
+
+    @Test func restartCountIncrements() async throws {
+        let factory = MockProcessFactory()
+        let reader = LogStreamReader(
+            autoRestart: true,
+            maxRestarts: 3,
+            backoff: BackoffStrategy(
+                baseDelay: 0.05,
+                maxDelay: 0.1
+            ),
+            processFactory: factory
+        )
+
+        await reader.start()
+        factory.lastProcess?.closeStdout()
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        #expect(await reader.restartCount == 1)
+
+        factory.lastProcess?.closeStdout()
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        #expect(await reader.restartCount == 2)
+
+        await reader.stop()
     }
 }
