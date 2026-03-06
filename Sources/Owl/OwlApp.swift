@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import OwlCore
+import ServiceManagement
 import SwiftUI
 
 @main
@@ -22,24 +23,31 @@ struct OwlApp {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    private var statusItem: NSStatusItem?
-    private let popover = NSPopover()
-    private let appState = AppState()
+    var statusItem: NSStatusItem?
+    let popover = NSPopover()
+    let appState = AppState()
+
+    // Settings
+    let appSettings = AppSettings()
+    lazy var settingsViewModel = SettingsViewModel(
+        settings: appSettings
+    )
+    var settingsWindow: NSWindow?
 
     // Engine components
-    private let pipeline = DetectorPipeline()
-    private let alertManager = AlertStateManager()
-    private let metricsPoller = SystemMetricsPoller()
+    let pipeline = DetectorPipeline()
+    let alertManager = AlertStateManager()
+    let metricsPoller = SystemMetricsPoller()
 
     // Observation
-    private var cancellables = Set<AnyCancellable>()
-    private var engineTask: Task<Void, Never>?
-    private var tickTask: Task<Void, Never>?
-    private var metricsTask: Task<Void, Never>?
+    var cancellables = Set<AnyCancellable>()
+    var engineTask: Task<Void, Never>?
+    var tickTask: Task<Void, Never>?
+    var metricsTask: Task<Void, Never>?
 
     // Animation
-    private var pulseTimer: Timer?
-    private var recoveryTimer: Timer?
+    var pulseTimer: Timer?
+    var recoveryTimer: Timer?
 
     nonisolated func applicationDidFinishLaunching(
         _ notification: Notification
@@ -47,7 +55,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             setupStatusItem()
             setupPopover()
+            setupSettingsWiring()
             startObserving()
+            applyInitialDetectorStates()
             startEngine()
         }
     }
@@ -60,9 +70,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // MARK: - Status Item
+    @objc func quitApp() {
+        stopEngine()
+        NSApp.terminate(nil)
+    }
+}
 
-    private func setupStatusItem() {
+// MARK: - Status Item & Menu
+
+extension AppDelegate {
+
+    func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(
             withLength: NSStatusItem.squareLength
         )
@@ -83,7 +101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
     }
 
-    @objc private func handleClick(_ sender: NSStatusBarButton) {
+    @objc func handleClick(_ sender: NSStatusBarButton) {
         guard let event = NSApp.currentEvent else { return }
 
         if event.type == .rightMouseUp {
@@ -93,7 +111,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func togglePopover() {
+    func togglePopover() {
         guard let button = statusItem?.button else { return }
 
         if popover.isShown {
@@ -108,7 +126,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func showContextMenu() {
+    func showContextMenu() {
         let menu = NSMenu()
         menu.addItem(
             NSMenuItem(
@@ -130,19 +148,104 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.button?.performClick(nil)
         statusItem?.menu = nil
     }
+}
 
-    @objc private func openSettings() {
-        // TODO: Phase 4 — open Settings window
+// MARK: - Settings
+
+extension AppDelegate {
+
+    @objc func openSettings() {
+        if let window = settingsWindow {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let settingsView = SettingsView(
+            viewModel: settingsViewModel
+        )
+        let hostingController = NSHostingController(
+            rootView: settingsView
+        )
+        let window = NSWindow(
+            contentRect: NSRect(
+                x: 0, y: 0, width: 420, height: 380
+            ),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Owl Settings"
+        window.contentViewController = hostingController
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow = window
     }
 
-    @objc private func quitApp() {
-        stopEngine()
-        NSApp.terminate(nil)
+    func setupSettingsWiring() {
+        settingsViewModel.$detectorStates
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] states in
+                self?.applyDetectorStates(states)
+            }
+            .store(in: &cancellables)
+
+        settingsViewModel.$launchAtLogin
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { enabled in
+                Self.setLaunchAtLogin(enabled)
+            }
+            .store(in: &cancellables)
     }
 
-    // MARK: - Popover
+    func applyInitialDetectorStates() {
+        let pipeline = self.pipeline
+        let settings = self.appSettings
+        Task {
+            let ids = await pipeline.detectorIDs
+            for id in ids {
+                let enabled = settings.isDetectorEnabled(id)
+                await pipeline.setEnabled(
+                    enabled, forDetectorID: id
+                )
+            }
+        }
+    }
 
-    private func setupPopover() {
+    func applyDetectorStates(_ states: [String: Bool]) {
+        let pipeline = self.pipeline
+        Task {
+            for (id, enabled) in states {
+                await pipeline.setEnabled(
+                    enabled, forDetectorID: id
+                )
+            }
+        }
+    }
+
+    static func setLaunchAtLogin(_ enabled: Bool) {
+        let service = SMAppService.mainApp
+        do {
+            if enabled {
+                try service.register()
+            } else {
+                try service.unregister()
+            }
+        } catch {
+            // Launch at login is best-effort
+        }
+    }
+}
+
+// MARK: - Popover & Icon
+
+extension AppDelegate {
+
+    func setupPopover() {
         let contentView = PopoverContentView(
             appState: appState,
             onSettings: { [weak self] in self?.openSettings() },
@@ -155,9 +258,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
     }
 
-    // MARK: - Icon Updates (via Combine)
-
-    private func startObserving() {
+    func startObserving() {
         appState.$currentSeverity
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
@@ -167,7 +268,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
-    private func updateIcon(severity: Severity) {
+    func updateIcon(severity: Severity) {
         let iconConfig = StatusItemMapper.config(
             for: severity,
             previousSeverity: appState.previousSeverity
@@ -196,7 +297,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func nsColor(for color: StatusIconColor) -> NSColor {
+    func nsColor(for color: StatusIconColor) -> NSColor {
         switch color {
         case .default:
             return .secondaryLabelColor
@@ -210,10 +311,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return .systemGreen
         }
     }
+}
 
-    // MARK: - Animations
+// MARK: - Animations
 
-    private func startPulseAnimation() {
+extension AppDelegate {
+
+    func startPulseAnimation() {
         guard let button = statusItem?.button else { return }
         var increasing = false
         pulseTimer = Timer.scheduledTimer(
@@ -231,13 +335,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func stopPulseAnimation() {
+    func stopPulseAnimation() {
         pulseTimer?.invalidate()
         pulseTimer = nil
         statusItem?.button?.alphaValue = 1.0
     }
 
-    private func performRecoveryFlash() {
+    func performRecoveryFlash() {
         guard let button = statusItem?.button else { return }
 
         button.contentTintColor = .systemGreen
@@ -256,10 +360,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+}
 
-    // MARK: - Engine
+// MARK: - Engine
 
-    private func startEngine() {
+extension AppDelegate {
+
+    func startEngine() {
         let reader = LogStreamReader()
         let pipeline = self.pipeline
         let alertManager = self.alertManager
@@ -284,7 +391,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         tickTask = Task {
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                try? await Task.sleep(
+                    nanoseconds: 1_000_000_000
+                )
 
                 let tickAlerts = await pipeline.tick()
                 for alert in tickAlerts {
@@ -304,14 +413,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             await metricsPoller.start()
 
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                try? await Task.sleep(
+                    nanoseconds: 2_000_000_000
+                )
                 let metrics = await metricsPoller.currentMetrics
                 appState.updateMetrics(metrics)
             }
         }
     }
 
-    private func stopEngine() {
+    func stopEngine() {
         engineTask?.cancel()
         tickTask?.cancel()
         metricsTask?.cancel()
