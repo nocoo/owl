@@ -39,15 +39,12 @@ public struct SMCTemperatureProvider: Sendable {
         return nil
     }
 
-    // swiftlint:disable:next function_body_length
     private func readSMCKey(
         connection: io_connect_t, key: String
     ) -> Double? {
-        // SMC structures
         var inputStruct = SMCKeyData()
         var outputStruct = SMCKeyData()
 
-        // Convert key string to UInt32
         let keyBytes = Array(key.utf8)
         guard keyBytes.count == 4 else { return nil }
         inputStruct.key = UInt32(keyBytes[0]) << 24
@@ -58,7 +55,7 @@ public struct SMCTemperatureProvider: Sendable {
 
         var outputSize = MemoryLayout<SMCKeyData>.stride
 
-        // First: get key info to learn the data type
+        // Get key info to learn the data type
         inputStruct.data8 = SMCKeyData.kGetKeyInfoCommand
         let infoResult = callSMC(
             connection: connection,
@@ -117,22 +114,11 @@ public struct SMCTemperatureProvider: Sendable {
     }
 
     private func decodeTemperature(
-        bytes: (
-            UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8
-        ),
+        bytes: SMCByteBuffer,
         dataType: UInt32,
         dataSize: UInt32
     ) -> Double? {
-        // "sp78" type: signed 7.8 fixed point
         let sp78 = fourCC("sp78")
-        // "flt " type: 32-bit float
         let flt = fourCC("flt ")
 
         if dataType == sp78, dataSize >= 2 {
@@ -148,7 +134,6 @@ public struct SMCTemperatureProvider: Sendable {
             return Double(Float(bitPattern: bits))
         }
 
-        // "fpe2": unsigned 14.2 fixed point
         let fpe2 = fourCC("fpe2")
         if dataType == fpe2, dataSize >= 2 {
             let raw = UInt16(bytes.0) << 8 | UInt16(bytes.1)
@@ -159,12 +144,27 @@ public struct SMCTemperatureProvider: Sendable {
     }
 
     private func fourCC(_ str: String) -> UInt32 {
-        let b = Array(str.utf8)
-        guard b.count == 4 else { return 0 }
-        return UInt32(b[0]) << 24 | UInt32(b[1]) << 16
-            | UInt32(b[2]) << 8 | UInt32(b[3])
+        let bytes = Array(str.utf8)
+        guard bytes.count == 4 else { return 0 }
+        return UInt32(bytes[0]) << 24 | UInt32(bytes[1]) << 16
+            | UInt32(bytes[2]) << 8 | UInt32(bytes[3])
     }
 }
+
+// MARK: - SMC Type Aliases
+
+// 32-byte buffer for SMC data.
+// swiftlint:disable:next large_tuple
+typealias SMCByteBuffer = (
+    UInt8, UInt8, UInt8, UInt8,
+    UInt8, UInt8, UInt8, UInt8,
+    UInt8, UInt8, UInt8, UInt8,
+    UInt8, UInt8, UInt8, UInt8,
+    UInt8, UInt8, UInt8, UInt8,
+    UInt8, UInt8, UInt8, UInt8,
+    UInt8, UInt8, UInt8, UInt8,
+    UInt8, UInt8, UInt8, UInt8
+)
 
 // MARK: - SMC Data Structures
 
@@ -182,16 +182,7 @@ struct SMCKeyData: Sendable {
     var status: UInt8 = 0
     var data8: UInt8 = 0
     var data32: UInt32 = 0
-    var bytes: (
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8,
-        UInt8, UInt8, UInt8, UInt8
-    ) = (
+    var bytes: SMCByteBuffer = (
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,

@@ -280,7 +280,7 @@ extension AppDelegate {
         popover.contentViewController = NSHostingController(
             rootView: contentView
         )
-        popover.contentSize = NSSize(width: 320, height: 400)
+        popover.contentSize = NSSize(width: 580, height: 500)
         popover.behavior = .transient
     }
 

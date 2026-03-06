@@ -7,18 +7,29 @@ public struct BatteryProvider: Sendable {
 
     /// Returns battery metrics, or .unavailable on desktops.
     public func batteryInfo() -> BatteryMetrics {
+        guard let desc = powerSourceDescription() else {
+            return .unavailable
+        }
+        return buildMetrics(from: desc)
+    }
+
+    private func powerSourceDescription()
+        -> [String: Any]? {
         guard let snapshot = IOPSCopyPowerSourcesInfo()?
             .takeRetainedValue(),
             let sources = IOPSCopyPowerSourcesList(snapshot)?
                 .takeRetainedValue() as? [CFTypeRef],
-            let first = sources.first,
-            let desc = IOPSGetPowerSourceDescription(
-                snapshot, first
-            )?.takeUnretainedValue() as? [String: Any]
-        else {
-            return .unavailable
-        }
+            let first = sources.first
+        else { return nil }
 
+        return IOPSGetPowerSourceDescription(
+            snapshot, first
+        )?.takeUnretainedValue() as? [String: Any]
+    }
+
+    private func buildMetrics(
+        from desc: [String: Any]
+    ) -> BatteryMetrics {
         let level = desc[kIOPSCurrentCapacityKey] as? Int ?? 0
         let maxCap = desc[kIOPSMaxCapacityKey] as? Int ?? 100
         let designCap = desc[kIOPSDesignCapacityKey] as? Int
@@ -27,38 +38,12 @@ public struct BatteryProvider: Sendable {
         let source = desc[kIOPSPowerSourceStateKey] as? String
         let isPluggedIn = source == kIOPSACPowerValue
 
-        // Health: maxCapacity / designCapacity
-        let health: Double
-        if let design = designCap, design > 0 {
-            health = Double(maxCap) / Double(design) * 100
-        } else {
-            health = 100
-        }
-
-        // Cycle count from IOKit registry
+        let health = computeHealth(
+            maxCap: maxCap, designCap: designCap
+        )
         let cycleCount = readCycleCount()
-
-        // Time remaining
-        let timeRem = IOPSGetTimeRemainingEstimate()
-        let timeMinutes: Int?
-        if timeRem == kIOPSTimeRemainingUnlimited {
-            timeMinutes = nil // plugged in
-        } else if timeRem == kIOPSTimeRemainingUnknown {
-            timeMinutes = nil
-        } else {
-            timeMinutes = Int(timeRem / 60)
-        }
-
-        // Temperature from battery properties
-        let tempRaw = desc["Temperature"] as? Int
-        let temperature: Double?
-        if let raw = tempRaw {
-            temperature = Double(raw) / 100.0
-        } else {
-            temperature = nil
-        }
-
-        // Condition
+        let timeMinutes = readTimeRemaining()
+        let temperature = readTemperature(from: desc)
         let condition = desc["BatteryHealthCondition"]
             as? String ?? "Normal"
 
@@ -74,6 +59,34 @@ public struct BatteryProvider: Sendable {
         )
     }
 
+    private func computeHealth(
+        maxCap: Int, designCap: Int?
+    ) -> Double {
+        if let design = designCap, design > 0 {
+            return Double(maxCap) / Double(design) * 100
+        }
+        return 100
+    }
+
+    private func readTimeRemaining() -> Int? {
+        let timeRem = IOPSGetTimeRemainingEstimate()
+        if timeRem == kIOPSTimeRemainingUnlimited {
+            return nil
+        } else if timeRem == kIOPSTimeRemainingUnknown {
+            return nil
+        }
+        return Int(timeRem / 60)
+    }
+
+    private func readTemperature(
+        from desc: [String: Any]
+    ) -> Double? {
+        guard let raw = desc["Temperature"] as? Int else {
+            return nil
+        }
+        return Double(raw) / 100.0
+    }
+
     private func readCycleCount() -> Int {
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault,
@@ -83,8 +96,10 @@ public struct BatteryProvider: Sendable {
         defer { IOObjectRelease(service) }
 
         let prop = IORegistryEntryCreateCFProperty(
-            service, "CycleCount" as CFString,
-            kCFAllocatorDefault, 0
+            service,
+            "CycleCount" as CFString,
+            kCFAllocatorDefault,
+            0
         )
         return prop?.takeRetainedValue() as? Int ?? 0
     }

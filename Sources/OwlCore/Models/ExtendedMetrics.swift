@@ -121,8 +121,10 @@ public struct DiskMetrics: Sendable, Equatable {
     }
 
     public static let zero = DiskMetrics(
-        totalBytes: 0, usedBytes: 0,
-        readBytesPerSec: 0, writeBytesPerSec: 0
+        totalBytes: 0,
+        usedBytes: 0,
+        readBytesPerSec: 0,
+        writeBytesPerSec: 0
     )
 }
 
@@ -164,9 +166,13 @@ public struct BatteryMetrics: Sendable, Equatable {
     }
 
     public static let unavailable = BatteryMetrics(
-        level: 0, health: 0, cycleCount: 0,
-        isCharging: false, isPluggedIn: false,
-        temperature: nil, timeRemaining: nil,
+        level: 0,
+        health: 0,
+        cycleCount: 0,
+        isCharging: false,
+        isPluggedIn: false,
+        temperature: nil,
+        timeRemaining: nil,
         condition: "Unavailable"
     )
 }

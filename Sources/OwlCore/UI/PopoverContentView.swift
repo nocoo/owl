@@ -2,8 +2,9 @@ import SwiftUI
 
 /// Root SwiftUI view for the popover.
 ///
-/// Composes SystemOverviewBar, ActiveAlertsSection,
-/// RecentHistorySection, and BottomBar into the full popover layout.
+/// Two-column system dashboard (~580px wide) with active alerts
+/// at the top, CPU/Disk/Processes on the left, and
+/// Memory/Power/Network on the right.
 public struct PopoverContentView: View {
     @ObservedObject var appState: AppState
 
@@ -22,28 +23,22 @@ public struct PopoverContentView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            SystemOverviewBar(
-                cpuUsage: appState.metrics.cpuUsage,
-                memoryPressure: appState.metrics.memoryPressure
-            )
-
-            Divider()
-
-            ScrollView {
-                VStack(spacing: 0) {
-                    ActiveAlertsSection(alerts: appState.activeAlerts)
-
-                    if !appState.alertHistory.isEmpty {
-                        Divider()
-                            .padding(.vertical, 4)
-                        RecentHistorySection(
-                            history: appState.alertHistory
-                        )
-                    }
-                }
+            // Active alerts at top (full width)
+            if !appState.activeAlerts.isEmpty {
+                ActiveAlertsSection(
+                    alerts: appState.activeAlerts
+                )
                 .padding(.vertical, 4)
+
+                Divider()
             }
-            .frame(maxHeight: 340)
+
+            // Two-column metrics dashboard
+            ScrollView {
+                metricsGrid
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
 
             Divider()
 
@@ -52,7 +47,27 @@ public struct PopoverContentView: View {
                 onQuit: onQuit
             )
         }
-        .frame(width: 320)
+        .frame(width: 580)
         .background(.ultraThinMaterial)
+    }
+
+    private var metricsGrid: some View {
+        HStack(alignment: .top, spacing: 16) {
+            // Left column: CPU, Disk, Processes
+            VStack(alignment: .leading, spacing: 12) {
+                CPUSection(metrics: appState.metrics)
+                DiskSection(metrics: appState.metrics)
+                ProcessesSection(metrics: appState.metrics)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Right column: Memory, Power, Network
+            VStack(alignment: .leading, spacing: 12) {
+                MemorySection(metrics: appState.metrics)
+                PowerSection(metrics: appState.metrics)
+                NetworkSection(metrics: appState.metrics)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }

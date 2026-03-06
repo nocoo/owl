@@ -312,87 +312,16 @@ public actor SystemMetricsPoller {
     }
 
     private func sampleMetrics() {
-        // CPU delta
-        let ticks = provider.cpuTicks()
-        let dUser = ticks.user &- prevTicks.user
-        let dSystem = ticks.system &- prevTicks.system
-        let dIdle = ticks.idle &- prevTicks.idle
-        let dNice = ticks.nice &- prevTicks.nice
-        let totalDelta = dUser + dSystem + dIdle + dNice
-
-        let cpuUsage: Double
-        if totalDelta > 0 {
-            let activeD = Double(dUser + dSystem + dNice)
-            cpuUsage = (activeD / Double(totalDelta)) * 100.0
-        } else {
-            cpuUsage = 0
-        }
-
-        prevTicks = ticks
-
-        // Memory
+        let cpuUsage = sampleCPU()
         let mem = provider.memoryInfo()
-
-        // Per-core CPU
-        let coreTicks = perCoreProvider.coreTicks()
-        let perCore = computePerCoreCPU(
-            prev: prevCoreTicks, curr: coreTicks
-        )
-        prevCoreTicks = coreTicks
-
-        // Temperature
+        let perCore = samplePerCoreCPU()
         let temp = smcProvider.cpuTemperature()
-
-        // Load average
         let load = perCoreProvider.loadAverage()
-
-        // Swap
-        let swap = swapProvider.swapUsage()
-        let extMem = ExtendedMemoryInfo(
-            total: mem.total, used: mem.used,
-            swapTotal: swap.total, swapUsed: swap.used
-        )
-
-        // Disk
-        let diskUsage = diskProvider.diskUsage()
-        let disk = DiskMetrics(
-            totalBytes: diskUsage.total,
-            usedBytes: diskUsage.used,
-            readBytesPerSec: 0, writeBytesPerSec: 0
-        )
-
-        // Battery
+        let extMem = sampleExtendedMemory(mem: mem)
+        let disk = sampleDisk()
         let battery = batteryProvider.batteryInfo()
-
-        // Network
-        let netBytes = networkProvider.totalBytes()
-        let now = Date()
-        let netInterval = now.timeIntervalSince(prevNetTime)
-        let network: NetworkMetrics
-        if netInterval > 0 {
-            let dIn = netBytes.bytesIn >= prevNetBytes.bytesIn
-                ? netBytes.bytesIn - prevNetBytes.bytesIn : 0
-            let dOut = netBytes.bytesOut >= prevNetBytes.bytesOut
-                ? netBytes.bytesOut - prevNetBytes.bytesOut : 0
-            network = NetworkMetrics(
-                bytesInPerSec: Double(dIn) / netInterval,
-                bytesOutPerSec: Double(dOut) / netInterval
-            )
-        } else {
-            network = .zero
-        }
-        prevNetBytes = netBytes
-        prevNetTime = now
-
-        // Top processes
-        let curProcesses = processProvider.topProcesses()
-        let topProcs = TopProcessProvider.computeCPUPercent(
-            previous: prevProcesses,
-            current: curProcesses,
-            interval: interval,
-            coreCount: max(coreTicks.count, 1)
-        )
-        prevProcesses = curProcesses
+        let network = sampleNetwork()
+        let topProcs = sampleTopProcesses()
 
         currentMetrics = SystemMetrics(
             cpuUsage: cpuUsage,
@@ -407,6 +336,83 @@ public actor SystemMetricsPoller {
             network: network,
             topProcesses: Array(topProcs.prefix(5))
         )
+    }
+
+    private func sampleCPU() -> Double {
+        let ticks = provider.cpuTicks()
+        let dUser = ticks.user &- prevTicks.user
+        let dSystem = ticks.system &- prevTicks.system
+        let dIdle = ticks.idle &- prevTicks.idle
+        let dNice = ticks.nice &- prevTicks.nice
+        let totalDelta = dUser + dSystem + dIdle + dNice
+        prevTicks = ticks
+
+        guard totalDelta > 0 else { return 0 }
+        let activeD = Double(dUser + dSystem + dNice)
+        return (activeD / Double(totalDelta)) * 100.0
+    }
+
+    private func samplePerCoreCPU() -> [CoreCPUUsage] {
+        let coreTicks = perCoreProvider.coreTicks()
+        let perCore = computePerCoreCPU(
+            prev: prevCoreTicks, curr: coreTicks
+        )
+        prevCoreTicks = coreTicks
+        return perCore
+    }
+
+    private func sampleExtendedMemory(
+        mem: MemoryInfo
+    ) -> ExtendedMemoryInfo {
+        let swap = swapProvider.swapUsage()
+        return ExtendedMemoryInfo(
+            total: mem.total,
+            used: mem.used,
+            swapTotal: swap.total,
+            swapUsed: swap.used
+        )
+    }
+
+    private func sampleDisk() -> DiskMetrics {
+        let diskUsage = diskProvider.diskUsage()
+        return DiskMetrics(
+            totalBytes: diskUsage.total,
+            usedBytes: diskUsage.used,
+            readBytesPerSec: 0,
+            writeBytesPerSec: 0
+        )
+    }
+
+    private func sampleNetwork() -> NetworkMetrics {
+        let netBytes = networkProvider.totalBytes()
+        let now = Date()
+        let elapsed = now.timeIntervalSince(prevNetTime)
+        defer {
+            prevNetBytes = netBytes
+            prevNetTime = now
+        }
+
+        guard elapsed > 0 else { return .zero }
+        let dIn = netBytes.bytesIn >= prevNetBytes.bytesIn
+            ? netBytes.bytesIn - prevNetBytes.bytesIn : 0
+        let dOut = netBytes.bytesOut >= prevNetBytes.bytesOut
+            ? netBytes.bytesOut - prevNetBytes.bytesOut : 0
+        return NetworkMetrics(
+            bytesInPerSec: Double(dIn) / elapsed,
+            bytesOutPerSec: Double(dOut) / elapsed
+        )
+    }
+
+    private func sampleTopProcesses() -> [ProcessMetric] {
+        let curProcesses = processProvider.topProcesses()
+        let topProcs = TopProcessProvider.computeCPUPercent(
+            previous: prevProcesses,
+            current: curProcesses,
+            interval: interval,
+            coreCount: max(prevCoreTicks.count, 1)
+        )
+        prevProcesses = curProcesses
+        return topProcs
     }
 
     private func computePerCoreCPU(
