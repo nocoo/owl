@@ -29,9 +29,9 @@ Atomic execution plan for Owl. Each step is a single commit.
 
 | # | Task | Commit | Status |
 |---|------|--------|--------|
-| 1.1.1 | Define `Severity` enum (normal/info/warning/critical, Comparable, Codable) + UT | | [ ] |
-| 1.1.2 | Define `LogEntry` struct (timestamp, process, processID, subsystem, category, messageType, eventMessage) + UT | | [ ] |
-| 1.1.3 | Define `Alert` struct (detectorID, severity, title, description, suggestion, timestamp, ttl) + UT | | [ ] |
+| 1.1.1 | Define `Severity` enum (normal/info/warning/critical, Comparable, Codable) + UT | 35eda80 | [x] |
+| 1.1.2 | Define `LogEntry` struct (timestamp, process, processID, subsystem, category, messageType, eventMessage) + UT | fe097d1 | [x] |
+| 1.1.3 | Define `Alert` struct (detectorID, severity, title, description, suggestion, timestamp, ttl) + UT | | [x] |
 
 ### Phase 1.2: Algorithm Engines
 

@@ -82,7 +82,7 @@ struct LogEntryTests {
         let data = try JSONSerialization.data(withJSONObject: json)
         let entry = try LogEntry.fromJSON(data)
 
-        #expect(entry.process == "")
+        #expect(entry.process.isEmpty)
     }
 
     @Test func throwsOnMissingEventMessage() {
