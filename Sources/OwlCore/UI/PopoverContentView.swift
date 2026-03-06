@@ -23,7 +23,7 @@ public struct PopoverContentView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // App header
+            // App header — pinned at top
             appHeader
                 .padding(.horizontal, 12)
                 .padding(.top, 10)
@@ -31,34 +31,37 @@ public struct PopoverContentView: View {
 
             Divider()
 
-            // Metrics — no scroll, show everything
-            VStack(alignment: .leading, spacing: 6) {
-                CPUSection(metrics: appState.metrics)
-                MemorySection(metrics: appState.metrics)
-                DiskSection(metrics: appState.metrics)
-                PowerSection(metrics: appState.metrics)
-                NetworkSection(
-                    metrics: appState.metrics,
-                    inHistory: appState.networkInHistory,
-                    outHistory: appState.networkOutHistory
-                )
-                ProcessesSection(metrics: appState.metrics)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            // Scrollable content: metrics + alerts
+            ScrollView {
+                VStack(alignment: .leading, spacing: 6) {
+                    CPUSection(metrics: appState.metrics)
+                    MemorySection(metrics: appState.metrics)
+                    DiskSection(metrics: appState.metrics)
+                    PowerSection(metrics: appState.metrics)
+                    NetworkSection(
+                        metrics: appState.metrics,
+                        inHistory: appState.networkInHistory,
+                        outHistory: appState.networkOutHistory
+                    )
+                    ProcessesSection(metrics: appState.metrics)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
 
-            // Active alerts at bottom (scrollable, ~3 rows)
-            if !appState.activeAlerts.isEmpty {
-                Divider()
+                // Active alerts inside scroll area
+                if !appState.activeAlerts.isEmpty {
+                    Divider()
 
-                ActiveAlertsSection(
-                    alerts: appState.activeAlerts
-                )
-                .padding(.vertical, 4)
+                    ActiveAlertsSection(
+                        alerts: appState.activeAlerts
+                    )
+                    .padding(.vertical, 4)
+                }
             }
 
             Divider()
 
+            // Bottom bar — pinned at bottom
             BottomBar(
                 onSettings: onSettings,
                 onQuit: onQuit

@@ -48,21 +48,18 @@ public struct ActiveAlertsSection: View {
             .padding(.horizontal, 12)
             .padding(.bottom, 4)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(
-                        Array(alerts.enumerated()),
-                        id: \.offset
-                    ) { _, alert in
-                        AlertRow(alert: alert)
-                        if alert != alerts.last {
-                            Divider()
-                                .padding(.leading, 36)
-                        }
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(
+                    Array(alerts.enumerated()),
+                    id: \.offset
+                ) { _, alert in
+                    AlertRow(alert: alert)
+                    if alert != alerts.last {
+                        Divider()
+                            .padding(.leading, 36)
                     }
                 }
             }
-            .frame(height: 210)
         }
     }
 }
