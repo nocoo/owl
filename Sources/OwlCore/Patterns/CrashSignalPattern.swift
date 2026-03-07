@@ -24,9 +24,9 @@ public enum CrashSignalPattern {
             criticalRate: 10,
             cooldownInterval: 600,
             maxGroups: 100,
-            title: L10n.tr(.alertCrashSignalTitle),
-            descriptionTemplate: L10n.tr(.alertCrashSignalDesc("{key}", "{window}", "{count}")),
-            suggestion: L10n.tr(.alertCrashSignalSuggestion),
+            titleKey: .alertCrashSignalTitle,
+            descriptionTemplateKey: .alertCrashSignalDesc("{key}", "{window}", "{count}"),
+            suggestionKey: .alertCrashSignalSuggestion,
             acceptsFilter: "exited due to"
         ))
     }

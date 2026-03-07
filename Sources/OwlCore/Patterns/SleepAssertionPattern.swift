@@ -24,9 +24,9 @@ public enum SleepAssertionPattern {
             warningAge: 1800,
             criticalAge: 7200,
             maxTracked: 100,
-            title: L10n.tr(.alertSleepTitle),
-            descriptionTemplate: L10n.tr(.alertSleepDesc("{source}", "{age}")),
-            suggestion: L10n.tr(.alertSleepSuggestion),
+            titleKey: .alertSleepTitle,
+            descriptionTemplateKey: .alertSleepDesc("{id}", "{type}", "{source}", "{age}"),
+            suggestionKey: .alertSleepSuggestion,
             acceptsFilter: "PreventSleep"
         ))
     }

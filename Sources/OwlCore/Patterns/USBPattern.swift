@@ -24,9 +24,9 @@ public enum USBPattern {
             criticalRate: 20,
             cooldownInterval: 600,
             maxGroups: 20,
-            title: L10n.tr(.alertUSBTitle),
-            descriptionTemplate: L10n.tr(.alertUSBDesc("{key}", "{window}", "{count}")),
-            suggestion: L10n.tr(.alertUSBSuggestion),
+            titleKey: .alertUSBTitle,
+            descriptionTemplateKey: .alertUSBDesc("{key}", "{window}", "{count}"),
+            suggestionKey: .alertUSBSuggestion,
             acceptsFilter: "IOUSBHostPipe::abortGated"
         ))
     }

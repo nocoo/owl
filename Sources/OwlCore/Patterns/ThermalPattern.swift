@@ -23,9 +23,9 @@ public enum ThermalPattern {
             recoveryThreshold: 7000,
             debounce: 5,
             comparison: .lessThan,
-            title: L10n.tr(.alertThermalTitle),
-            descriptionTemplate: L10n.tr(.alertThermalDesc("{value}")),
-            suggestion: L10n.tr(.alertThermalSuggestion),
+            titleKey: .alertThermalTitle,
+            descriptionTemplateKey: .alertThermalDesc("{value}"),
+            suggestionKey: .alertThermalSuggestion,
             acceptsFilter: "setDetailedThermalPowerBudget"
         ))
     }

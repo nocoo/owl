@@ -24,9 +24,9 @@ public enum BluetoothPattern {
             criticalRate: 8,
             cooldownInterval: 300,
             maxGroups: 20,
-            title: L10n.tr(.alertBluetoothTitle),
-            descriptionTemplate: L10n.tr(.alertBluetoothDesc("{key}", "{window}", "{count}")),
-            suggestion: L10n.tr(.alertBluetoothSuggestion),
+            titleKey: .alertBluetoothTitle,
+            descriptionTemplateKey: .alertBluetoothDesc("{key}", "{window}", "{count}"),
+            suggestionKey: .alertBluetoothSuggestion,
             acceptsFilter: "Device disconnected"
         ))
     }

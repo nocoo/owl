@@ -23,9 +23,9 @@ public enum DiskFlushPattern {
             recoveryThreshold: 5,
             debounce: 3,
             comparison: .greaterThan,
-            title: L10n.tr(.alertDiskFlushTitle),
-            descriptionTemplate: L10n.tr(.alertDiskFlushDesc("{value}")),
-            suggestion: L10n.tr(.alertDiskFlushSuggestion),
+            titleKey: .alertDiskFlushTitle,
+            descriptionTemplateKey: .alertDiskFlushDesc("{value}"),
+            suggestionKey: .alertDiskFlushSuggestion,
             acceptsFilter: "tx_flush:"
         ))
     }

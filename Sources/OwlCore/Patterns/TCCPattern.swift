@@ -24,9 +24,9 @@ public enum TCCPattern {
             criticalRate: 30,
             cooldownInterval: 300,
             maxGroups: 50,
-            title: L10n.tr(.alertTCCTitle),
-            descriptionTemplate: L10n.tr(.alertTCCDesc("{key}", "{window}", "{count}")),
-            suggestion: L10n.tr(.alertTCCSuggestion),
+            titleKey: .alertTCCTitle,
+            descriptionTemplateKey: .alertTCCDesc("{key}", "{window}", "{count}"),
+            suggestionKey: .alertTCCSuggestion,
             acceptsFilter: "AUTHREQ_RESULT:"
         ))
     }

@@ -22,9 +22,9 @@ struct ThresholdDetectorTests {
             recoveryThreshold: recoveryThreshold,
             debounce: debounce,
             comparison: comparison,
-            title: "Thermal Throttling",
-            descriptionTemplate: "Power budget dropped to {value}mW",
-            suggestion: "Close resource-intensive apps",
+            titleKey: .alertThermalTitle,
+            descriptionTemplateKey: .alertThermalDesc("{value}"),
+            suggestionKey: .alertThermalSuggestion,
             acceptsFilter: "power budget"
         )
     }
@@ -266,9 +266,9 @@ struct ThresholdDetectorTests {
             recoveryThreshold: 500,
             debounce: 0,
             comparison: .greaterThan,
-            title: "Disk Latency",
-            descriptionTemplate: "Flush latency {value}ms",
-            suggestion: "Check disk health",
+            titleKey: .alertDiskFlushTitle,
+            descriptionTemplateKey: .alertDiskFlushDesc("{value}"),
+            suggestionKey: .alertDiskFlushSuggestion,
             acceptsFilter: "latency"
         )
         let detector = ThresholdDetector(config: config)
@@ -289,9 +289,9 @@ struct ThresholdDetectorTests {
             recoveryThreshold: 500,
             debounce: 0,
             comparison: .greaterThan,
-            title: "Disk Latency",
-            descriptionTemplate: "Flush latency {value}ms",
-            suggestion: "Check disk health",
+            titleKey: .alertDiskFlushTitle,
+            descriptionTemplateKey: .alertDiskFlushDesc("{value}"),
+            suggestionKey: .alertDiskFlushSuggestion,
             acceptsFilter: "latency"
         )
         let detector = ThresholdDetector(config: config)

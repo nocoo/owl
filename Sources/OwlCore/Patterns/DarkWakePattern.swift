@@ -24,9 +24,9 @@ public enum DarkWakePattern {
             criticalRate: 30,
             cooldownInterval: 600,
             maxGroups: 1,
-            title: L10n.tr(.alertDarkWakeTitle),
-            descriptionTemplate: L10n.tr(.alertDarkWakeDesc("{window}", "{count}")),
-            suggestion: L10n.tr(.alertDarkWakeSuggestion),
+            titleKey: .alertDarkWakeTitle,
+            descriptionTemplateKey: .alertDarkWakeDesc("{window}", "{count}"),
+            suggestionKey: .alertDarkWakeSuggestion,
             acceptsFilter: "DarkWake"
         ))
     }

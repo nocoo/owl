@@ -24,9 +24,9 @@ public enum SandboxPattern {
             criticalRate: 50,
             cooldownInterval: 300,
             maxGroups: 50,
-            title: L10n.tr(.alertSandboxTitle),
-            descriptionTemplate: L10n.tr(.alertSandboxDesc("{key}", "{window}", "{count}")),
-            suggestion: L10n.tr(.alertSandboxSuggestion),
+            titleKey: .alertSandboxTitle,
+            descriptionTemplateKey: .alertSandboxDesc("{key}", "{window}", "{count}"),
+            suggestionKey: .alertSandboxSuggestion,
             acceptsFilter: "deny(1)"
         ))
     }

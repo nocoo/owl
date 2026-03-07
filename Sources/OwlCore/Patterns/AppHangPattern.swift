@@ -24,9 +24,9 @@ public enum AppHangPattern {
             criticalRate: Int.max,
             cooldownInterval: 120,
             maxGroups: 50,
-            title: L10n.tr(.alertAppHangTitle),
-            descriptionTemplate: L10n.tr(.alertAppHangDesc("{key}", "{count}", "{window}")),
-            suggestion: L10n.tr(.alertAppHangSuggestion),
+            titleKey: .alertAppHangTitle,
+            descriptionTemplateKey: .alertAppHangDesc("{key}", "{count}", "{window}"),
+            suggestionKey: .alertAppHangSuggestion,
             acceptsFilter: "failed to act on a ping"
         ))
     }

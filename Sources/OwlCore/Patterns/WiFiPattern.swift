@@ -23,9 +23,9 @@ public enum WiFiPattern {
             recoveryThreshold: -65,
             debounce: 10,
             comparison: .lessThan,
-            title: L10n.tr(.alertWiFiTitle),
-            descriptionTemplate: L10n.tr(.alertWiFiDesc("{value}")),
-            suggestion: L10n.tr(.alertWiFiSuggestion),
+            titleKey: .alertWiFiTitle,
+            descriptionTemplateKey: .alertWiFiDesc("{value}"),
+            suggestionKey: .alertWiFiSuggestion,
             acceptsFilter: "LQM:"
         ))
     }

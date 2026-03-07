@@ -24,14 +24,14 @@ public struct ThresholdConfig: Sendable {
     /// Comparison direction for threshold evaluation.
     public let comparison: Comparison
 
-    /// User-visible alert title.
-    public let title: String
+    /// User-visible alert title key, resolved at alert emission time.
+    public let titleKey: L10nKey
 
-    /// Description template. Use `{value}` as placeholder for the extracted value.
-    public let descriptionTemplate: String
+    /// Description template key. Use `{value}` as placeholder for the extracted value.
+    public let descriptionTemplateKey: L10nKey
 
-    /// User-visible suggestion text.
-    public let suggestion: String
+    /// User-visible suggestion text key.
+    public let suggestionKey: L10nKey
 
     /// Fast pre-filter string for `accepts()`. Uses `String.contains()`.
     public let acceptsFilter: String
@@ -44,9 +44,9 @@ public struct ThresholdConfig: Sendable {
         recoveryThreshold: Double,
         debounce: TimeInterval,
         comparison: Comparison,
-        title: String,
-        descriptionTemplate: String,
-        suggestion: String,
+        titleKey: L10nKey,
+        descriptionTemplateKey: L10nKey,
+        suggestionKey: L10nKey,
         acceptsFilter: String
     ) {
         self.id = id
@@ -56,9 +56,9 @@ public struct ThresholdConfig: Sendable {
         self.recoveryThreshold = recoveryThreshold
         self.debounce = debounce
         self.comparison = comparison
-        self.title = title
-        self.descriptionTemplate = descriptionTemplate
-        self.suggestion = suggestion
+        self.titleKey = titleKey
+        self.descriptionTemplateKey = descriptionTemplateKey
+        self.suggestionKey = suggestionKey
         self.acceptsFilter = acceptsFilter
     }
 }

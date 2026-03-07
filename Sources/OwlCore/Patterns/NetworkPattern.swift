@@ -25,9 +25,9 @@ public enum NetworkPattern {
             criticalRate: 30,
             cooldownInterval: 120,
             maxGroups: 1,
-            title: L10n.tr(.alertNetworkTitle),
-            descriptionTemplate: L10n.tr(.alertNetworkDesc("{window}", "{count}")),
-            suggestion: L10n.tr(.alertNetworkSuggestion),
+            titleKey: .alertNetworkTitle,
+            descriptionTemplateKey: .alertNetworkDesc("{window}", "{count}"),
+            suggestionKey: .alertNetworkSuggestion,
             acceptsFilter: "reporting state failed error"
         ))
     }

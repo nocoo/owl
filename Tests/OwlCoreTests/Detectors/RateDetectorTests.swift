@@ -23,9 +23,9 @@ struct RateDetectorTests {
             criticalRate: criticalRate,
             cooldownInterval: cooldownInterval,
             maxGroups: maxGroups,
-            title: "Crash Loop",
-            descriptionTemplate: "{key} crashed {count} times in {window}s",
-            suggestion: "Force quit the app",
+            titleKey: .alertCrashLoopTitle,
+            descriptionTemplateKey: .alertCrashLoopDesc("{key}", "{window}", "{count}"),
+            suggestionKey: .alertCrashLoopSuggestion,
             acceptsFilter: "crash"
         )
     }
@@ -43,9 +43,9 @@ struct RateDetectorTests {
             criticalRate: criticalRate,
             cooldownInterval: 60,
             maxGroups: 1,
-            title: "Network Failures",
-            descriptionTemplate: "{count} network failures in {window}s",
-            suggestion: "Check network connection",
+            titleKey: .alertNetworkTitle,
+            descriptionTemplateKey: .alertNetworkDesc("{window}", "{count}"),
+            suggestionKey: .alertNetworkSuggestion,
             acceptsFilter: "network error"
         )
     }

@@ -161,8 +161,8 @@ public final class RateDetector: PatternDetector {
         severity: Severity,
         timestamp: Date
     ) -> Alert {
-        let displayKey = key == Self.globalKey ? "system" : key
-        let description = config.descriptionTemplate
+        let displayKey = key == Self.globalKey ? L10n.tr(.alertGlobalSystem) : key
+        let description = L10n.tr(config.descriptionTemplateKey)
             .replacingOccurrences(of: "{key}", with: displayKey)
             .replacingOccurrences(of: "{count}", with: String(count))
             .replacingOccurrences(of: "{window}", with: String(config.windowSeconds))
@@ -170,9 +170,9 @@ public final class RateDetector: PatternDetector {
         return Alert(
             detectorID: id,
             severity: severity,
-            title: config.title,
+            title: L10n.tr(config.titleKey),
             description: description,
-            suggestion: config.suggestion,
+            suggestion: L10n.tr(config.suggestionKey),
             timestamp: timestamp
         )
     }

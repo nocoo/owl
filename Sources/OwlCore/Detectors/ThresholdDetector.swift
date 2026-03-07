@@ -184,26 +184,27 @@ public final class ThresholdDetector: PatternDetector {
     }
 
     private func makeAlert(severity: Severity, value: Double, timestamp: Date) -> Alert {
-        let description = config.descriptionTemplate.replacingOccurrences(
+        let description = L10n.tr(config.descriptionTemplateKey).replacingOccurrences(
             of: "{value}",
             with: String(format: "%.0f", value)
         )
         return Alert(
             detectorID: id,
             severity: severity,
-            title: config.title,
+            title: L10n.tr(config.titleKey),
             description: description,
-            suggestion: config.suggestion,
+            suggestion: L10n.tr(config.suggestionKey),
             timestamp: timestamp
         )
     }
 
     private func makeRecoveryAlert(timestamp: Date) -> Alert {
-        Alert(
+        let title = "\(L10n.tr(config.titleKey)) — \(L10n.tr(.alertRecoveredSuffix))"
+        return Alert(
             detectorID: id,
             severity: .info,
-            title: "\(config.title) — Recovered",
-            description: "System has returned to normal",
+            title: title,
+            description: L10n.tr(.alertRecoveredDesc),
             suggestion: "",
             timestamp: timestamp,
             ttl: 30

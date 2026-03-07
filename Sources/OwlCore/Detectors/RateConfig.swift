@@ -34,14 +34,14 @@ public struct RateConfig: Sendable {
     /// Maximum number of tracked groups (LRU eviction when exceeded).
     public let maxGroups: Int
 
-    /// User-visible alert title.
-    public let title: String
+    /// User-visible alert title key, resolved at alert emission time.
+    public let titleKey: L10nKey
 
-    /// Description template. Placeholders: `{key}`, `{count}`, `{window}`.
-    public let descriptionTemplate: String
+    /// Description template key. Placeholders: `{key}`, `{count}`, `{window}`.
+    public let descriptionTemplateKey: L10nKey
 
-    /// User-visible suggestion text.
-    public let suggestion: String
+    /// User-visible suggestion text key.
+    public let suggestionKey: L10nKey
 
     /// Fast pre-filter string for `accepts()`.
     public let acceptsFilter: String
@@ -55,9 +55,9 @@ public struct RateConfig: Sendable {
         criticalRate: Int,
         cooldownInterval: TimeInterval,
         maxGroups: Int,
-        title: String,
-        descriptionTemplate: String,
-        suggestion: String,
+        titleKey: L10nKey,
+        descriptionTemplateKey: L10nKey,
+        suggestionKey: L10nKey,
         acceptsFilter: String
     ) {
         self.id = id
@@ -68,9 +68,9 @@ public struct RateConfig: Sendable {
         self.criticalRate = criticalRate
         self.cooldownInterval = cooldownInterval
         self.maxGroups = maxGroups
-        self.title = title
-        self.descriptionTemplate = descriptionTemplate
-        self.suggestion = suggestion
+        self.titleKey = titleKey
+        self.descriptionTemplateKey = descriptionTemplateKey
+        self.suggestionKey = suggestionKey
         self.acceptsFilter = acceptsFilter
     }
 }

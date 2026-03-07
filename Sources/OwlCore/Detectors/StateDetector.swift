@@ -181,7 +181,7 @@ public final class StateDetector: PatternDetector {
     }
 
     private func makeAlert(assertion: TrackedAssertion, age: TimeInterval, severity: Severity) -> Alert {
-        let description = config.descriptionTemplate
+        let description = L10n.tr(config.descriptionTemplateKey)
             .replacingOccurrences(of: "{id}", with: assertion.id)
             .replacingOccurrences(of: "{type}", with: assertion.type)
             .replacingOccurrences(of: "{source}", with: assertion.source)
@@ -190,9 +190,9 @@ public final class StateDetector: PatternDetector {
         return Alert(
             detectorID: id,
             severity: severity,
-            title: config.title,
+            title: L10n.tr(config.titleKey),
             description: description,
-            suggestion: config.suggestion,
+            suggestion: L10n.tr(config.suggestionKey),
             timestamp: currentTime
         )
     }

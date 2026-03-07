@@ -241,7 +241,7 @@ public enum L10nKey: Sendable {
     case alertJetsamEscDesc(String)
     case alertJetsamEscSuggestion
     case alertSleepTitle
-    case alertSleepDesc(String, String)
+    case alertSleepDesc(String, String, String, String)
     case alertSleepSuggestion
     case alertDarkWakeTitle
     case alertDarkWakeDesc(String, String)
@@ -270,6 +270,11 @@ public enum L10nKey: Sendable {
     case alertAppHangTitle
     case alertAppHangDesc(String, String, String)
     case alertAppHangSuggestion
+
+    // Recovery / global
+    case alertRecoveredSuffix
+    case alertRecoveredDesc
+    case alertGlobalSystem
 }
 
 // MARK: - L10n Translation Engine
@@ -566,8 +571,8 @@ public enum L10n {
             return "Close unnecessary apps to free memory, or consider restarting"
         case .alertSleepTitle:
             return "Sleep Assertion Unreleased"
-        case .alertSleepDesc(let source, let age):
-            return "\"\(source)\" has been preventing sleep for \(age) seconds"
+        case .alertSleepDesc(let id, let type, let source, let age):
+            return "Assertion \(id) (\(type)) from \"\(source)\" held for \(age) seconds"
         case .alertSleepSuggestion:
             return "Run pmset -g assertions to check current sleep assertions, or restart the process"
         case .alertDarkWakeTitle:
@@ -626,6 +631,11 @@ public enum L10n {
             return "PID \(key) failed WindowServer heartbeat (\(count) times/\(window)s)"
         case .alertAppHangSuggestion:
             return "Check the process in Activity Monitor, try force-quitting"
+
+        // Recovery / global
+        case .alertRecoveredSuffix: return "Recovered"
+        case .alertRecoveredDesc: return "System has returned to normal"
+        case .alertGlobalSystem: return "system"
         }
     }
 
@@ -850,8 +860,8 @@ public enum L10n {
         case .alertJetsamEscSuggestion:
             return "关闭不必要的应用以释放内存，或考虑重启系统"
         case .alertSleepTitle: return "Sleep 断言未释放"
-        case .alertSleepDesc(let source, let age):
-            return "\"\(source)\" 阻止系统休眠已超过 \(age) 秒"
+        case .alertSleepDesc(let id, let type, let source, let age):
+            return "断言 \(id)（\(type)）来自 \"\(source)\" 已持续 \(age) 秒"
         case .alertSleepSuggestion:
             return "运行 pmset -g assertions 查看当前 sleep 断言，或重启相关进程"
         case .alertDarkWakeTitle: return "系统被频繁唤醒"
@@ -907,6 +917,11 @@ public enum L10n {
             return "PID \(key) 未响应 WindowServer 的心跳检测（\(count) 次/\(window)s）"
         case .alertAppHangSuggestion:
             return "在 Activity Monitor 中查看该进程是否正常，可尝试强制退出"
+
+        // Recovery / global
+        case .alertRecoveredSuffix: return "已恢复"
+        case .alertRecoveredDesc: return "系统已恢复正常"
+        case .alertGlobalSystem: return "系统"
         }
     }
     // swiftlint:enable function_body_length cyclomatic_complexity

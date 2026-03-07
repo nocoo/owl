@@ -20,14 +20,14 @@ public struct StateConfig: Sendable {
     /// Maximum number of tracked unpaired assertions (FIFO eviction when exceeded).
     public let maxTracked: Int
 
-    /// User-visible alert title.
-    public let title: String
+    /// User-visible alert title key, resolved at alert emission time.
+    public let titleKey: L10nKey
 
-    /// Description template. Placeholders: `{id}`, `{type}`, `{source}`, `{age}`.
-    public let descriptionTemplate: String
+    /// Description template key. Placeholders: `{id}`, `{type}`, `{source}`, `{age}`.
+    public let descriptionTemplateKey: L10nKey
 
-    /// User-visible suggestion text.
-    public let suggestion: String
+    /// User-visible suggestion text key.
+    public let suggestionKey: L10nKey
 
     /// Fast pre-filter string for `accepts()`.
     public let acceptsFilter: String
@@ -39,9 +39,9 @@ public struct StateConfig: Sendable {
         warningAge: TimeInterval,
         criticalAge: TimeInterval,
         maxTracked: Int,
-        title: String,
-        descriptionTemplate: String,
-        suggestion: String,
+        titleKey: L10nKey,
+        descriptionTemplateKey: L10nKey,
+        suggestionKey: L10nKey,
         acceptsFilter: String
     ) {
         self.id = id
@@ -50,9 +50,9 @@ public struct StateConfig: Sendable {
         self.warningAge = warningAge
         self.criticalAge = criticalAge
         self.maxTracked = maxTracked
-        self.title = title
-        self.descriptionTemplate = descriptionTemplate
-        self.suggestion = suggestion
+        self.titleKey = titleKey
+        self.descriptionTemplateKey = descriptionTemplateKey
+        self.suggestionKey = suggestionKey
         self.acceptsFilter = acceptsFilter
     }
 }

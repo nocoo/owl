@@ -27,9 +27,9 @@ public enum JetsamPattern {
             recoveryThreshold: -1,
             debounce: 0,
             comparison: .greaterThan,
-            title: L10n.tr(.alertJetsamTitle),
-            descriptionTemplate: L10n.tr(.alertJetsamDesc("{value}")),
-            suggestion: L10n.tr(.alertJetsamSuggestion),
+            titleKey: .alertJetsamTitle,
+            descriptionTemplateKey: .alertJetsamDesc("{value}"),
+            suggestionKey: .alertJetsamSuggestion,
             acceptsFilter: "memorystatus_kill_top_process"
         ))
     }
@@ -45,9 +45,9 @@ public enum JetsamPattern {
             criticalRate: 3,
             cooldownInterval: 60,
             maxGroups: 1,
-            title: L10n.tr(.alertJetsamEscTitle),
-            descriptionTemplate: L10n.tr(.alertJetsamEscDesc("{count}")),
-            suggestion: L10n.tr(.alertJetsamEscSuggestion),
+            titleKey: .alertJetsamEscTitle,
+            descriptionTemplateKey: .alertJetsamEscDesc("{count}"),
+            suggestionKey: .alertJetsamEscSuggestion,
             acceptsFilter: "memorystatus_kill_top_process"
         ))
     }

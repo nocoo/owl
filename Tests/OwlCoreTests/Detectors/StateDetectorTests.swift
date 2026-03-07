@@ -19,9 +19,9 @@ struct StateDetectorTests {
             warningAge: warningAge,
             criticalAge: criticalAge,
             maxTracked: maxTracked,
-            title: "Sleep Assertion Leak",
-            descriptionTemplate: "Assertion {id} ({type}) from {source} held for {age}s",
-            suggestion: "An app may be preventing sleep unnecessarily",
+            titleKey: .alertSleepTitle,
+            descriptionTemplateKey: .alertSleepDesc("{id}", "{type}", "{source}", "{age}"),
+            suggestionKey: .alertSleepSuggestion,
             acceptsFilter: "IOPMAssertion"
         )
     }

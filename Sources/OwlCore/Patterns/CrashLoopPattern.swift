@@ -25,9 +25,9 @@ public enum CrashLoopPattern {
             criticalRate: 20,
             cooldownInterval: 120,
             maxGroups: 50,
-            title: L10n.tr(.alertCrashLoopTitle),
-            descriptionTemplate: L10n.tr(.alertCrashLoopDesc("{key}", "{window}", "{count}")),
-            suggestion: L10n.tr(.alertCrashLoopSuggestion),
+            titleKey: .alertCrashLoopTitle,
+            descriptionTemplateKey: .alertCrashLoopDesc("{key}", "{window}", "{count}"),
+            suggestionKey: .alertCrashLoopSuggestion,
             acceptsFilter: "QUIT:"
         ))
     }
