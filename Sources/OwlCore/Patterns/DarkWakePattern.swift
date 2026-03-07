@@ -24,9 +24,9 @@ public enum DarkWakePattern {
             criticalRate: 30,
             cooldownInterval: 600,
             maxGroups: 1,
-            title: "系统被频繁唤醒",
-            descriptionTemplate: "过去 {window} 秒发生 {count} 次 DarkWake",
-            suggestion: "运行 pmset -g log | grep DarkWake 查看详细唤醒记录",
+            title: L10n.tr(.alertDarkWakeTitle),
+            descriptionTemplate: L10n.tr(.alertDarkWakeDesc("{window}", "{count}")),
+            suggestion: L10n.tr(.alertDarkWakeSuggestion),
             acceptsFilter: "DarkWake"
         ))
     }

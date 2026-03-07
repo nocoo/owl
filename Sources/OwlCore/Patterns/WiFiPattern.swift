@@ -23,9 +23,9 @@ public enum WiFiPattern {
             recoveryThreshold: -65,
             debounce: 10,
             comparison: .lessThan,
-            title: "WiFi 信号较弱",
-            descriptionTemplate: "当前信号强度 {value} dBm",
-            suggestion: "尝试靠近路由器，或切换到 5GHz 频段",
+            title: L10n.tr(.alertWiFiTitle),
+            descriptionTemplate: L10n.tr(.alertWiFiDesc("{value}")),
+            suggestion: L10n.tr(.alertWiFiSuggestion),
             acceptsFilter: "LQM:"
         ))
     }

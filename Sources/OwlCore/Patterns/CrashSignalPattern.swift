@@ -24,9 +24,9 @@ public enum CrashSignalPattern {
             criticalRate: 10,
             cooldownInterval: 600,
             maxGroups: 100,
-            title: "进程频繁崩溃",
-            descriptionTemplate: "{key} 在过去 {window} 秒因信号退出了 {count} 次",
-            suggestion: "查看 ~/Library/Logs/DiagnosticReports/ 中对应的 crash 报告",
+            title: L10n.tr(.alertCrashSignalTitle),
+            descriptionTemplate: L10n.tr(.alertCrashSignalDesc("{key}", "{window}", "{count}")),
+            suggestion: L10n.tr(.alertCrashSignalSuggestion),
             acceptsFilter: "exited due to"
         ))
     }

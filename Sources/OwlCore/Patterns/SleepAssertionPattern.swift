@@ -24,9 +24,9 @@ public enum SleepAssertionPattern {
             warningAge: 1800,
             criticalAge: 7200,
             maxTracked: 100,
-            title: "Sleep 断言未释放",
-            descriptionTemplate: "\"{source}\" 阻止系统休眠已超过 {age} 秒",
-            suggestion: "运行 pmset -g assertions 查看当前 sleep 断言，或重启相关进程",
+            title: L10n.tr(.alertSleepTitle),
+            descriptionTemplate: L10n.tr(.alertSleepDesc("{source}", "{age}")),
+            suggestion: L10n.tr(.alertSleepSuggestion),
             acceptsFilter: "PreventSleep"
         ))
     }

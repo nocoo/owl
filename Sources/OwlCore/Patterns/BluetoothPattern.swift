@@ -24,9 +24,9 @@ public enum BluetoothPattern {
             criticalRate: 8,
             cooldownInterval: 300,
             maxGroups: 20,
-            title: "蓝牙设备反复断连",
-            descriptionTemplate: "{key} 在过去 {window} 秒断连了 {count} 次",
-            suggestion: "尝试重新配对设备，或检查设备电量是否不足",
+            title: L10n.tr(.alertBluetoothTitle),
+            descriptionTemplate: L10n.tr(.alertBluetoothDesc("{key}", "{window}", "{count}")),
+            suggestion: L10n.tr(.alertBluetoothSuggestion),
             acceptsFilter: "Device disconnected"
         ))
     }

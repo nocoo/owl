@@ -23,9 +23,9 @@ public enum DiskFlushPattern {
             recoveryThreshold: 5,
             debounce: 3,
             comparison: .greaterThan,
-            title: "磁盘 I/O 延迟升高",
-            descriptionTemplate: "APFS 刷写耗时 {value} ms（正常 < 10 ms）",
-            suggestion: "检查磁盘健康状态（Disk Utility → First Aid），确认没有大量写入操作",
+            title: L10n.tr(.alertDiskFlushTitle),
+            descriptionTemplate: L10n.tr(.alertDiskFlushDesc("{value}")),
+            suggestion: L10n.tr(.alertDiskFlushSuggestion),
             acceptsFilter: "tx_flush:"
         ))
     }

@@ -24,9 +24,9 @@ public enum USBPattern {
             criticalRate: 20,
             cooldownInterval: 600,
             maxGroups: 20,
-            title: "USB 设备通信异常",
-            descriptionTemplate: "设备 {key} 在过去 {window} 秒发生 {count} 次传输中断",
-            suggestion: "尝试重新插拔该 USB 设备，或更换 USB 线缆/端口",
+            title: L10n.tr(.alertUSBTitle),
+            descriptionTemplate: L10n.tr(.alertUSBDesc("{key}", "{window}", "{count}")),
+            suggestion: L10n.tr(.alertUSBSuggestion),
             acceptsFilter: "IOUSBHostPipe::abortGated"
         ))
     }

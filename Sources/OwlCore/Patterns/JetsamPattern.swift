@@ -27,9 +27,9 @@ public enum JetsamPattern {
             recoveryThreshold: -1,
             debounce: 0,
             comparison: .greaterThan,
-            title: "系统内存不足",
-            descriptionTemplate: "macOS 因内存压力终止了进程（PID {value}）",
-            suggestion: "关闭不必要的应用以释放内存，或考虑重启系统",
+            title: L10n.tr(.alertJetsamTitle),
+            descriptionTemplate: L10n.tr(.alertJetsamDesc("{value}")),
+            suggestion: L10n.tr(.alertJetsamSuggestion),
             acceptsFilter: "memorystatus_kill_top_process"
         ))
     }
@@ -45,9 +45,9 @@ public enum JetsamPattern {
             criticalRate: 3,
             cooldownInterval: 60,
             maxGroups: 1,
-            title: "系统内存严重不足",
-            descriptionTemplate: "5 分钟内 {count} 个进程被 Jetsam 终止",
-            suggestion: "关闭不必要的应用以释放内存，或考虑重启系统",
+            title: L10n.tr(.alertJetsamEscTitle),
+            descriptionTemplate: L10n.tr(.alertJetsamEscDesc("{count}")),
+            suggestion: L10n.tr(.alertJetsamEscSuggestion),
             acceptsFilter: "memorystatus_kill_top_process"
         ))
     }

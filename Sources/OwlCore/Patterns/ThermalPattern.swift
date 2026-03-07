@@ -23,9 +23,9 @@ public enum ThermalPattern {
             recoveryThreshold: 7000,
             debounce: 5,
             comparison: .lessThan,
-            title: "CPU 散热节流中",
-            descriptionTemplate: "当前功率预算 {value} mW，系统正在降频散热",
-            suggestion: "检查是否有高 CPU 进程（Activity Monitor），确保通风口畅通",
+            title: L10n.tr(.alertThermalTitle),
+            descriptionTemplate: L10n.tr(.alertThermalDesc("{value}")),
+            suggestion: L10n.tr(.alertThermalSuggestion),
             acceptsFilter: "setDetailedThermalPowerBudget"
         ))
     }

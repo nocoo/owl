@@ -24,9 +24,9 @@ public enum SandboxPattern {
             criticalRate: 50,
             cooldownInterval: 300,
             maxGroups: 50,
-            title: "沙箱违规风暴",
-            descriptionTemplate: "{key} 在过去 {window} 秒被拒绝 {count} 次",
-            suggestion: "通常为应用兼容性问题，如频繁发生可尝试重装该应用或检查权限设置",
+            title: L10n.tr(.alertSandboxTitle),
+            descriptionTemplate: L10n.tr(.alertSandboxDesc("{key}", "{window}", "{count}")),
+            suggestion: L10n.tr(.alertSandboxSuggestion),
             acceptsFilter: "deny(1)"
         ))
     }

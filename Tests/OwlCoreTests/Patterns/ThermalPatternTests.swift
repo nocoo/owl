@@ -79,7 +79,7 @@ struct ThermalPatternTests {
     func alertContent() {
         let entry = TestFixtures.Thermal.entry(TestFixtures.Thermal.critical)
         let alert = detector.process(entry)
-        #expect(alert?.title == "CPU 散热节流中")
+        #expect(alert?.title == L10n.tr(.alertThermalTitle))
         #expect(alert?.suggestion.contains("Activity Monitor") == true)
         #expect(alert?.description.contains("2500") == true)
     }

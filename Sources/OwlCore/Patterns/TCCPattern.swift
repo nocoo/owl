@@ -24,9 +24,9 @@ public enum TCCPattern {
             criticalRate: 30,
             cooldownInterval: 300,
             maxGroups: 50,
-            title: "权限请求被大量拒绝",
-            descriptionTemplate: "{key} 在过去 {window} 秒请求权限被拒绝 {count} 次",
-            suggestion: "在系统设置 → 隐私与安全中检查该应用的权限配置",
+            title: L10n.tr(.alertTCCTitle),
+            descriptionTemplate: L10n.tr(.alertTCCDesc("{key}", "{window}", "{count}")),
+            suggestion: L10n.tr(.alertTCCSuggestion),
             acceptsFilter: "AUTHREQ_RESULT:"
         ))
     }

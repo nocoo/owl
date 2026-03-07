@@ -25,9 +25,9 @@ public enum CrashLoopPattern {
             criticalRate: 20,
             cooldownInterval: 120,
             maxGroups: 50,
-            title: "进程反复崩溃",
-            descriptionTemplate: "{key} 在过去 {window} 秒内崩溃了 {count} 次",
-            suggestion: "尝试在 Activity Monitor 中强制退出该进程，或检查其配置是否有误",
+            title: L10n.tr(.alertCrashLoopTitle),
+            descriptionTemplate: L10n.tr(.alertCrashLoopDesc("{key}", "{window}", "{count}")),
+            suggestion: L10n.tr(.alertCrashLoopSuggestion),
             acceptsFilter: "QUIT:"
         ))
     }

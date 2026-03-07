@@ -24,9 +24,9 @@ public enum AppHangPattern {
             criticalRate: Int.max,
             cooldownInterval: 120,
             maxGroups: 50,
-            title: "应用无响应",
-            descriptionTemplate: "PID {key} 未响应 WindowServer 的心跳检测（{count} 次/{window}s）",
-            suggestion: "在 Activity Monitor 中查看该进程是否正常，可尝试强制退出",
+            title: L10n.tr(.alertAppHangTitle),
+            descriptionTemplate: L10n.tr(.alertAppHangDesc("{key}", "{count}", "{window}")),
+            suggestion: L10n.tr(.alertAppHangSuggestion),
             acceptsFilter: "failed to act on a ping"
         ))
     }
