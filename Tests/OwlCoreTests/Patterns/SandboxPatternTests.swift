@@ -32,14 +32,14 @@ struct SandboxPatternTests {
         #expect(!detector.accepts(entry))
     }
 
-    @Test("triggers warning after 10 deny events from same process")
+    @Test("triggers warning after 10 distinct deny signatures from same process")
     func triggersWarningAt10() {
         let detector = SandboxPattern.makeDetector()
         let t0 = Date(timeIntervalSince1970: 1000)
 
         for i in 0..<9 {
             let entry = TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.deny,
+                "Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/deny-\(i)",
                 timestamp: t0.addingTimeInterval(Double(i))
             )
             let alert = detector.process(entry)
@@ -47,7 +47,7 @@ struct SandboxPatternTests {
         }
 
         let entry10 = TestFixtures.Sandbox.entry(
-            TestFixtures.Sandbox.deny,
+            "Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/deny-9",
             timestamp: t0.addingTimeInterval(9)
         )
         let alert = detector.process(entry10)
@@ -60,11 +60,23 @@ struct SandboxPatternTests {
         let detector = SandboxPattern.makeDetector()
         let t0 = Date(timeIntervalSince1970: 1000)
 
-        // 10 events from Chrome
-        for i in 0..<10 {
+        let messages = [
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/a"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/b"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/c"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/d"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/e"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/f"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/g"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/h"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/i"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/j"#
+        ]
+
+        for (offset, message) in messages.enumerated() {
             let entry = TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.deny,
-                timestamp: t0.addingTimeInterval(Double(i))
+                message,
+                timestamp: t0.addingTimeInterval(Double(offset))
             )
             _ = detector.process(entry)
         }
@@ -85,10 +97,23 @@ struct SandboxPatternTests {
         let t0 = Date(timeIntervalSince1970: 1000)
 
         var lastAlert: Alert?
-        for i in 0..<10 {
+        let messages = [
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/a"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-metadata /tmp/a"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-write-data /tmp/a"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/b"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/c"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/d"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/e"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/f"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/g"#,
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/h"#
+        ]
+
+        for (offset, message) in messages.enumerated() {
             let entry = TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.deny,
-                timestamp: t0.addingTimeInterval(Double(i))
+                message,
+                timestamp: t0.addingTimeInterval(Double(offset))
             )
             lastAlert = detector.process(entry) ?? lastAlert
         }
@@ -102,10 +127,23 @@ struct SandboxPatternTests {
         let t0 = Date(timeIntervalSince1970: 2000)
 
         var lastAlert: Alert?
-        for i in 0..<10 {
+        let messages = [
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/a"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/b"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/c"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/d"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/e"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/f"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/g"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/h"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/i"#,
+            #"System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/j"#
+        ]
+
+        for (offset, message) in messages.enumerated() {
             let entry = TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.systemPolicyDeny,
-                timestamp: t0.addingTimeInterval(Double(i))
+                message,
+                timestamp: t0.addingTimeInterval(Double(offset))
             )
             lastAlert = detector.process(entry) ?? lastAlert
         }
@@ -120,19 +158,19 @@ struct SandboxPatternTests {
         let detector = SandboxPattern.makeDetector()
         let t0 = Date(timeIntervalSince1970: 3000)
 
-        // 5 Sandbox: deny from Chrome -- below warning threshold
+        // 5 distinct Sandbox denies from Chrome -- below warning threshold
         for i in 0..<5 {
             let entry = TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.deny,
+                "Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/chrome-\(i)",
                 timestamp: t0.addingTimeInterval(Double(i))
             )
             _ = detector.process(entry)
         }
 
-        // 5 System Policy: deny from wdavdaemon -- below warning threshold
+        // 5 distinct System Policy denies from wdavdaemon -- below warning threshold
         for i in 5..<10 {
             let entry = TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.systemPolicyDeny,
+                "System Policy: wdavdaemon(562) deny(1) file-read-data /tmp/wdav-\(i)",
                 timestamp: t0.addingTimeInterval(Double(i))
             )
             let alert = detector.process(entry)
@@ -160,10 +198,10 @@ struct SandboxPatternTests {
         let detector = SandboxPattern.makeDetector()
         let t0 = Date(timeIntervalSince1970: 5000)
 
-        // Feed 5 real deny events (below warning threshold of 10)
+        // Feed 5 real distinct deny events (below warning threshold of 10)
         for i in 0..<5 {
             _ = detector.process(TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.deny,
+                "Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/real-\(i)",
                 timestamp: t0.addingTimeInterval(Double(i))
             ))
         }
@@ -176,13 +214,38 @@ struct SandboxPatternTests {
             ))
         }
 
-        // Feed 4 more real events (total real = 9, still below threshold of 10)
+        // Feed 4 more distinct real events (total real = 9, still below threshold of 10)
         for i in 0..<4 {
             let alert = detector.process(TestFixtures.Sandbox.entry(
-                TestFixtures.Sandbox.deny,
+                "Sandbox: Google Chrome(85321) deny(1) file-read-data /tmp/later-\(i)",
                 timestamp: t0.addingTimeInterval(Double(i + 35))
             ))
             #expect(alert == nil, "Noise should not push real count past warning threshold")
         }
+    }
+
+    @Test("normalizes folder IDs and UUIDs before counting signatures")
+    func normalizesDynamicSandboxTargets() {
+        let detector = SandboxPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 6000)
+
+        _ = detector.process(TestFixtures.Sandbox.entry(
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /private/var/folders/aa/bb/0/3E53F4E2-7E3D-4A1D-9BF8-3A7855D8D9A2/cache/file-123"#,
+            timestamp: t0
+        ))
+
+        let duplicateAfterNormalization = detector.process(TestFixtures.Sandbox.entry(
+            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /private/var/folders/cc/dd/9/9D44B0B2-40CE-4500-A2D6-B1D21ABF2F38/cache/file-456"#,
+            timestamp: t0.addingTimeInterval(1)
+        ))
+
+        #expect(duplicateAfterNormalization == nil)
+
+        let distinctOperation = detector.process(TestFixtures.Sandbox.entry(
+            #"Sandbox: Google Chrome(85321) deny(1) file-write-data /private/var/folders/ee/ff/7/9D44B0B2-40CE-4500-A2D6-B1D21ABF2F38/cache/file-789"#,
+            timestamp: t0.addingTimeInterval(2)
+        ))
+
+        #expect(distinctOperation == nil)
     }
 }

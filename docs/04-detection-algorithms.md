@@ -236,7 +236,7 @@ advance(to: currentTimestamp):
 | 模式 | group_by | 说明 |
 |------|---------|------|
 | P02 | app bundle name | 每个应用独立计数 |
-| P05 | 进程名 | 每个进程独立计数 |
+| P05 | 进程名 | 每个进程独立统计 distinct sandbox signatures |
 | P07 | 服务名 + 信号名 | 区分不同服务和崩溃原因 |
 | P08 | 设备 MAC 地址 | 每个蓝牙设备独立计数 |
 | P09 | bundleID | 每个应用独立计数 |

@@ -11,7 +11,7 @@ public enum PatternCatalog {
     /// - P02 CrashLoopPattern (RateDetector)
     /// - P03 DiskFlushPattern (ThresholdDetector)
     /// - P04 WiFiPattern (ThresholdDetector)
-    /// - P05 SandboxPattern (RateDetector)
+    /// - P05 SandboxPattern (SignatureDetector)
     /// - P06 SleepAssertionPattern (StateDetector)
     /// - P07 CrashSignalPattern (RateDetector)
     /// - P08 BluetoothPattern (RateDetector)

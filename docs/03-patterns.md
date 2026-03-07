@@ -225,27 +225,32 @@ Sandbox: Google Chrome(85321) deny(1) file-read-data /private/var/folders/...
 
 **提取正则**:
 ```
-Sandbox:\s+(.+?)\((\d+)\)\s+deny\(1\)\s+(\S+)
+(?:Sandbox|System Policy):\s+(.+?)\(\d+\)\s+deny\(1\)\s+(\S+)\s+(.+)$
 ```
-捕获组 1 = 进程名，2 = PID，3 = 被拒绝的操作类型。
+捕获组 1 = 进程名，2 = 被拒绝的操作类型，3 = 被拒绝目标。
 
-**算法类型**: Rate（滑动窗口速率计数）
+**算法类型**: Signature（滑动窗口去重签名计数）
+
+**签名构造**:
+- key = 进程名
+- signature = `operation + normalized(target)`
+- `target` 会做路径规范化：UUID -> `<UUID>`、数字段 -> `<N>`、`/private/var/folders/...` 随机目录 -> 稳定占位符
 
 **检测参数**:
 | 参数 | 值 | 说明 |
 |------|-----|------|
 | window | 60s | 滑动窗口大小 |
-| warning_rate | 10 次/窗口 | 同一进程在窗口内的 deny 次数 |
-| critical_rate | 50 次/窗口 | 大规模违规 |
-| group_by | 进程名 | 按进程分组计数 |
+| warning_distinct | 10 个/窗口 | 同一进程在窗口内的不同 deny 签名数 |
+| critical_distinct | 50 个/窗口 | 大规模多样化违规 |
+| group_by | 进程名 | 按进程分组统计 signature diversity |
 | cooldown | 300s | 沙箱违规通常持续存在，冷却时间长 |
 
 **Severity**: info（默认），可升级为 warning / critical
 
 **告警文案**:
-- **标题**: `沙箱违规: {process_name}`
-- **描述**: `{process_name} 在过去 60 秒被拒绝 {count} 次（{operation}）`
-- **critical 描述**: `{process_name} 大规模沙箱违规（{count} 次/分钟），可能影响系统性能`
+- **标题**: `沙箱违规风暴`
+- **描述**: `{process_name} 在过去 60 秒出现 {count} 个不同的沙箱拒绝签名`
+- **critical 描述**: `{process_name} 出现大规模多样化沙箱违规，可能存在路径爆炸或权限异常`
 
 **建议操作**: `通常为应用兼容性问题，如频繁发生可尝试重装该应用或检查权限设置`
 
