@@ -66,6 +66,9 @@ swift build && .build/debug/Owl
 # Package as DMG
 ./scripts/package-dmg.sh
 
+# Package and upload versioned DMG to GitHub Releases
+./scripts/release-gh.sh
+
 # Notarize (requires Apple Developer credentials)
 ./scripts/notarize.sh        # notarize .app
 ./scripts/notarize.sh --dmg  # notarize .dmg

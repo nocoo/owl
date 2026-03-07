@@ -52,6 +52,9 @@ hdiutil create \
     -fs HFS+ \
     "$DMG_OUTPUT" > /dev/null 2>&1
 
+VERSIONED_OUTPUT="$RELEASE_DIR/Owl-v$VERSION.dmg"
+cp "$DMG_OUTPUT" "$VERSIONED_OUTPUT"
+
 # Cleanup staging
 rm -rf "$DMG_STAGING"
 
@@ -59,6 +62,7 @@ DMG_SIZE=$(du -sh "$DMG_OUTPUT" | cut -f1)
 echo ""
 echo "==> DMG created!"
 echo "    Output:  $DMG_OUTPUT"
+echo "    Versioned: $VERSIONED_OUTPUT"
 echo "    Size:    $DMG_SIZE"
 echo "    Version: $VERSION"
 echo ""
