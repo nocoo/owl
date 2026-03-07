@@ -28,7 +28,7 @@ public struct SettingsView: View {
             )
             .tabItem {
                 Label(
-                    "General",
+                    L10n.tr(.tabGeneral),
                     systemImage: "gearshape"
                 )
             }
@@ -38,7 +38,7 @@ public struct SettingsView: View {
             )
             .tabItem {
                 Label(
-                    "Detectors",
+                    L10n.tr(.tabDetectors),
                     systemImage: "sensor"
                 )
             }
@@ -46,7 +46,7 @@ public struct SettingsView: View {
             AlertsTab(appState: appState)
                 .tabItem {
                     Label(
-                        "Alerts",
+                        L10n.tr(.tabAlerts),
                         systemImage:
                             "exclamationmark.bubble"
                     )
@@ -55,7 +55,7 @@ public struct SettingsView: View {
             ProcessTab()
                 .tabItem {
                     Label(
-                        "Processes",
+                        L10n.tr(.tabProcesses),
                         systemImage: "chart.bar.doc.horizontal"
                     )
                 }

@@ -41,11 +41,11 @@ public struct GeneralTab: View {
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Owl")
+                        Text(L10n.tr(.appName))
                             .font(.system(size: 14, weight: .bold))
                         HStack(spacing: 4) {
                             Text(
-                                "v\(version) · System Health Monitor"
+                                "v\(version) · \(L10n.tr(.systemHealthMonitor))"
                             )
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
@@ -64,7 +64,7 @@ public struct GeneralTab: View {
                 }
                 .padding(.vertical, 4)
             } header: {
-                Label("About", systemImage: "info.circle")
+                Label(L10n.tr(.sectionAbout), systemImage: "info.circle")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
@@ -72,11 +72,11 @@ public struct GeneralTab: View {
             // Startup section
             Section {
                 Toggle(
-                    "Launch at Login",
+                    L10n.tr(.launchAtLogin),
                     isOn: $launchAtLogin
                 )
             } header: {
-                Label("Startup", systemImage: "power")
+                Label(L10n.tr(.sectionStartup), systemImage: "power")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
@@ -84,19 +84,19 @@ public struct GeneralTab: View {
             // Monitoring section
             Section {
                 HStack {
-                    Text("Refresh Interval")
+                    Text(L10n.tr(.refreshInterval))
                     Spacer()
-                    Text("1 second")
+                    Text(L10n.tr(.refreshIntervalValue))
                         .foregroundStyle(.secondary)
                 }
                 HStack {
-                    Text("Log Buffer Size")
+                    Text(L10n.tr(.logBufferSize))
                     Spacer()
-                    Text("256 entries")
+                    Text(L10n.tr(.logBufferSizeValue))
                         .foregroundStyle(.secondary)
                 }
             } header: {
-                Label("Monitoring", systemImage: "gauge.high")
+                Label(L10n.tr(.sectionMonitoring), systemImage: "gauge.high")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
             }

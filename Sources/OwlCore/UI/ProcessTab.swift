@@ -24,12 +24,12 @@ public struct ProcessTab: View {
                 rankingTable(stats.rankings)
             } else if isLoading {
                 Spacer()
-                ProgressView("Collecting process data…")
+                ProgressView(L10n.tr(.collectingProcessData))
                     .font(.system(size: 12))
                 Spacer()
             } else {
                 Spacer()
-                Text("No data")
+                Text(L10n.tr(.noData))
                     .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
                 Spacer()
@@ -48,14 +48,14 @@ public struct ProcessTab: View {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
-                    Text("System Uptime")
+                    Text(L10n.tr(.systemUptime))
                         .font(.system(size: 14, weight: .semibold))
                 }
 
                 Text(formatUptime(stats.uptime))
                     .font(.system(size: 16, weight: .medium, design: .monospaced))
 
-                Text("Booted \(formatBootTime(stats.bootTime))")
+                Text(L10n.tr(.bootedAt(formatBootTime(stats.bootTime))))
                     .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
             }
@@ -65,7 +65,7 @@ public struct ProcessTab: View {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
-                    Text("System Uptime")
+                    Text(L10n.tr(.systemUptime))
                         .font(.system(size: 14, weight: .semibold))
                 }
                 Text("—")
@@ -82,16 +82,16 @@ public struct ProcessTab: View {
             VStack(spacing: 0) {
                 // Table header
                 HStack(spacing: 0) {
-                    Text("#")
+                    Text(L10n.tr(.tableRank))
                         .frame(width: 24, alignment: .trailing)
-                    Text("Process")
+                    Text(L10n.tr(.tableProcess))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading, 8)
-                    Text("CPU Time")
+                    Text(L10n.tr(.tableCPUTime))
                         .frame(width: 70, alignment: .trailing)
-                    Text("Memory")
+                    Text(L10n.tr(.tableMemory))
                         .frame(width: 64, alignment: .trailing)
-                    Text("N")
+                    Text(L10n.tr(.tableInstances))
                         .frame(width: 28, alignment: .trailing)
                 }
                 .font(.system(size: 12, weight: .semibold, design: .monospaced))

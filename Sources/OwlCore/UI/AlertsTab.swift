@@ -25,9 +25,9 @@ public struct AlertsTab: View {
             Image(systemName: "checkmark.circle")
                 .font(.system(size: 16))
                 .foregroundStyle(OwlSeverityColor.normal)
-            Text("No Alerts")
+            Text(L10n.tr(.noAlerts))
                 .font(.system(size: 16, weight: .medium))
-            Text("System is running normally")
+            Text(L10n.tr(.systemRunningNormallyShort))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
             Spacer()
@@ -38,7 +38,7 @@ public struct AlertsTab: View {
     private var alertList: some View {
         List {
             if !appState.activeAlerts.isEmpty {
-                Section("Active") {
+                Section(L10n.tr(.sectionActive)) {
                     ForEach(
                         Array(
                             appState.activeAlerts
@@ -55,7 +55,7 @@ public struct AlertsTab: View {
             }
 
             if !appState.alertHistory.isEmpty {
-                Section("Recent History") {
+                Section(L10n.tr(.sectionRecentHistory)) {
                     ForEach(
                         Array(
                             appState.alertHistory
