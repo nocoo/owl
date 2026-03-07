@@ -19,10 +19,10 @@ struct SectionHeader: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: symbol)
-                .font(.system(size: 10, weight: .bold))
+                .font(OwlFont.sectionIcon)
                 .foregroundStyle(color)
             Text(title)
-                .font(.system(size: 11, weight: .bold))
+                .font(OwlFont.sectionTitle)
                 .foregroundStyle(.primary)
 
             // Dashed separator fills remaining space
@@ -36,7 +36,7 @@ struct SectionHeader: View {
                 .foregroundStyle(.quaternary)
                 .frame(height: 1)
         }
-        .frame(height: 14)
+        .frame(height: OwlLayout.sectionHeaderHeight)
     }
 }
 
@@ -78,7 +78,7 @@ struct MiniBar: View {
                     .frame(width: fillWidth(in: geo.size.width))
             }
         }
-        .frame(height: 8)
+        .frame(height: OwlLayout.miniBarHeight)
     }
 
     private func fillWidth(in totalWidth: CGFloat) -> CGFloat {
@@ -113,20 +113,26 @@ struct MetricRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(label)
-                .font(.system(size: 11, design: .monospaced))
+                .font(OwlFont.rowLabel)
                 .foregroundStyle(.secondary)
-                .frame(width: 40, alignment: .leading)
+                .frame(
+                    width: OwlLayout.labelColumnWidth,
+                    alignment: .leading
+                )
             MiniBar(
                 value: value,
                 max: maxValue,
                 color: barColor
             )
             Text(valueText)
-                .font(.system(size: 10, design: .monospaced))
+                .font(OwlFont.rowValue)
                 .foregroundStyle(.primary)
-                .frame(width: 68, alignment: .trailing)
+                .frame(
+                    width: OwlLayout.valueColumnWidth,
+                    alignment: .trailing
+                )
         }
-        .frame(height: 14)
+        .frame(height: OwlLayout.metricRowHeight)
     }
 }
 
@@ -143,14 +149,17 @@ struct InfoRow: View {
     var body: some View {
         HStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 11, design: .monospaced))
+                .font(OwlFont.infoLabel)
                 .foregroundStyle(.secondary)
-                .frame(width: 40, alignment: .leading)
+                .frame(
+                    width: OwlLayout.labelColumnWidth,
+                    alignment: .leading
+                )
             Text(value)
-                .font(.system(size: 9, design: .monospaced))
+                .font(OwlFont.infoValue)
                 .foregroundStyle(.tertiary)
         }
-        .frame(height: 12)
+        .frame(height: OwlLayout.infoRowHeight)
     }
 }
 
@@ -160,9 +169,7 @@ func thresholdColor(
     yellow: Double = 50,
     red: Double = 80
 ) -> Color {
-    if value >= red { return .red }
-    if value >= yellow { return .yellow }
-    return .green
+    owlThresholdColor(value, yellow: yellow, red: red)
 }
 
 /// Format bytes to human-readable string (GB, MB, etc.)

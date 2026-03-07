@@ -22,9 +22,7 @@ public struct HistoryRow: View {
                 Text(Self.timeFormatter.string(
                     from: alert.timestamp
                 ))
-                .font(
-                    .system(size: 10, design: .monospaced)
-                )
+                .font(OwlFont.historyTime)
                 .foregroundStyle(.tertiary)
                 .frame(width: 36, alignment: .trailing)
 
@@ -32,7 +30,7 @@ public struct HistoryRow: View {
                     .frame(width: 12, height: 12)
 
                 Text(alert.title)
-                    .font(.system(size: 11))
+                    .font(OwlFont.historyTitle)
                     .lineLimit(1)
                     .foregroundStyle(.secondary)
 
@@ -40,8 +38,8 @@ public struct HistoryRow: View {
 
                 if showCopied {
                     Text("Copied")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.green)
+                        .font(OwlFont.historyCopied)
+                        .foregroundStyle(OwlSeverityColor.normal)
                         .transition(.opacity)
                 }
             }
@@ -75,18 +73,18 @@ public struct HistoryRow: View {
         case .normal, .info:
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 10))
-                .foregroundStyle(.green)
+                .foregroundStyle(OwlSeverityColor.normal)
         case .warning:
             Image(
                 systemName:
                     "exclamationmark.triangle.fill"
             )
             .font(.system(size: 10))
-            .foregroundStyle(.yellow)
+            .foregroundStyle(OwlSeverityColor.warning)
         case .critical:
             Image(systemName: "xmark.octagon.fill")
                 .font(.system(size: 10))
-                .foregroundStyle(.red)
+                .foregroundStyle(OwlSeverityColor.critical)
         }
     }
 }

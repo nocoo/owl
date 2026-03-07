@@ -8,7 +8,8 @@ struct PowerSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Power", symbol: "bolt.fill", color: .yellow
+                "Power", symbol: "bolt.fill",
+                color: OwlSectionColor.power
             )
 
             let batt = metrics.battery
@@ -18,7 +19,7 @@ struct PowerSection: View {
                 "Level",
                 value: batt.level,
                 text: String(format: "%.0f%%", batt.level),
-                color: batteryColor(batt.level)
+                color: owlBatteryColor(batt.level)
             )
 
             // Health
@@ -26,7 +27,7 @@ struct PowerSection: View {
                 "Health",
                 value: batt.health,
                 text: String(format: "%.0f%%", batt.health),
-                color: healthColor(batt.health)
+                color: owlHealthColor(batt.health)
             )
 
             // State + Cycles — two-column InfoRow style
@@ -63,15 +64,4 @@ struct PowerSection: View {
         return String(format: "%d:%02d", h, m)
     }
 
-    private func batteryColor(_ level: Double) -> Color {
-        if level <= 10 { return .red }
-        if level <= 20 { return .orange }
-        return .green
-    }
-
-    private func healthColor(_ health: Double) -> Color {
-        if health < 50 { return .red }
-        if health < 80 { return .yellow }
-        return .green
-    }
 }

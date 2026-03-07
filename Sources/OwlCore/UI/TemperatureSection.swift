@@ -14,7 +14,7 @@ struct TemperatureSection: View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
                 "Temperature", symbol: "thermometer.medium",
-                color: .orange
+                color: OwlSectionColor.temperature
             )
 
             // Pairs of sensors, 2 per row
@@ -37,7 +37,7 @@ struct TemperatureSection: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
-                .frame(height: 12)
+                .frame(height: OwlLayout.infoRowHeight)
             }
         }
     }
@@ -55,7 +55,7 @@ private struct TempMiniRow: View {
     var body: some View {
         HStack(spacing: 3) {
             Text(sensor.label)
-                .font(.system(size: 8, design: .monospaced))
+                .font(OwlFont.miniLabel)
                 .foregroundStyle(.tertiary)
                 .frame(width: 38, alignment: .leading)
                 .lineLimit(1)
@@ -63,23 +63,14 @@ private struct TempMiniRow: View {
             MiniBar(
                 value: sensor.celsius,
                 max: maxTemp,
-                color: tempColor(sensor.celsius)
+                color: owlTempColor(sensor.celsius)
             )
 
             Text(String(format: "%2.0f°C", sensor.celsius))
-                .font(.system(size: 8, design: .monospaced))
+                .font(OwlFont.miniValue)
                 .foregroundStyle(.secondary)
                 .frame(width: 28, alignment: .trailing)
         }
         .frame(maxWidth: .infinity)
     }
-}
-
-/// Temperature color thresholds:
-/// < 45°C green, 45-70°C yellow, 70-90°C orange, >= 90°C red.
-private func tempColor(_ celsius: Double) -> Color {
-    if celsius >= 90 { return .red }
-    if celsius >= 70 { return .orange }
-    if celsius >= 45 { return .yellow }
-    return .green
 }

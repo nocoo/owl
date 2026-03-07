@@ -19,12 +19,12 @@ public struct ActiveAlertsSection: View {
     private var emptyState: some View {
         VStack(spacing: 4) {
             Image(systemName: "checkmark.circle")
-                .font(.system(size: 24))
-                .foregroundStyle(.green)
+                .font(OwlFont.emptyIcon)
+                .foregroundStyle(OwlSeverityColor.normal)
             Text("System Running Normally")
-                .font(.system(size: 13, weight: .medium))
+                .font(OwlFont.emptyTitle)
             Text("No anomalies detected")
-                .font(.system(size: 12))
+                .font(OwlFont.emptyBody)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -35,13 +35,13 @@ public struct ActiveAlertsSection: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("Active Alerts")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(OwlFont.alertSectionHeader)
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                 if alerts.count > 3 {
                     Spacer()
                     Text("\(alerts.count) total")
-                        .font(.system(size: 9))
+                        .font(OwlFont.alertCountBadge)
                         .foregroundStyle(.tertiary)
                 }
             }

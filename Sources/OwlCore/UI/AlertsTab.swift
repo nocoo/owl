@@ -24,7 +24,7 @@ public struct AlertsTab: View {
             Spacer()
             Image(systemName: "checkmark.circle")
                 .font(.system(size: 16))
-                .foregroundStyle(.green)
+                .foregroundStyle(OwlSeverityColor.normal)
             Text("No Alerts")
                 .font(.system(size: 16, weight: .medium))
             Text("System is running normally")

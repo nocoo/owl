@@ -21,34 +21,29 @@ public struct AlertRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         Text(alert.title)
-                            .font(
-                                .system(
-                                    size: 14,
-                                    weight: .semibold
-                                )
-                            )
+                            .font(OwlFont.alertTitle)
                             .lineLimit(1)
                         Spacer()
                         if showCopied {
                             Text("Copied")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.green)
+                                .font(OwlFont.alertBody)
+                                .foregroundStyle(OwlSeverityColor.normal)
                                 .transition(.opacity)
                         } else {
                             Text(relativeTime)
-                                .font(.system(size: 12))
+                                .font(OwlFont.alertTimestamp)
                                 .foregroundStyle(
                                     .tertiary
                                 )
                         }
                     }
                     Text(alert.description)
-                        .font(.system(size: 12))
+                        .font(OwlFont.alertBody)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                     if !alert.suggestion.isEmpty {
                         Text(alert.suggestion)
-                            .font(.system(size: 12))
+                            .font(OwlFont.alertBody)
                             .foregroundStyle(.tertiary)
                             .lineLimit(1)
                     }
@@ -81,18 +76,18 @@ public struct AlertRow: View {
         switch alert.severity {
         case .critical:
             Image(systemName: "xmark.octagon.fill")
-                .foregroundStyle(.red)
+                .foregroundStyle(OwlSeverityColor.critical)
         case .warning:
             Image(
                 systemName: "exclamationmark.triangle.fill"
             )
-            .foregroundStyle(.yellow)
+            .foregroundStyle(OwlSeverityColor.warning)
         case .info:
             Image(systemName: "info.circle.fill")
-                .foregroundStyle(.blue)
+                .foregroundStyle(OwlSeverityColor.info)
         case .normal:
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.green)
+                .foregroundStyle(OwlSeverityColor.normal)
         }
     }
 

@@ -7,7 +7,8 @@ struct MemorySection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Memory", symbol: "memorychip", color: .purple
+                "Memory", symbol: "memorychip",
+                color: OwlSectionColor.memory
             )
 
             let mem = metrics.extendedMemory
@@ -77,10 +78,10 @@ struct TwoColumnInfoRow: View {
             // Left column
             HStack(spacing: 4) {
                 Text(leftLabel)
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(OwlFont.twoColumnText)
                     .foregroundStyle(.tertiary)
                 Text(leftValue)
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(OwlFont.twoColumnText)
                     .foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,14 +89,14 @@ struct TwoColumnInfoRow: View {
             // Right column
             HStack(spacing: 4) {
                 Text(rightLabel)
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(OwlFont.twoColumnText)
                     .foregroundStyle(.tertiary)
                 Text(rightValue)
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(OwlFont.twoColumnText)
                     .foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(height: 12)
+        .frame(height: OwlLayout.infoRowHeight)
     }
 }

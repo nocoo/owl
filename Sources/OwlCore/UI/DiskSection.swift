@@ -7,7 +7,8 @@ struct DiskSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Disk", symbol: "internaldrive", color: .orange
+                "Disk", symbol: "internaldrive",
+                color: OwlSectionColor.disk
             )
 
             let disk = metrics.disk
@@ -27,7 +28,7 @@ struct DiskSection: View {
                 label: "Read",
                 bytesPerSec: disk.readBytesPerSec,
                 icon: "arrow.down",
-                iconColor: .green
+                iconColor: OwlDiskColor.read
             )
 
             // Write throughput
@@ -35,7 +36,7 @@ struct DiskSection: View {
                 label: "Write",
                 bytesPerSec: disk.writeBytesPerSec,
                 icon: "arrow.up",
-                iconColor: .red
+                iconColor: OwlDiskColor.write
             )
         }
     }
@@ -65,9 +66,12 @@ private struct ThroughputRow: View {
     var body: some View {
         HStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 11, design: .monospaced))
+                .font(OwlFont.throughputLabel)
                 .foregroundStyle(.secondary)
-                .frame(width: 40, alignment: .leading)
+                .frame(
+                    width: OwlLayout.labelColumnWidth,
+                    alignment: .leading
+                )
 
             MiniBar(
                 value: min(bytesPerSec, maxRate),
@@ -76,10 +80,13 @@ private struct ThroughputRow: View {
             )
 
             Text(formatThroughput(bytesPerSec))
-                .font(.system(size: 9, design: .monospaced))
+                .font(OwlFont.throughputValue)
                 .foregroundStyle(.secondary)
-                .frame(width: 68, alignment: .trailing)
+                .frame(
+                    width: OwlLayout.valueColumnWidth,
+                    alignment: .trailing
+                )
         }
-        .frame(height: 14)
+        .frame(height: OwlLayout.metricRowHeight)
     }
 }

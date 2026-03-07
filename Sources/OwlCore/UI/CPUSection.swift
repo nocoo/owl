@@ -6,7 +6,10 @@ struct CPUSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            SectionHeader("CPU", symbol: "cpu", color: .green)
+            SectionHeader(
+                "CPU", symbol: "cpu",
+                color: OwlSectionColor.cpu
+            )
 
             // Total CPU
             MetricRow(
@@ -49,11 +52,11 @@ struct CPUSection: View {
         // Group header
         HStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .font(OwlFont.coreGroupHeader)
                 .foregroundStyle(.tertiary)
             Spacer()
         }
-        .frame(height: 12)
+        .frame(height: OwlLayout.infoRowHeight)
 
         // Pairs of cores, 2 per row
         let pairs = stride(from: 0, to: cores.count, by: 2).map { i in
@@ -72,7 +75,7 @@ struct CPUSection: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .frame(height: 12)
+            .frame(height: OwlLayout.infoRowHeight)
         }
     }
 
@@ -89,22 +92,23 @@ struct CPUSection: View {
         let eCores = load.efficiencyCores
         return HStack(spacing: 4) {
             Text("Load")
-                .font(.system(size: 11, design: .monospaced))
+                .font(OwlFont.loadLabel)
                 .foregroundStyle(.secondary)
-                .frame(width: 40, alignment: .leading)
+                .frame(
+                    width: OwlLayout.labelColumnWidth,
+                    alignment: .leading
+                )
             Text(text)
-                .font(.system(size: 10, design: .monospaced))
+                .font(OwlFont.loadValue)
                 .foregroundStyle(.secondary)
             if pCores > 0 || eCores > 0 {
                 Spacer()
                 Text("\(pCores)P+\(eCores)E")
-                    .font(
-                        .system(size: 9, design: .monospaced)
-                    )
+                    .font(OwlFont.loadTopology)
                     .foregroundStyle(.tertiary)
             }
         }
-        .frame(height: 14)
+        .frame(height: OwlLayout.metricRowHeight)
     }
 }
 
@@ -117,7 +121,7 @@ private struct CoreMiniRow: View {
     var body: some View {
         HStack(spacing: 3) {
             Text(String(format: "%2d", core.id))
-                .font(.system(size: 8, design: .monospaced))
+                .font(OwlFont.miniLabel)
                 .foregroundStyle(.tertiary)
                 .frame(width: 14, alignment: .trailing)
 
@@ -127,7 +131,7 @@ private struct CoreMiniRow: View {
             )
 
             Text(String(format: "%4.0f%%", core.usage))
-                .font(.system(size: 8, design: .monospaced))
+                .font(OwlFont.miniValue)
                 .foregroundStyle(.secondary)
                 .frame(width: 28, alignment: .trailing)
         }

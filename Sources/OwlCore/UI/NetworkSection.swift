@@ -10,7 +10,8 @@ struct NetworkSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Network", symbol: "network", color: .blue
+                "Network", symbol: "network",
+                color: OwlSectionColor.network
             )
 
             let net = metrics.network
@@ -20,7 +21,7 @@ struct NetworkSection: View {
                 label: "Down",
                 bytesPerSec: net.bytesInPerSec,
                 history: inHistory,
-                color: .green
+                color: OwlNetworkColor.download
             )
 
             // Upload row: sparkline + speed
@@ -28,7 +29,7 @@ struct NetworkSection: View {
                 label: "Up",
                 bytesPerSec: net.bytesOutPerSec,
                 history: outHistory,
-                color: .red
+                color: OwlNetworkColor.upload
             )
 
             // Interface + IP info
@@ -70,22 +71,28 @@ private struct SpeedRow: View {
     var body: some View {
         HStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 11, design: .monospaced))
+                .font(OwlFont.speedLabel)
                 .foregroundStyle(.secondary)
-                .frame(width: 40, alignment: .leading)
+                .frame(
+                    width: OwlLayout.labelColumnWidth,
+                    alignment: .leading
+                )
 
             // Inline sparkline
             InlineSparkline(
                 data: history, color: color
             )
-            .frame(height: 12)
+            .frame(height: OwlLayout.sparklineHeight)
 
             Text(formatThroughput(bytesPerSec))
-                .font(.system(size: 9, design: .monospaced))
+                .font(OwlFont.speedValue)
                 .foregroundStyle(.primary)
-                .frame(width: 68, alignment: .trailing)
+                .frame(
+                    width: OwlLayout.valueColumnWidth,
+                    alignment: .trailing
+                )
         }
-        .frame(height: 14)
+        .frame(height: OwlLayout.metricRowHeight)
     }
 }
 

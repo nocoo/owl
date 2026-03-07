@@ -71,15 +71,11 @@ public struct MetricGauge: View {
         VStack(spacing: 3) {
             HStack(spacing: 4) {
                 Text(label)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(OwlFont.gaugeLabel)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(displayValue)
-                    .font(.system(
-                        size: 10,
-                        weight: .semibold,
-                        design: .monospaced
-                    ))
+                    .font(OwlFont.gaugeValue)
             }
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -92,7 +88,7 @@ public struct MetricGauge: View {
                         )
                 }
             }
-            .frame(height: 4)
+            .frame(height: OwlLayout.gaugeBarHeight)
         }
     }
 }

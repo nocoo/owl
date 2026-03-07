@@ -9,16 +9,16 @@ struct ProcessesSection: View {
             SectionHeader(
                 "Top Processes",
                 symbol: "list.number",
-                color: .mint
+                color: OwlSectionColor.processes
             )
 
             let procs = metrics.topProcesses
 
             if procs.isEmpty {
                 Text("No data")
-                    .font(.system(size: 10))
+                    .font(OwlFont.rowValue)
                     .foregroundStyle(.tertiary)
-                    .frame(height: 14)
+                    .frame(height: OwlLayout.metricRowHeight)
             } else {
                 ForEach(procs.prefix(3)) { proc in
                     processRow(proc)
@@ -32,11 +32,12 @@ struct ProcessesSection: View {
     ) -> some View {
         HStack(spacing: 6) {
             Text(truncatedName(proc.name))
-                .font(
-                    .system(size: 11, design: .monospaced)
-                )
+                .font(OwlFont.processName)
                 .foregroundStyle(.primary)
-                .frame(width: 80, alignment: .leading)
+                .frame(
+                    width: OwlLayout.processNameWidth,
+                    alignment: .leading
+                )
                 .lineLimit(1)
             MiniBar(
                 value: proc.cpuPercent,
@@ -44,13 +45,14 @@ struct ProcessesSection: View {
                 color: thresholdColor(proc.cpuPercent)
             )
             Text(String(format: "%.1f%%", proc.cpuPercent))
-                .font(
-                    .system(size: 10, design: .monospaced)
-                )
+                .font(OwlFont.processValue)
                 .foregroundStyle(.secondary)
-                .frame(width: 48, alignment: .trailing)
+                .frame(
+                    width: OwlLayout.processValueWidth,
+                    alignment: .trailing
+                )
         }
-        .frame(height: 14)
+        .frame(height: OwlLayout.metricRowHeight)
     }
 
     private func truncatedName(_ name: String) -> String {

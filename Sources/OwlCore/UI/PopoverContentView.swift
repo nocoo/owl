@@ -29,7 +29,7 @@ public struct PopoverContentView: View {
         VStack(spacing: 0) {
             // App header — pinned at top
             appHeader
-                .padding(.horizontal, 12)
+                .padding(.horizontal, OwlLayout.popoverPaddingH)
                 .padding(.top, 10)
                 .padding(.bottom, 6)
 
@@ -52,8 +52,8 @@ public struct PopoverContentView: View {
                     )
                     ProcessesSection(metrics: appState.metrics)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, OwlLayout.popoverPaddingH)
+                .padding(.vertical, OwlLayout.popoverPaddingV)
 
                 // Active alerts inside scroll area
                 if !appState.activeAlerts.isEmpty {
@@ -74,7 +74,7 @@ public struct PopoverContentView: View {
                 onQuit: onQuit
             )
         }
-        .frame(width: 280)
+        .frame(width: OwlLayout.popoverWidth)
         .background(.ultraThinMaterial)
     }
 
@@ -84,7 +84,10 @@ public struct PopoverContentView: View {
                 Image(nsImage: logoImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 22, height: 22)
+                    .frame(
+                        width: OwlLayout.popoverLogoSize,
+                        height: OwlLayout.popoverLogoSize
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 5))
             } else {
                 Image(systemName: "bird.fill")
@@ -93,11 +96,11 @@ public struct PopoverContentView: View {
             }
 
             Text("Owl")
-                .font(.system(size: 16, weight: .semibold))
+                .font(OwlFont.appTitle)
                 .foregroundStyle(.primary)
 
             Text("v\(OwlInfo.version)")
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .font(OwlFont.versionBadge)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 5)
                 .padding(.vertical, 1)
@@ -114,7 +117,7 @@ public struct PopoverContentView: View {
                     .fill(statusColor)
                     .frame(width: 6, height: 6)
                 Text(statusText)
-                    .font(.system(size: 12))
+                    .font(OwlFont.statusLabel)
                     .foregroundStyle(.secondary)
             }
         }
@@ -122,10 +125,10 @@ public struct PopoverContentView: View {
 
     private var statusColor: Color {
         switch appState.currentSeverity {
-        case .normal: return .green
-        case .info: return .blue
-        case .warning: return .yellow
-        case .critical: return .red
+        case .normal: return OwlSeverityColor.normal
+        case .info: return OwlSeverityColor.info
+        case .warning: return OwlSeverityColor.warning
+        case .critical: return OwlSeverityColor.critical
         }
     }
 
