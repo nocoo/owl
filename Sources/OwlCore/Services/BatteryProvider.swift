@@ -44,8 +44,9 @@ public struct BatteryProvider: Sendable {
         let cycleCount = readCycleCount()
         let timeMinutes = readTimeRemaining()
         let temperature = readTemperature(from: desc)
-        let condition = desc["BatteryHealthCondition"]
-            as? String ?? "Normal"
+        let rawCondition = desc["BatteryHealthCondition"]
+            as? String ?? ""
+        let condition = rawCondition.isEmpty ? "Normal" : rawCondition
 
         return BatteryMetrics(
             level: Double(level),

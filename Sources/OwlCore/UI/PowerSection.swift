@@ -39,9 +39,7 @@ struct PowerSection: View {
             )
 
             // Condition row
-            let condText = batt.condition == "Unavailable"
-                ? L10n.tr(.powerNA) : batt.condition
-            InfoRow(L10n.tr(.powerCond), value: condText)
+            InfoRow(L10n.tr(.powerCond), value: conditionText(batt))
         }
     }
 
@@ -62,6 +60,14 @@ struct PowerSection: View {
         let h = minutes / 60
         let m = minutes % 60
         return String(format: "%d:%02d", h, m)
+    }
+
+    private func conditionText(_ batt: BatteryMetrics) -> String {
+        switch batt.condition {
+        case "Unavailable": return L10n.tr(.powerNA)
+        case "Normal":      return L10n.tr(.powerNormal)
+        default:            return batt.condition
+        }
     }
 
 }
