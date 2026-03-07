@@ -41,9 +41,9 @@ Owl 需要以下能力，均不允许在 App Store 沙箱中使用：
 
 <!-- 版本号 -->
 <key>CFBundleShortVersionString</key>
-<string>1.0.0</string>
+<string>1.2.0</string>
 <key>CFBundleVersion</key>
-<string>1</string>
+<string>2</string>
 ```
 
 ### Hardened Runtime
@@ -171,8 +171,8 @@ Notarization 需要 App-Specific Password（非 Apple ID 密码）：
 
 最简单的分发方式，适合开发者用户群：
 
-1. 在 GitHub repo 创建 Release tag（`v1.0.0`）
-2. 上传已公证的 `Owl.zip`（或 `Owl.dmg`）
+1. 在 GitHub repo 创建 Release tag（例如 `v1.2.0`）
+2. 上传已公证的 `Owl-v1.2.0.dmg`
 3. 用户下载后解压，拖入 /Applications
 
 ### 安装方式
@@ -213,7 +213,7 @@ xcrun stapler staple build/release/Owl.dmg
 
 ```ruby
 cask "owl" do
-  version "1.0.0"
+  version "1.2.0"
   sha256 "..."
   url "https://github.com/nocoo/owl/releases/download/v#{version}/Owl.dmg"
   name "Owl"
@@ -250,6 +250,14 @@ end
 ### v1.0 — 本地构建
 
 首发版本手动在本地构建和公证。
+
+当前可直接使用：
+
+```bash
+./scripts/release-gh.sh
+```
+
+该脚本会读取 `OwlInfo.version`，构建 `Owl.app`，打出 `Owl-vX.Y.Z.dmg`，并通过 `gh release create` 或 `gh release upload` 上传到 GitHub。
 
 ### 未来 — GitHub Actions
 
@@ -321,6 +329,7 @@ jobs:
 | 版本 | 变更类型 |
 |------|---------|
 | 1.0.0 | 首发，14 个检测器 + Menu Bar UI |
+| 1.2.0 | SignatureDetector、P05 signature migration、GitHub DMG release script |
 | 1.1.0 | 新增检测器或 UI 改进 |
 | 1.0.1 | Bug 修复 |
 | 2.0.0 | 重大架构变更（如加入自动更新、插件系统等） |

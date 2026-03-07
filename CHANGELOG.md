@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.0
+
+### Features
+
+- Add `SignatureDetector` with explicit capture group mapping, dual-buffer distinct counting, cooldowns, stale cleanup, and LRU eviction
+- Migrate P05 sandbox violation detection from rate counting to signature diversity with target normalization for temp paths, UUIDs, and numeric segments
+- Add release helper script to package versioned DMGs and publish them to GitHub Releases via `gh`
+
 ## v1.1.1
 
 ### Bug Fixes
