@@ -303,6 +303,11 @@ extension AppDelegate {
         // overriding preferredContentSize based on SwiftUI layout,
         // which would race with NSPopover's positioning logic.
         hosting.sizingOptions = []
+        // Set preferred size upfront so NSPopover positions
+        // correctly on first open without a layout-driven jump.
+        hosting.preferredContentSize = NSSize(
+            width: 322, height: 696
+        )
 
         popover.contentViewController = hosting
         popover.contentSize = NSSize(width: 322, height: 696)
