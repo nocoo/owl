@@ -159,9 +159,10 @@ extension AppDelegate {
 
     @objc func openSettings() {
         if let window = settingsWindow {
-            window.center()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
+            // Center after layout pass completes
+            DispatchQueue.main.async { window.center() }
             return
         }
 
@@ -176,7 +177,7 @@ extension AppDelegate {
         )
         let window = NSWindow(
             contentRect: NSRect(
-                x: 0, y: 0, width: 520, height: 480
+                x: 0, y: 0, width: 520, height: 520
             ),
             styleMask: [.titled, .closable],
             backing: .buffered,
@@ -184,11 +185,12 @@ extension AppDelegate {
         )
         window.title = "Owl Settings"
         window.contentViewController = hostingController
-        window.center()
         window.isReleasedWhenClosed = false
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow = window
+        // Center after hosting controller finishes layout
+        DispatchQueue.main.async { window.center() }
     }
 
     static func loadAppIcon() -> NSImage? {
