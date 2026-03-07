@@ -130,6 +130,19 @@ struct ProcessStatsProviderTests {
         #expect(rankings.isEmpty)
     }
 
+    @Test func parseSkipsRealTIMEHeader() {
+        // Real ps output uses "TIME" not "CPUTIME"
+        let output = """
+             TIME    RSS COMM
+          2:16.14  30544 /sbin/launchd
+        """
+        let rankings = ProcessStatsProvider.parse(
+            output: output, top: 25
+        )
+        #expect(rankings.count == 1)
+        #expect(rankings[0].id == "launchd")
+    }
+
     @Test func parseExtractsNameFromPath() {
         let output = """
         CPUTIME    RSS COMM

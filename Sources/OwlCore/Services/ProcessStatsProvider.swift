@@ -117,12 +117,14 @@ public struct ProcessStatsProvider: Sendable {
 
         do {
             try process.run()
-            process.waitUntilExit()
         } catch {
             return ""
         }
 
+        // Read pipe BEFORE waitUntilExit to avoid deadlock when
+        // pipe buffer fills up (ps output can be large).
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
         return String(data: data, encoding: .utf8) ?? ""
     }
 
@@ -142,6 +144,7 @@ public struct ProcessStatsProvider: Sendable {
             )
             // Skip header and empty lines
             guard !trimmed.isEmpty,
+                  !trimmed.hasPrefix("TIME"),
                   !trimmed.hasPrefix("CPUTIME")
             else { continue }
 

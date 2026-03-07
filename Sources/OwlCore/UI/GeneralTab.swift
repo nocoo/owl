@@ -25,12 +25,13 @@ public struct GeneralTab: View {
                 if let logoImage {
                     Image(nsImage: logoImage)
                         .resizable()
+                        .interpolation(.high)
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 80, height: 80)
+                        .frame(width: 120, height: 120)
                         .clipShape(
-                            RoundedRectangle(cornerRadius: 18)
+                            RoundedRectangle(cornerRadius: 26)
                         )
-                        .shadow(radius: 3, y: 2)
+                        .shadow(radius: 4, y: 2)
                 } else {
                     Image(systemName: "bird.fill")
                         .font(.system(size: 36))
