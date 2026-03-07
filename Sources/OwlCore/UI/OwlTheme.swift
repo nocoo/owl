@@ -102,10 +102,10 @@ enum OwlFont {
 
     // -- Alerts --
     static let alertTitle = Font.system(
-        size: 14, weight: .semibold
+        size: 11, weight: .semibold
     )
-    static let alertBody = Font.system(size: 12)
-    static let alertTimestamp = Font.system(size: 12)
+    static let alertBody = Font.system(size: 10)
+    static let alertTimestamp = Font.system(size: 9)
     static let alertSectionHeader = Font.system(
         size: 11, weight: .semibold
     )
