@@ -46,7 +46,7 @@ public struct DetectorsTab: View {
                     }
                 } header: {
                     Label(
-                        category.rawValue,
+                        category.displayName,
                         systemImage: category.symbolName
                     )
                     .font(.system(size: 14, weight: .semibold))
