@@ -95,7 +95,7 @@ public struct PopoverContentView: View {
                     .foregroundStyle(.primary)
             }
 
-            Text("Owl")
+            Text(L10n.tr(.appName))
                 .font(OwlFont.appTitle)
                 .foregroundStyle(.primary)
 
@@ -134,10 +134,10 @@ public struct PopoverContentView: View {
 
     private var statusText: String {
         switch appState.currentSeverity {
-        case .normal: return "Normal"
-        case .info: return "Info"
-        case .warning: return "Warning"
-        case .critical: return "Critical"
+        case .normal: return L10n.tr(.severityNormal)
+        case .info: return L10n.tr(.severityInfo)
+        case .warning: return L10n.tr(.severityWarning)
+        case .critical: return L10n.tr(.severityCritical)
         }
     }
 }

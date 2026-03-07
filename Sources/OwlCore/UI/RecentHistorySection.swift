@@ -16,7 +16,7 @@ public struct RecentHistorySection: View {
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Recent Events")
+                Text(L10n.tr(.recentEvents))
                     .font(OwlFont.alertSectionHeader)
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)

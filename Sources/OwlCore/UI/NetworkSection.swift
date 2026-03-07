@@ -10,7 +10,7 @@ struct NetworkSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Network", symbol: "network",
+                L10n.tr(.sectionNetwork), symbol: "network",
                 color: OwlSectionColor.network
             )
 
@@ -18,7 +18,7 @@ struct NetworkSection: View {
 
             // Download row: sparkline + speed
             SpeedRow(
-                label: "Down",
+                label: L10n.tr(.netDown),
                 bytesPerSec: net.bytesInPerSec,
                 history: inHistory,
                 color: OwlNetworkColor.download
@@ -26,7 +26,7 @@ struct NetworkSection: View {
 
             // Upload row: sparkline + speed
             SpeedRow(
-                label: "Up",
+                label: L10n.tr(.netUp),
                 bytesPerSec: net.bytesOutPerSec,
                 history: outHistory,
                 color: OwlNetworkColor.upload
@@ -46,15 +46,15 @@ struct NetworkSection: View {
         return TwoColumnInfoRow(
             leftLabel: interfaceLabel(net.activeInterface),
             leftValue: "",
-            rightLabel: "IP",
+            rightLabel: L10n.tr(.netIP),
             rightValue: ipText
         )
     }
 
     private func interfaceLabel(_ name: String) -> String {
-        if name.hasPrefix("utun") { return "TUN \(name)" }
-        if name == "en0" { return "Wi-Fi" }
-        if name.hasPrefix("en") { return "Ethernet \(name)" }
+        if name.hasPrefix("utun") { return L10n.tr(.netTUN(name)) }
+        if name == "en0" { return L10n.tr(.netWiFi) }
+        if name.hasPrefix("en") { return L10n.tr(.netEthernet(name)) }
         return name
     }
 }

@@ -37,7 +37,7 @@ public struct HistoryRow: View {
                 Spacer()
 
                 if showCopied {
-                    Text("Copied")
+                    Text(L10n.tr(.copied))
                         .font(OwlFont.historyCopied)
                         .foregroundStyle(OwlSeverityColor.normal)
                         .transition(.opacity)

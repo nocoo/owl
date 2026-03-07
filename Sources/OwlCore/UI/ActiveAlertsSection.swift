@@ -21,9 +21,9 @@ public struct ActiveAlertsSection: View {
             Image(systemName: "checkmark.circle")
                 .font(OwlFont.emptyIcon)
                 .foregroundStyle(OwlSeverityColor.normal)
-            Text("System Running Normally")
+            Text(L10n.tr(.systemRunningNormally))
                 .font(OwlFont.emptyTitle)
-            Text("No anomalies detected")
+            Text(L10n.tr(.noAnomaliesDetected))
                 .font(OwlFont.emptyBody)
                 .foregroundStyle(.secondary)
         }
@@ -34,13 +34,13 @@ public struct ActiveAlertsSection: View {
     private var alertList: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Active Alerts")
+                Text(L10n.tr(.activeAlerts))
                     .font(OwlFont.alertSectionHeader)
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                 if alerts.count > 3 {
                     Spacer()
-                    Text("\(alerts.count) total")
+                    Text(L10n.tr(.totalCount(alerts.count)))
                         .font(OwlFont.alertCountBadge)
                         .foregroundStyle(.tertiary)
                 }

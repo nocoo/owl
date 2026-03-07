@@ -7,13 +7,13 @@ struct CPUSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "CPU", symbol: "cpu",
+                L10n.tr(.sectionCPU), symbol: "cpu",
                 color: OwlSectionColor.cpu
             )
 
             // Total CPU
             MetricRow(
-                "Total",
+                L10n.tr(.cpuTotal),
                 value: metrics.cpuUsage,
                 text: totalText,
                 color: thresholdColor(metrics.cpuUsage)
@@ -28,17 +28,17 @@ struct CPUSection: View {
 
                 if pCount > 0 {
                     let pCores = Array(sorted.prefix(pCount))
-                    coreGroup(label: "P-Cores", cores: pCores)
+                    coreGroup(label: L10n.tr(.cpuPCores), cores: pCores)
                 }
 
                 if eCount > 0 {
                     let eCores = Array(sorted.dropFirst(pCount).prefix(eCount))
-                    coreGroup(label: "E-Cores", cores: eCores)
+                    coreGroup(label: L10n.tr(.cpuECores), cores: eCores)
                 }
 
                 // Fallback: if no P/E topology detected, show all cores
                 if pCount == 0 && eCount == 0 {
-                    coreGroup(label: "Cores", cores: sorted)
+                    coreGroup(label: L10n.tr(.cpuCores), cores: sorted)
                 }
             }
 
@@ -91,7 +91,7 @@ struct CPUSection: View {
         let pCores = load.performanceCores
         let eCores = load.efficiencyCores
         return HStack(spacing: 4) {
-            Text("Load")
+            Text(L10n.tr(.cpuLoad))
                 .font(OwlFont.loadLabel)
                 .foregroundStyle(.secondary)
                 .frame(

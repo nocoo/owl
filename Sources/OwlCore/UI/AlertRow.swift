@@ -25,7 +25,7 @@ public struct AlertRow: View {
                             .lineLimit(1)
                         Spacer()
                         if showCopied {
-                            Text("Copied")
+                            Text(L10n.tr(.copied))
                                 .font(OwlFont.alertBody)
                                 .foregroundStyle(OwlSeverityColor.normal)
                                 .transition(.opacity)
@@ -96,13 +96,13 @@ public struct AlertRow: View {
             alert.timestamp
         )
         if seconds < 60 {
-            return "just now"
+            return L10n.tr(.justNow)
         } else if seconds < 3600 {
             let mins = Int(seconds / 60)
-            return "\(mins)m ago"
+            return L10n.tr(.minutesAgo(mins))
         } else {
             let hours = Int(seconds / 3600)
-            return "\(hours)h ago"
+            return L10n.tr(.hoursAgo(hours))
         }
     }
 }

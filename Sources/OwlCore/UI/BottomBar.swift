@@ -16,7 +16,7 @@ public struct BottomBar: View {
     public var body: some View {
         HStack {
             Button(action: onSettings) {
-                Label("Settings", systemImage: "gearshape")
+                Label(L10n.tr(.settings), systemImage: "gearshape")
                     .font(OwlFont.bottomBarButton)
             }
             .buttonStyle(.plain)
@@ -25,7 +25,7 @@ public struct BottomBar: View {
             Spacer()
 
             Button(action: onQuit) {
-                Label("Quit", systemImage: "power")
+                Label(L10n.tr(.quit), systemImage: "power")
                     .font(OwlFont.bottomBarButton)
             }
             .buttonStyle(.plain)

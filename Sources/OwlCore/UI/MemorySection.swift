@@ -7,7 +7,7 @@ struct MemorySection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Memory", symbol: "memorychip",
+                L10n.tr(.sectionMemory), symbol: "memorychip",
                 color: OwlSectionColor.memory
             )
 
@@ -15,7 +15,7 @@ struct MemorySection: View {
 
             // Used bar
             MetricRow(
-                "Used",
+                L10n.tr(.memUsed),
                 value: mem.usedPercent,
                 text: String(format: "%.1f%%", mem.usedPercent),
                 color: thresholdColor(
@@ -25,21 +25,21 @@ struct MemorySection: View {
 
             // Free bar
             MetricRow(
-                "Free",
+                L10n.tr(.memFree),
                 value: mem.freePercent,
                 text: String(format: "%.1f%%", mem.freePercent),
                 color: OwlPalette.green
             )
 
             // Total row
-            InfoRow("Total", value: "\(formatBytes(mem.used)) / \(formatBytes(mem.total))")
+            InfoRow(L10n.tr(.memTotal), value: "\(formatBytes(mem.used)) / \(formatBytes(mem.total))")
 
             // Cache + Available merged into one two-column row
             if mem.cached > 0 || mem.available > 0 {
                 TwoColumnInfoRow(
-                    leftLabel: "Cache",
+                    leftLabel: L10n.tr(.memCache),
                     leftValue: formatBytes(mem.cached),
-                    rightLabel: "Avail",
+                    rightLabel: L10n.tr(.memAvail),
                     rightValue: formatBytes(mem.available)
                 )
             }
@@ -47,7 +47,7 @@ struct MemorySection: View {
             // Swap bar + absolute values
             if mem.swapTotal > 0 {
                 MetricRow(
-                    "Swap",
+                    L10n.tr(.memSwap),
                     value: mem.swapPercent,
                     text: String(
                         format: "%.1f%%", mem.swapPercent

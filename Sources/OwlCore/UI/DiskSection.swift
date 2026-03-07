@@ -7,7 +7,7 @@ struct DiskSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Disk", symbol: "internaldrive",
+                L10n.tr(.sectionDisk), symbol: "internaldrive",
                 color: OwlSectionColor.disk
             )
 
@@ -15,7 +15,7 @@ struct DiskSection: View {
 
             // Internal storage usage with used/total
             MetricRow(
-                "INTR",
+                L10n.tr(.diskINTR),
                 value: disk.usedPercent,
                 text: usedText(disk),
                 color: thresholdColor(
@@ -25,7 +25,7 @@ struct DiskSection: View {
 
             // Read throughput
             ThroughputRow(
-                label: "Read",
+                label: L10n.tr(.diskRead),
                 bytesPerSec: disk.readBytesPerSec,
                 icon: "arrow.down",
                 iconColor: OwlDiskColor.read
@@ -33,7 +33,7 @@ struct DiskSection: View {
 
             // Write throughput
             ThroughputRow(
-                label: "Write",
+                label: L10n.tr(.diskWrite),
                 bytesPerSec: disk.writeBytesPerSec,
                 icon: "arrow.up",
                 iconColor: OwlDiskColor.write

@@ -7,7 +7,7 @@ struct ProcessesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Top Processes",
+                L10n.tr(.sectionTopProcesses),
                 symbol: "list.number",
                 color: OwlSectionColor.processes
             )
@@ -15,7 +15,7 @@ struct ProcessesSection: View {
             let procs = metrics.topProcesses
 
             if procs.isEmpty {
-                Text("No data")
+                Text(L10n.tr(.noData))
                     .font(OwlFont.rowValue)
                     .foregroundStyle(.tertiary)
                     .frame(height: OwlLayout.metricRowHeight)

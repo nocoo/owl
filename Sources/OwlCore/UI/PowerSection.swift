@@ -8,7 +8,7 @@ struct PowerSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Power", symbol: "bolt.fill",
+                L10n.tr(.sectionPower), symbol: "bolt.fill",
                 color: OwlSectionColor.power
             )
 
@@ -16,7 +16,7 @@ struct PowerSection: View {
 
             // Battery level
             MetricRow(
-                "Level",
+                L10n.tr(.powerLevel),
                 value: batt.level,
                 text: String(format: "%.0f%%", batt.level),
                 color: owlBatteryColor(batt.level)
@@ -24,7 +24,7 @@ struct PowerSection: View {
 
             // Health
             MetricRow(
-                "Health",
+                L10n.tr(.powerHealth),
                 value: batt.health,
                 text: String(format: "%.0f%%", batt.health),
                 color: owlHealthColor(batt.health)
@@ -34,21 +34,21 @@ struct PowerSection: View {
             TwoColumnInfoRow(
                 leftLabel: stateLabel(batt),
                 leftValue: timeRemainingText(batt),
-                rightLabel: "Cycles",
+                rightLabel: L10n.tr(.powerCycles),
                 rightValue: "\(batt.cycleCount)"
             )
 
             // Condition row
             let condText = batt.condition == "Unavailable"
-                ? "N/A" : batt.condition
-            InfoRow("Cond", value: condText)
+                ? L10n.tr(.powerNA) : batt.condition
+            InfoRow(L10n.tr(.powerCond), value: condText)
         }
     }
 
     private func stateLabel(_ batt: BatteryMetrics) -> String {
-        if batt.isCharging { return "⚡ Charging" }
-        if batt.isPluggedIn { return "🔌 Plugged" }
-        return "🔋 Battery"
+        if batt.isCharging { return "⚡ \(L10n.tr(.powerCharging))" }
+        if batt.isPluggedIn { return "🔌 \(L10n.tr(.powerPlugged))" }
+        return "🔋 \(L10n.tr(.powerBattery))"
     }
 
     private func timeRemainingText(_ batt: BatteryMetrics) -> String {
