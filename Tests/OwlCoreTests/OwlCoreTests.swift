@@ -2,5 +2,5 @@ import Testing
 @testable import OwlCore
 
 @Test func owlCoreVersion() {
-    #expect(OwlInfo.version == "1.0.0")
+    #expect(OwlInfo.version == "1.1.0")
 }
