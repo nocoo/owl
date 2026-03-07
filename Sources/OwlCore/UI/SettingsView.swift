@@ -24,6 +24,8 @@ public struct SettingsView: View {
         TabView {
             GeneralTab(
                 launchAtLogin: $viewModel.launchAtLogin,
+                language: $viewModel.language,
+                appearance: $viewModel.appearance,
                 logoImage: logoImage ?? appIcon
             )
             .tabItem {

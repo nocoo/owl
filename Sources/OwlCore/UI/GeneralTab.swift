@@ -2,18 +2,24 @@ import AppKit
 import SwiftUI
 
 /// General settings tab: logo header with version info, startup options,
-/// monitoring config, and links (merged from former About tab).
+/// language, appearance, monitoring config, and links.
 public struct GeneralTab: View {
     @Binding var launchAtLogin: Bool
+    @Binding var language: AppLanguage
+    @Binding var appearance: AppAppearance
     let logoImage: NSImage?
     let version: String
 
     public init(
         launchAtLogin: Binding<Bool>,
+        language: Binding<AppLanguage>,
+        appearance: Binding<AppAppearance>,
         logoImage: NSImage? = nil,
         version: String = OwlInfo.version
     ) {
         self._launchAtLogin = launchAtLogin
+        self._language = language
+        self._appearance = appearance
         self.logoImage = logoImage
         self.version = version
     }
@@ -79,6 +85,39 @@ public struct GeneralTab: View {
                 Label(L10n.tr(.sectionStartup), systemImage: "power")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
+            }
+
+            // Language section
+            Section {
+                Picker(L10n.tr(.language), selection: $language) {
+                    ForEach(AppLanguage.allCases, id: \.self) { lang in
+                        Text(lang.displayName).tag(lang)
+                    }
+                }
+            } header: {
+                Label(
+                    L10n.tr(.sectionLanguage),
+                    systemImage: "globe"
+                )
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.secondary)
+            }
+
+            // Appearance section
+            Section {
+                Picker(L10n.tr(.appearanceMode), selection: $appearance) {
+                    ForEach(AppAppearance.allCases, id: \.self) {
+                        mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+            } header: {
+                Label(
+                    L10n.tr(.sectionAppearance),
+                    systemImage: "paintbrush"
+                )
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.secondary)
             }
 
             // Monitoring section
