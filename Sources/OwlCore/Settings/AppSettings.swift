@@ -13,6 +13,8 @@ public final class AppSettings {
 
     private enum Keys {
         static let launchAtLogin = "owl.launchAtLogin"
+        static let language = "owl.language"
+        static let appearance = "owl.appearance"
         static func detectorEnabled(_ id: String) -> String {
             "owl.detector.\(id).enabled"
         }
@@ -32,6 +34,28 @@ public final class AppSettings {
     public var launchAtLogin: Bool {
         get { defaults.bool(forKey: Keys.launchAtLogin) }
         set { defaults.set(newValue, forKey: Keys.launchAtLogin) }
+    }
+
+    /// The user's preferred language. Defaults to `.system`.
+    public var language: AppLanguage {
+        get {
+            guard let raw = defaults.string(forKey: Keys.language),
+                  let lang = AppLanguage(rawValue: raw)
+            else { return .system }
+            return lang
+        }
+        set { defaults.set(newValue.rawValue, forKey: Keys.language) }
+    }
+
+    /// The user's preferred appearance mode. Defaults to `.auto`.
+    public var appearance: AppAppearance {
+        get {
+            guard let raw = defaults.string(forKey: Keys.appearance),
+                  let mode = AppAppearance(rawValue: raw)
+            else { return .auto }
+            return mode
+        }
+        set { defaults.set(newValue.rawValue, forKey: Keys.appearance) }
     }
 
     // MARK: - Detector Toggle
@@ -67,6 +91,8 @@ public final class AppSettings {
     /// Resets all settings to defaults.
     public func resetAll(detectorIDs: [String]) {
         defaults.removeObject(forKey: Keys.launchAtLogin)
+        defaults.removeObject(forKey: Keys.language)
+        defaults.removeObject(forKey: Keys.appearance)
         for id in detectorIDs {
             defaults.removeObject(
                 forKey: Keys.detectorEnabled(id)

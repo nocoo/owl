@@ -74,6 +74,20 @@ public final class SettingsViewModel: ObservableObject {
         didSet { settings.launchAtLogin = launchAtLogin }
     }
 
+    @Published public var language: AppLanguage {
+        didSet {
+            settings.language = language
+            L10n.setLanguage(language)
+        }
+    }
+
+    @Published public var appearance: AppAppearance {
+        didSet {
+            settings.appearance = appearance
+            onAppearanceChange?(appearance)
+        }
+    }
+
     @Published public var detectorStates: [String: Bool] {
         didSet {
             for (id, enabled) in detectorStates {
@@ -89,9 +103,14 @@ public final class SettingsViewModel: ObservableObject {
         _ id: String, _ enabled: Bool
     ) -> Void)?
 
+    /// Callback invoked when appearance preference changes.
+    public var onAppearanceChange: ((AppAppearance) -> Void)?
+
     public init(settings: AppSettings = AppSettings()) {
         self.settings = settings
         self.launchAtLogin = settings.launchAtLogin
+        self.language = settings.language
+        self.appearance = settings.appearance
 
         var states: [String: Bool] = [:]
         for id in DetectorCatalog.allIDs {
