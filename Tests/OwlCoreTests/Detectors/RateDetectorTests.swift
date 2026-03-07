@@ -373,4 +373,60 @@ struct RateDetectorTests {
         detector.isEnabled = false
         #expect(!detector.isEnabled)
     }
+
+    // MARK: - captureGroup mode regex validation
+
+    @Test func captureGroupModeRejectsRegexMismatch() {
+        // Config uses regex `crash: (.+)` with acceptsFilter "crash".
+        // Messages containing "crash" pass accepts(), but if they
+        // don't match the full regex, process() must NOT count them.
+        let detector = RateDetector(config: makeConfig(warningRate: 3))
+        let t0 = Date()
+
+        for i in 0..<5 {
+            let entry = makeEntry(
+                message: "crash log rotation complete",
+                timestamp: t0.addingTimeInterval(Double(i))
+            )
+            // Passes acceptsFilter ("crash") but fails regex (`crash: (.+)`)
+            let alert = detector.process(entry)
+            #expect(alert == nil, "Regex-failing message must not trigger alert")
+        }
+
+        // No counter group should have been created
+        #expect(detector.groupCount == 0, "Regex-failing messages must not create counter groups")
+    }
+
+    @Test func captureGroupNoiseDoesNotInflateRealCount() {
+        let detector = RateDetector(config: makeConfig(warningRate: 5))
+        let t0 = Date()
+
+        // Feed 2 real messages (below threshold)
+        for i in 0..<2 {
+            _ = detector.process(makeEntry(
+                message: "crash: com.example.app",
+                timestamp: t0.addingTimeInterval(Double(i))
+            ))
+        }
+
+        // Feed 10 noise messages that pass acceptsFilter but fail regex
+        for i in 0..<10 {
+            _ = detector.process(makeEntry(
+                message: "crash log rotation complete",
+                timestamp: t0.addingTimeInterval(Double(i + 2))
+            ))
+        }
+
+        // Feed 2 more real messages (total real = 4, still below 5)
+        for i in 0..<2 {
+            let alert = detector.process(makeEntry(
+                message: "crash: com.example.app",
+                timestamp: t0.addingTimeInterval(Double(i + 12))
+            ))
+            #expect(alert == nil, "Noise should not inflate count past threshold")
+        }
+
+        // Only the real key group should exist
+        #expect(detector.groupCount == 1)
+    }
 }

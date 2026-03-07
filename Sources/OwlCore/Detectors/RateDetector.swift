@@ -51,10 +51,11 @@ public final class RateDetector: PatternDetector {
     }
 
     public func process(_ entry: LogEntry) -> Alert? {
-        // Validate regex match before counting. In global mode, extractKey()
-        // skips the regex, so we must check it separately to avoid counting
-        // unrelated messages that merely contain the acceptsFilter keyword.
-        if config.groupBy == .global, let regex = compiledRegex {
+        // Validate regex match before counting. Messages that pass the coarse
+        // acceptsFilter but fail the full regex must be silently discarded,
+        // regardless of groupBy mode. Without this guard, captureGroup mode
+        // falls back to __global__ key and global mode skips regex entirely.
+        if let regex = compiledRegex {
             let range = NSRange(entry.eventMessage.startIndex..., in: entry.eventMessage)
             if regex.firstMatch(in: entry.eventMessage, range: range) == nil {
                 return nil

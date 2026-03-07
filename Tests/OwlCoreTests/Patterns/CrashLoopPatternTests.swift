@@ -118,4 +118,48 @@ struct CrashLoopPatternTests {
 
         #expect(lastAlert?.description.contains("com.example.app") == true)
     }
+
+    @Test("accepts but does not count noise QUIT messages without name field")
+    func acceptsButDoesNotCountNoiseMessages() {
+        let detector = CrashLoopPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+        let entry = TestFixtures.CrashLoop.entry(
+            TestFixtures.CrashLoop.noiseQuit,
+            timestamp: t0
+        )
+        // Contains "QUIT:" so accepts() passes
+        #expect(detector.accepts(entry))
+        // But regex requires `name = "..."` — process() must not count it
+        #expect(detector.process(entry) == nil)
+        #expect(detector.groupCount == 0)
+    }
+
+    @Test("noise QUIT messages do not inflate real crash count")
+    func noiseDoesNotInflateRealCount() {
+        let detector = CrashLoopPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+
+        // Feed 3 real QUIT events (below warning threshold of 5)
+        for i in 0..<3 {
+            _ = detector.process(TestFixtures.CrashLoop.entry(
+                TestFixtures.CrashLoop.quit,
+                timestamp: t0.addingTimeInterval(Double(i))
+            ))
+        }
+
+        // Flood with 20 noise messages
+        for i in 0..<20 {
+            _ = detector.process(TestFixtures.CrashLoop.entry(
+                TestFixtures.CrashLoop.noiseQuit,
+                timestamp: t0.addingTimeInterval(Double(i + 3))
+            ))
+        }
+
+        // Feed 1 more real event (total real = 4, still below threshold of 5)
+        let alert = detector.process(TestFixtures.CrashLoop.entry(
+            TestFixtures.CrashLoop.quit,
+            timestamp: t0.addingTimeInterval(23)
+        ))
+        #expect(alert == nil, "Noise should not push real count past warning threshold")
+    }
 }

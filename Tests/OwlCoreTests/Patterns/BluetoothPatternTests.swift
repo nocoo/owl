@@ -70,4 +70,44 @@ struct BluetoothPatternTests {
         let alert = detector.process(entry)
         #expect(alert == nil)
     }
+
+    @Test("accepts but does not count noise disconnect messages without MAC")
+    func acceptsButDoesNotCountNoiseMessages() {
+        let detector = BluetoothPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+        let entry = TestFixtures.Bluetooth.entry(
+            TestFixtures.Bluetooth.noiseDisconnect,
+            timestamp: t0
+        )
+        #expect(detector.accepts(entry))
+        #expect(detector.process(entry) == nil)
+        #expect(detector.groupCount == 0)
+    }
+
+    @Test("noise disconnect messages do not inflate real disconnect count")
+    func noiseDoesNotInflateRealCount() {
+        let detector = BluetoothPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+
+        // Feed 1 real disconnect (below warning threshold of 3)
+        _ = detector.process(TestFixtures.Bluetooth.entry(
+            TestFixtures.Bluetooth.disconnect,
+            timestamp: t0
+        ))
+
+        // Flood with 10 noise messages
+        for i in 0..<10 {
+            _ = detector.process(TestFixtures.Bluetooth.entry(
+                TestFixtures.Bluetooth.noiseDisconnect,
+                timestamp: t0.addingTimeInterval(Double(i + 1))
+            ))
+        }
+
+        // Feed 1 more real event (total real = 2, still below threshold of 3)
+        let alert = detector.process(TestFixtures.Bluetooth.entry(
+            TestFixtures.Bluetooth.disconnect,
+            timestamp: t0.addingTimeInterval(11)
+        ))
+        #expect(alert == nil, "Noise should not push real count past warning threshold")
+    }
 }

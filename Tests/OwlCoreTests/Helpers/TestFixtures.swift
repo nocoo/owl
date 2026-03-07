@@ -48,6 +48,8 @@ enum TestFixtures {
         // swiftlint:disable:next line_length
         static let quit = #"QUIT: pid = 85412, name = "com.example.app", type = application, disposition = [enabled, ...], flags = [none], ..."#
         static let checkin = #"CHECKIN: pid = 85413 matches portless application com.example.app"#
+        // Contains "QUIT:" (passes acceptsFilter) but no `name = "..."` (fails regex)
+        static let noiseQuit = #"QUIT: pid = 85412, reason = normal_shutdown, no name field"#
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "launchservicesd")
@@ -84,6 +86,8 @@ enum TestFixtures {
         static let deny = #"Sandbox: Google Chrome(85321) deny(1) file-read-data /private/var/folders/xx/tmp"#
         // swiftlint:disable:next line_length
         static let systemPolicyDeny = #"System Policy: wdavdaemon(562) deny(1) file-read-data /private/var/folders/g2/6htthtys08v10qxbs_0nxfyr0000gn/0/com.apple.ScreenTimeAgent/Store"#
+        // Contains "deny(1)" (passes acceptsFilter) but no "Sandbox:" or "System Policy:" prefix (fails regex)
+        static let noiseDeny = #"access control: deny(1) for resource /tmp/foo"#
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "kernel", category: "Sandbox")
@@ -109,6 +113,8 @@ enum TestFixtures {
         static let sigkill = "Service com.apple.some.service exited due to SIGKILL | sent by mach_vm_map_kernel[0]: ..."
         static let sigsegv = "Service com.example.daemon exited due to SIGSEGV | sent by exc handler[0]: ..."
         static let sigabrt = "Service com.example.app exited due to SIGABRT | sent by abort()[85412]: ..."
+        // Contains "exited due to" (passes acceptsFilter) but no SIG signal (fails regex)
+        static let noiseExit = "Service com.apple.mdworker exited due to exit(0)"
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "launchd")
@@ -119,6 +125,8 @@ enum TestFixtures {
 
     enum Bluetooth {
         static let disconnect = #"Device disconnected - "AirPods Pro" (AA:BB:CC:DD:EE:FF), reason: 0x13"#
+        // Contains "Device disconnected" (passes acceptsFilter) but no MAC in parens (fails regex)
+        static let noiseDisconnect = "Device disconnected unexpectedly, reason: supervision_timeout"
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "bluetoothd")
@@ -129,6 +137,8 @@ enum TestFixtures {
 
     enum TCC {
         static let denied = "AUTHREQ_RESULT: DENIED, service=kTCCServiceAppleEvents, bundleID=com.example.app, ..."
+        // Contains "AUTHREQ_RESULT:" (passes acceptsFilter) but is ALLOWED, not DENIED (fails regex)
+        static let noiseAllowed = "AUTHREQ_RESULT: ALLOWED, service=kTCCServiceCamera, bundleID=com.apple.Safari, ..."
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "tccd")
@@ -150,6 +160,8 @@ enum TestFixtures {
 
     enum AppHang {
         static let hang = "[pid=85412] failed to act on a ping. Removing"
+        // Contains "failed to act on a ping" (passes acceptsFilter) but no "[pid=NNN]" prefix (fails regex)
+        static let noisePing = "Application failed to act on a ping response, continuing"
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "WindowServer")
@@ -177,6 +189,8 @@ enum TestFixtures {
     enum USB {
         // swiftlint:disable:next line_length
         static let abort = "AppleUSBHostController@01000000: IOUSBHostPipe::abortGated: device 0x12345678, endpoint 0x81"
+        // Contains "IOUSBHostPipe::abortGated" (passes acceptsFilter) but no hex device ID (fails regex)
+        static let noiseAbort = "IOUSBHostPipe::abortGated: error=timeout, no device"
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "kernel", subsystem: "com.apple.iokit")

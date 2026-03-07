@@ -86,4 +86,44 @@ struct CrashSignalPatternTests {
         #expect(detector.accepts(sigsegv))
         #expect(detector.accepts(sigabrt))
     }
+
+    @Test("accepts but does not count noise exit messages without signal")
+    func acceptsButDoesNotCountNoiseMessages() {
+        let detector = CrashSignalPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+        let entry = TestFixtures.CrashSignal.entry(
+            TestFixtures.CrashSignal.noiseExit,
+            timestamp: t0
+        )
+        #expect(detector.accepts(entry))
+        #expect(detector.process(entry) == nil)
+        #expect(detector.groupCount == 0)
+    }
+
+    @Test("noise exit messages do not inflate real crash signal count")
+    func noiseDoesNotInflateRealCount() {
+        let detector = CrashSignalPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+
+        // Feed 1 real crash signal (below warning threshold of 3)
+        _ = detector.process(TestFixtures.CrashSignal.entry(
+            TestFixtures.CrashSignal.sigkill,
+            timestamp: t0
+        ))
+
+        // Flood with 10 noise messages
+        for i in 0..<10 {
+            _ = detector.process(TestFixtures.CrashSignal.entry(
+                TestFixtures.CrashSignal.noiseExit,
+                timestamp: t0.addingTimeInterval(Double(i + 1))
+            ))
+        }
+
+        // Feed 1 more real event (total real = 2, still below threshold of 3)
+        let alert = detector.process(TestFixtures.CrashSignal.entry(
+            TestFixtures.CrashSignal.sigkill,
+            timestamp: t0.addingTimeInterval(11)
+        ))
+        #expect(alert == nil, "Noise should not push real count past warning threshold")
+    }
 }

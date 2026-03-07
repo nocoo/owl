@@ -71,4 +71,41 @@ struct AppHangPatternTests {
         let alert = detector.process(entry)
         #expect(alert == nil, "Different PID at count 1 should not trigger")
     }
+
+    @Test("accepts but does not count noise ping messages without pid prefix")
+    func acceptsButDoesNotCountNoiseMessages() {
+        let detector = AppHangPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+        let entry = TestFixtures.AppHang.entry(
+            TestFixtures.AppHang.noisePing,
+            timestamp: t0
+        )
+        #expect(detector.accepts(entry))
+        #expect(detector.process(entry) == nil)
+        #expect(detector.groupCount == 0)
+    }
+
+    @Test("noise ping messages do not inflate real hang count")
+    func noiseDoesNotInflateRealCount() {
+        let detector = AppHangPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+
+        // Feed 1 real hang event (below warning threshold of 2)
+        _ = detector.process(TestFixtures.AppHang.entry(
+            TestFixtures.AppHang.hang,
+            timestamp: t0
+        ))
+
+        // Flood with 10 noise messages
+        for i in 0..<10 {
+            _ = detector.process(TestFixtures.AppHang.entry(
+                TestFixtures.AppHang.noisePing,
+                timestamp: t0.addingTimeInterval(Double(i + 1))
+            ))
+        }
+
+        // If noise inflated count, threshold of 2 would already be hit.
+        // Verify only 1 real group exists
+        #expect(detector.groupCount == 1)
+    }
 }

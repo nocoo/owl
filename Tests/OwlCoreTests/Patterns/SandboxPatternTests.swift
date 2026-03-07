@@ -139,4 +139,50 @@ struct SandboxPatternTests {
             #expect(alert == nil, "Different processes should be counted independently")
         }
     }
+
+    @Test("accepts but does not count noise deny messages without Sandbox/SystemPolicy prefix")
+    func acceptsButDoesNotCountNoiseMessages() {
+        let detector = SandboxPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 4000)
+        let entry = TestFixtures.Sandbox.entry(
+            TestFixtures.Sandbox.noiseDeny,
+            timestamp: t0
+        )
+        // Contains "deny(1)" so accepts() passes
+        #expect(detector.accepts(entry))
+        // But regex requires "Sandbox:" or "System Policy:" prefix — process() must not count it
+        #expect(detector.process(entry) == nil)
+        #expect(detector.groupCount == 0)
+    }
+
+    @Test("noise deny messages do not inflate real sandbox count")
+    func noiseDoesNotInflateRealCount() {
+        let detector = SandboxPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 5000)
+
+        // Feed 5 real deny events (below warning threshold of 10)
+        for i in 0..<5 {
+            _ = detector.process(TestFixtures.Sandbox.entry(
+                TestFixtures.Sandbox.deny,
+                timestamp: t0.addingTimeInterval(Double(i))
+            ))
+        }
+
+        // Flood with 30 noise messages
+        for i in 0..<30 {
+            _ = detector.process(TestFixtures.Sandbox.entry(
+                TestFixtures.Sandbox.noiseDeny,
+                timestamp: t0.addingTimeInterval(Double(i + 5))
+            ))
+        }
+
+        // Feed 4 more real events (total real = 9, still below threshold of 10)
+        for i in 0..<4 {
+            let alert = detector.process(TestFixtures.Sandbox.entry(
+                TestFixtures.Sandbox.deny,
+                timestamp: t0.addingTimeInterval(Double(i + 35))
+            ))
+            #expect(alert == nil, "Noise should not push real count past warning threshold")
+        }
+    }
 }
