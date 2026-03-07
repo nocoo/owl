@@ -326,22 +326,21 @@ extension AppDelegate {
         guard let button = statusItem?.button else { return }
 
         let hasDot = iconConfig.dotColor != nil
+        let birdColor = hasDot
+            ? nsColor(for: iconConfig.colorName) : nil
         let image = composeBirdIcon(
             symbolName: iconConfig.symbolName,
-            dotColor: iconConfig.dotColor
+            dotColor: iconConfig.dotColor,
+            birdColor: birdColor
         )
 
-        if hasDot {
-            // Colored icon — not template, tinted bird
-            image?.isTemplate = false
-            button.contentTintColor = nsColor(
-                for: iconConfig.colorName
-            )
-        } else {
-            // Default template icon
-            image?.isTemplate = true
-            button.contentTintColor = nil
-        }
+        // Template mode lets macOS adapt the icon to menu bar
+        // appearance.  When a dot is present the image already
+        // contains baked-in colors so template must be off.
+        // We never set contentTintColor — that would also tint
+        // the button title, breaking text legibility.
+        image?.isTemplate = !hasDot
+        button.contentTintColor = nil
 
         button.image = image
         setStatusTitle(" \(iconConfig.statusLabel)", on: button)
@@ -361,9 +360,16 @@ extension AppDelegate {
     /// so that `isTemplate = true` works correctly — drawing into a
     /// custom canvas bakes in pixel colors and breaks template
     /// rendering.
+    ///
+    /// - Parameters:
+    ///   - birdColor: When non-nil the bird is drawn in this color
+    ///     inside the composed canvas.  This replaces the old
+    ///     approach of using `contentTintColor` on the button
+    ///     (which also tinted the title text).
     func composeBirdIcon(
         symbolName: String,
-        dotColor: StatusIconColor?
+        dotColor: StatusIconColor?,
+        birdColor: NSColor? = nil
     ) -> NSImage? {
         let sizeConfig = NSImage.SymbolConfiguration(
             pointSize: 14, weight: .medium
@@ -385,6 +391,7 @@ extension AppDelegate {
         // With dot — compose onto a canvas (isTemplate will be false
         // for alert states, so baked colors are fine here).
         let canvasSize = NSSize(width: 20, height: 18)
+        let tintColor = birdColor
 
         let composed = NSImage(
             size: canvasSize,
@@ -393,13 +400,29 @@ extension AppDelegate {
             let birdSize = birdImage.size
             let birdX = (rect.width - birdSize.width) / 2
             let birdY = (rect.height - birdSize.height) / 2
-            birdImage.draw(
-                in: NSRect(
-                    x: birdX, y: birdY,
-                    width: birdSize.width,
-                    height: birdSize.height
-                )
+            let birdRect = NSRect(
+                x: birdX, y: birdY,
+                width: birdSize.width,
+                height: birdSize.height
             )
+
+            if let tintColor {
+                // Draw the bird with explicit color so we don't
+                // need contentTintColor (which taints the title).
+                tintColor.set()
+                birdImage.draw(
+                    in: birdRect,
+                    from: .zero,
+                    operation: .sourceOver,
+                    fraction: 1.0
+                )
+                // Re-draw with source-atop to apply the tint
+                // over the already-drawn alpha mask.
+                tintColor.setFill()
+                birdRect.fill(using: .sourceAtop)
+            } else {
+                birdImage.draw(in: birdRect)
+            }
 
             let dotSize: CGFloat = 6
             let dotX = rect.width - dotSize - 0.5
@@ -488,7 +511,21 @@ extension AppDelegate {
     func performRecoveryFlash() {
         guard let button = statusItem?.button else { return }
 
-        button.contentTintColor = .systemGreen
+        // Flash the bird green by re-composing the icon with
+        // green tint — avoids contentTintColor which also
+        // tints the title text.
+        let severity = appState.currentSeverity
+        let alertCount = appState.activeAlerts.count
+        let cfg = StatusItemMapper.config(
+            for: severity, alertCount: alertCount
+        )
+        let flashImage = composeBirdIcon(
+            symbolName: cfg.symbolName,
+            dotColor: cfg.dotColor,
+            birdColor: .systemGreen
+        )
+        flashImage?.isTemplate = false
+        button.image = flashImage
 
         recoveryTimer?.invalidate()
         recoveryTimer = Timer.scheduledTimer(
@@ -497,14 +534,12 @@ extension AppDelegate {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                let severity = self.appState.currentSeverity
-                let alertCount = self.appState.activeAlerts.count
-                let cfg = StatusItemMapper.config(
-                    for: severity,
-                    alertCount: alertCount
+                // Restore to current state
+                let sev = self.appState.currentSeverity
+                let count = self.appState.activeAlerts.count
+                self.updateIcon(
+                    severity: sev, alertCount: count
                 )
-                self.statusItem?.button?.contentTintColor =
-                    self.nsColor(for: cfg.colorName)
             }
         }
     }
