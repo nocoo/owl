@@ -53,6 +53,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ notification: Notification
     ) {
         Task { @MainActor in
+            bootstrapLocalization()
+            applyAppearance(appSettings.appearance)
             setupStatusItem()
             setupPopover()
             setupSettingsWiring()
@@ -242,6 +244,28 @@ extension AppDelegate {
                 Self.setLaunchAtLogin(enabled)
             }
             .store(in: &cancellables)
+
+        settingsViewModel.onAppearanceChange = {
+            [weak self] appearance in
+            self?.applyAppearance(appearance)
+        }
+    }
+
+    func bootstrapLocalization() {
+        L10n.bootstrap(preference: appSettings.language)
+    }
+
+    func applyAppearance(_ appearance: AppAppearance) {
+        switch appearance {
+        case .auto:
+            NSApp.appearance = nil
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(
+                named: .darkAqua
+            )
+        }
     }
 
     func applyInitialDetectorStates() {
