@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.1.1
+
+### Bug Fixes
+
+- Fix duplicate emoji in power state display (charging/plugged/battery labels showed emoji twice)
+- Fix alert strings not updating on language switch — store `L10nKey` in config structs, resolve at emission time instead of detector construction time
+- Fix hardcoded English in recovery alerts ("— Recovered", "system") — now uses L10n keys
+- Expand `alertSleepDesc` to include assertion ID and type in description template
+- Reduce AlertRow font sizes (title 14→11, body 12→10, timestamp 12→9) to match popover density
+
 ## v1.1.0
 
 ### Full i18n Support
