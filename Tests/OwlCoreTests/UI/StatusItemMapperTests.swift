@@ -22,6 +22,16 @@ struct StatusItemMapperTests {
         #expect(config.shouldPulse == false)
     }
 
+    @Test func normalHasNoDot() {
+        let config = StatusItemMapper.config(for: .normal)
+        #expect(config.dotColor == nil)
+    }
+
+    @Test func normalShowsNormalLabel() {
+        let config = StatusItemMapper.config(for: .normal)
+        #expect(config.statusLabel == "Normal")
+    }
+
     // MARK: - Info State
 
     @Test func infoUsesBirdSymbolWithBlue() {
@@ -29,6 +39,25 @@ struct StatusItemMapperTests {
         #expect(config.symbolName == "bird")
         #expect(config.isFilled == false)
         #expect(config.colorName == .blue)
+    }
+
+    @Test func infoHasBlueDot() {
+        let config = StatusItemMapper.config(for: .info)
+        #expect(config.dotColor == .blue)
+    }
+
+    @Test func infoLabelWithZeroAlerts() {
+        let config = StatusItemMapper.config(
+            for: .info, alertCount: 0
+        )
+        #expect(config.statusLabel == "Info")
+    }
+
+    @Test func infoLabelWithAlerts() {
+        let config = StatusItemMapper.config(
+            for: .info, alertCount: 2
+        )
+        #expect(config.statusLabel == "Info (2)")
     }
 
     // MARK: - Warning State
@@ -45,6 +74,25 @@ struct StatusItemMapperTests {
         #expect(config.shouldPulse == false)
     }
 
+    @Test func warningHasYellowDot() {
+        let config = StatusItemMapper.config(for: .warning)
+        #expect(config.dotColor == .yellow)
+    }
+
+    @Test func warningLabelWithAlerts() {
+        let config = StatusItemMapper.config(
+            for: .warning, alertCount: 3
+        )
+        #expect(config.statusLabel == "Warning (3)")
+    }
+
+    @Test func warningLabelWithZeroAlerts() {
+        let config = StatusItemMapper.config(
+            for: .warning, alertCount: 0
+        )
+        #expect(config.statusLabel == "Warning")
+    }
+
     // MARK: - Critical State
 
     @Test func criticalUsesFilledBirdWithRed() {
@@ -57,6 +105,18 @@ struct StatusItemMapperTests {
     @Test func criticalPulses() {
         let config = StatusItemMapper.config(for: .critical)
         #expect(config.shouldPulse == true)
+    }
+
+    @Test func criticalHasRedDot() {
+        let config = StatusItemMapper.config(for: .critical)
+        #expect(config.dotColor == .red)
+    }
+
+    @Test func criticalLabelWithAlerts() {
+        let config = StatusItemMapper.config(
+            for: .critical, alertCount: 1
+        )
+        #expect(config.statusLabel == "Critical (1)")
     }
 
     // MARK: - Recovery Detection
@@ -136,5 +196,30 @@ struct StatusItemMapperTests {
         let normal = StatusItemMapper.config(for: .normal)
         let critical = StatusItemMapper.config(for: .critical)
         #expect(normal != critical)
+    }
+
+    // MARK: - Alert Count Variations
+
+    @Test func alertCountDoesNotAffectNormalLabel() {
+        let config = StatusItemMapper.config(
+            for: .normal, alertCount: 5
+        )
+        #expect(config.statusLabel == "Normal")
+    }
+
+    @Test func alertCountZeroOmitsParentheses() {
+        for severity in [Severity.info, .warning, .critical] {
+            let config = StatusItemMapper.config(
+                for: severity, alertCount: 0
+            )
+            #expect(!config.statusLabel.contains("("))
+        }
+    }
+
+    @Test func alertCountAppearsInParentheses() {
+        let config = StatusItemMapper.config(
+            for: .warning, alertCount: 7
+        )
+        #expect(config.statusLabel == "Warning (7)")
     }
 }

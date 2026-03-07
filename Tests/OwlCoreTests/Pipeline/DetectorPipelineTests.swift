@@ -159,4 +159,71 @@ struct DetectorPipelineTests {
         #expect(ids.contains("thermal_throttling"))
         #expect(ids.contains("jetsam_kill_escalation"))
     }
+
+    // MARK: - Start Time Filtering
+
+    @Test("drops entries with timestamps before pipeline start time")
+    func dropsEntriesBeforeStartTime() async {
+        let detector = JetsamPattern.makeDetector()
+        let startTime = Date(timeIntervalSince1970: 2000)
+        let pipeline = DetectorPipeline(
+            detectors: [detector], startTime: startTime
+        )
+
+        // Entry before start time — should be ignored
+        let oldEntry = TestFixtures.Jetsam.entry(
+            TestFixtures.Jetsam.kill,
+            timestamp: Date(timeIntervalSince1970: 1999)
+        )
+        let alerts1 = await pipeline.process(oldEntry)
+        #expect(alerts1.isEmpty)
+
+        // Entry at start time — should be processed
+        let currentEntry = TestFixtures.Jetsam.entry(
+            TestFixtures.Jetsam.kill,
+            timestamp: Date(timeIntervalSince1970: 2000)
+        )
+        let alerts2 = await pipeline.process(currentEntry)
+        #expect(alerts2.count == 1)
+    }
+
+    @Test("processBatch drops entries before start time")
+    func processBatchDropsOldEntries() async {
+        let detector = JetsamPattern.makeDetector()
+        let startTime = Date(timeIntervalSince1970: 2000)
+        let pipeline = DetectorPipeline(
+            detectors: [detector], startTime: startTime
+        )
+
+        let entries = [
+            TestFixtures.Jetsam.entry(
+                TestFixtures.Jetsam.kill,
+                timestamp: Date(timeIntervalSince1970: 1500)
+            ),
+            TestFixtures.Jetsam.entry(
+                TestFixtures.Jetsam.kill,
+                timestamp: Date(timeIntervalSince1970: 1999)
+            ),
+            TestFixtures.Jetsam.entry(
+                TestFixtures.Jetsam.kill,
+                timestamp: Date(timeIntervalSince1970: 2001)
+            ),
+        ]
+        let alerts = await pipeline.processBatch(entries)
+        // Only the last entry (after start time) should produce an alert
+        #expect(alerts.count == 1)
+    }
+
+    @Test("test init uses distantPast so all entries pass")
+    func testInitAllowsAllEntries() async {
+        let detector = JetsamPattern.makeDetector()
+        let pipeline = DetectorPipeline(detectors: [detector])
+
+        let entry = TestFixtures.Jetsam.entry(
+            TestFixtures.Jetsam.kill,
+            timestamp: Date(timeIntervalSince1970: 1)
+        )
+        let alerts = await pipeline.process(entry)
+        #expect(alerts.count == 1)
+    }
 }

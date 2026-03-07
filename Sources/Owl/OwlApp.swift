@@ -82,22 +82,20 @@ extension AppDelegate {
 
     func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(
-            withLength: NSStatusItem.squareLength
+            withLength: NSStatusItem.variableLength
         )
 
         guard let button = statusItem?.button else { return }
 
-        let config = NSImage.SymbolConfiguration(
-            pointSize: 16, weight: .medium
+        button.image = composeBirdIcon(
+            symbolName: "bird", dotColor: nil
         )
-        if let source = NSImage(
-            systemSymbolName: "bird",
-            accessibilityDescription: "Owl"
-        )?.withSymbolConfiguration(config),
-            let image = source.copy() as? NSImage {
-            image.isTemplate = true
-            button.image = image
-        }
+        button.image?.isTemplate = true
+        button.imagePosition = .imageLeading
+        button.title = " Normal"
+        button.font = NSFont.monospacedSystemFont(
+            ofSize: 10, weight: .medium
+        )
 
         button.action = #selector(handleClick(_:))
         button.target = self
@@ -308,54 +306,48 @@ extension AppDelegate {
     }
 
     func startObserving() {
+        // React to severity OR alert count changes
         appState.$currentSeverity
-            .removeDuplicates()
+            .combineLatest(appState.$activeAlerts)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] severity in
-                self?.updateIcon(severity: severity)
+            .sink { [weak self] severity, alerts in
+                self?.updateIcon(
+                    severity: severity,
+                    alertCount: alerts.count
+                )
             }
             .store(in: &cancellables)
     }
 
-    func updateIcon(severity: Severity) {
+    func updateIcon(severity: Severity, alertCount: Int) {
         let iconConfig = StatusItemMapper.config(
             for: severity,
-            previousSeverity: appState.previousSeverity
+            previousSeverity: appState.previousSeverity,
+            alertCount: alertCount
         )
 
         guard let button = statusItem?.button else { return }
 
-        let useTemplate = iconConfig.colorName == .default
-
-        let sizeConfig = NSImage.SymbolConfiguration(
-            pointSize: 16, weight: .medium
+        let hasDot = iconConfig.dotColor != nil
+        let image = composeBirdIcon(
+            symbolName: iconConfig.symbolName,
+            dotColor: iconConfig.dotColor
         )
 
-        let image: NSImage?
-        if useTemplate {
-            image = NSImage(
-                systemSymbolName: iconConfig.symbolName,
-                accessibilityDescription: iconConfig.accessibilityLabel
-            )?.withSymbolConfiguration(sizeConfig)
-                .flatMap { $0.copy() as? NSImage }
-            image?.isTemplate = true
-            button.contentTintColor = nil
-        } else {
-            let colorConfig = NSImage.SymbolConfiguration
-                .preferringHierarchical()
-                .applying(sizeConfig)
-            image = NSImage(
-                systemSymbolName: iconConfig.symbolName,
-                accessibilityDescription: iconConfig.accessibilityLabel
-            )?.withSymbolConfiguration(colorConfig)
-                .flatMap { $0.copy() as? NSImage }
+        if hasDot {
+            // Colored icon — not template, tinted bird
             image?.isTemplate = false
             button.contentTintColor = nsColor(
                 for: iconConfig.colorName
             )
+        } else {
+            // Default template icon
+            image?.isTemplate = true
+            button.contentTintColor = nil
         }
 
         button.image = image
+        button.title = " \(iconConfig.statusLabel)"
 
         stopPulseAnimation()
         if iconConfig.shouldPulse {
@@ -365,6 +357,72 @@ extension AppDelegate {
         if iconConfig.showRecoveryFlash {
             performRecoveryFlash()
         }
+    }
+
+    /// Compose an NSImage with the bird SF Symbol and an optional
+    /// colored status dot at the bottom-right corner.
+    func composeBirdIcon(
+        symbolName: String,
+        dotColor: StatusIconColor?
+    ) -> NSImage? {
+        let sizeConfig = NSImage.SymbolConfiguration(
+            pointSize: 14, weight: .medium
+        )
+
+        guard let birdImage = NSImage(
+            systemSymbolName: symbolName,
+            accessibilityDescription: "Owl"
+        )?.withSymbolConfiguration(sizeConfig) else {
+            return nil
+        }
+
+        // Canvas size for the composed icon
+        let canvasSize = NSSize(width: 20, height: 18)
+
+        let composed = NSImage(
+            size: canvasSize,
+            flipped: false
+        ) { rect in
+            // Draw the bird centered in canvas
+            let birdSize = birdImage.size
+            let birdX = (rect.width - birdSize.width) / 2
+            let birdY = (rect.height - birdSize.height) / 2
+            birdImage.draw(
+                in: NSRect(
+                    x: birdX, y: birdY,
+                    width: birdSize.width,
+                    height: birdSize.height
+                )
+            )
+
+            // Draw status dot at bottom-right
+            if let dotColor {
+                let dotSize: CGFloat = 6
+                let dotX = rect.width - dotSize - 0.5
+                let dotY: CGFloat = 0.5
+                let dotRect = NSRect(
+                    x: dotX, y: dotY,
+                    width: dotSize, height: dotSize
+                )
+
+                // White outline for contrast
+                let outlineRect = dotRect.insetBy(
+                    dx: -1, dy: -1
+                )
+                NSColor.white.setFill()
+                NSBezierPath(
+                    ovalIn: outlineRect
+                ).fill()
+
+                // Colored fill
+                self.nsColor(for: dotColor).setFill()
+                NSBezierPath(ovalIn: dotRect).fill()
+            }
+
+            return true
+        }
+
+        return composed
     }
 
     func nsColor(for color: StatusIconColor) -> NSColor {
@@ -424,7 +482,11 @@ extension AppDelegate {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 let severity = self.appState.currentSeverity
-                let cfg = StatusItemMapper.config(for: severity)
+                let alertCount = self.appState.activeAlerts.count
+                let cfg = StatusItemMapper.config(
+                    for: severity,
+                    alertCount: alertCount
+                )
                 self.statusItem?.button?.contentTintColor =
                     self.nsColor(for: cfg.colorName)
             }

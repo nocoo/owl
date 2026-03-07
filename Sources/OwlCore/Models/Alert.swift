@@ -51,10 +51,17 @@ public struct Alert: Sendable, Equatable {
             lines.append("Suggestion: \(suggestion)")
         }
         lines.append(
-            "Detector: \(detectorID) | \(timestamp)"
+            "Detector: \(detectorID) | \(Self.clipboardFormatter.string(from: timestamp))"
         )
         return lines.joined(separator: "\n")
     }
+
+    private static let clipboardFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        fmt.timeZone = .current
+        return fmt
+    }()
 
     /// Check whether this alert has expired at a given point in time.
     public func isExpired(at date: Date) -> Bool {

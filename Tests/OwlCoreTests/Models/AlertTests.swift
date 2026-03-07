@@ -248,4 +248,20 @@ struct AlertTests {
         let text = alert.clipboardText
         #expect(!text.contains("Suggestion:"))
     }
+
+    @Test func clipboardTextUsesLocalTimezoneFormat() {
+        let alert = Alert(
+            detectorID: "P01",
+            severity: .warning,
+            title: "Test",
+            description: "desc",
+            suggestion: "",
+            timestamp: Date(timeIntervalSince1970: 1741312824)
+        )
+        let text = alert.clipboardText
+        // Should NOT contain UTC offset like "+0000"
+        #expect(!text.contains("+0000"))
+        // Should contain formatted date like "2025-03-07"
+        #expect(text.contains("2025-03-07"))
+    }
 }

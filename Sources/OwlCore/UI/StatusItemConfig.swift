@@ -23,6 +23,13 @@ public struct StatusItemConfig: Equatable, Sendable {
 
     /// Whether a recovery flash (green) should be shown before this state.
     public let showRecoveryFlash: Bool
+
+    /// The color for the status dot overlay on the bird icon.
+    /// nil means no dot should be shown (normal state).
+    public let dotColor: StatusIconColor?
+
+    /// The text label shown next to the icon in the menu bar.
+    public let statusLabel: String
 }
 
 /// Semantic icon color names, mapped to NSColor in the UI layer.
@@ -41,9 +48,11 @@ public enum StatusItemMapper {
     /// - Parameters:
     ///   - severity: The current aggregated severity level.
     ///   - previousSeverity: The previous severity (used to detect recovery).
+    ///   - alertCount: Number of active alerts (shown in label for non-normal).
     public static func config(
         for severity: Severity,
-        previousSeverity: Severity? = nil
+        previousSeverity: Severity? = nil,
+        alertCount: Int = 0
     ) -> StatusItemConfig {
         let isRecovering = isRecoveryTransition(
             from: previousSeverity, to: severity
@@ -57,7 +66,9 @@ public enum StatusItemMapper {
                 isFilled: false,
                 colorName: isRecovering ? .green : .default,
                 shouldPulse: false,
-                showRecoveryFlash: isRecovering
+                showRecoveryFlash: isRecovering,
+                dotColor: nil,
+                statusLabel: "Normal"
             )
         case .info:
             return StatusItemConfig(
@@ -66,7 +77,10 @@ public enum StatusItemMapper {
                 isFilled: false,
                 colorName: isRecovering ? .green : .blue,
                 shouldPulse: false,
-                showRecoveryFlash: isRecovering
+                showRecoveryFlash: isRecovering,
+                dotColor: .blue,
+                statusLabel: alertCount > 0
+                    ? "Info (\(alertCount))" : "Info"
             )
         case .warning:
             return StatusItemConfig(
@@ -75,7 +89,10 @@ public enum StatusItemMapper {
                 isFilled: true,
                 colorName: .yellow,
                 shouldPulse: false,
-                showRecoveryFlash: false
+                showRecoveryFlash: false,
+                dotColor: .yellow,
+                statusLabel: alertCount > 0
+                    ? "Warning (\(alertCount))" : "Warning"
             )
         case .critical:
             return StatusItemConfig(
@@ -84,7 +101,10 @@ public enum StatusItemMapper {
                 isFilled: true,
                 colorName: .red,
                 shouldPulse: true,
-                showRecoveryFlash: false
+                showRecoveryFlash: false,
+                dotColor: .red,
+                statusLabel: alertCount > 0
+                    ? "Critical (\(alertCount))" : "Critical"
             )
         }
     }

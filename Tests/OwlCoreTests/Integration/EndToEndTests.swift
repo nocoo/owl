@@ -10,7 +10,9 @@ struct EndToEndTests {
     // MARK: - Crash Loop Detection
 
     @Test func crashLoopDetectionEndToEnd() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -36,7 +38,9 @@ struct EndToEndTests {
     }
 
     @Test func crashLoopEscalatesToCritical() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -65,7 +69,9 @@ struct EndToEndTests {
     // MARK: - Network Failure Detection
 
     @Test func networkFailureEndToEnd() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -93,7 +99,9 @@ struct EndToEndTests {
     // MARK: - Jetsam Hybrid Detection
 
     @Test func jetsamSingleKillTriggersImmediateWarning() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -116,7 +124,9 @@ struct EndToEndTests {
     }
 
     @Test func jetsamEscalatesToCriticalViaRateDetector() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -145,7 +155,9 @@ struct EndToEndTests {
     // MARK: - Multiple Patterns Concurrently
 
     @Test func multiplePatternsConcurrently() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -181,7 +193,9 @@ struct EndToEndTests {
     // MARK: - Disabled Detector
 
     @Test func disabledDetectorSkipsProcessing() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -212,7 +226,9 @@ struct EndToEndTests {
     // MARK: - Alert Lifecycle
 
     @Test func alertLifecyclePendingToActiveToExpired() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 5)
         let now = Date()
 
@@ -256,7 +272,9 @@ struct EndToEndTests {
     // MARK: - State Detector Tick (Leak Detection)
 
     @Test func tickDetectsStateLeaks() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -296,7 +314,9 @@ struct EndToEndTests {
     // MARK: - Severity Aggregation
 
     @Test func currentSeverityReflectsWorstActiveAlert() async {
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
         let now = Date()
 
@@ -360,7 +380,9 @@ struct StreamToPipelineTests {
             return
         }
 
-        let pipeline = DetectorPipeline()
+        let pipeline = DetectorPipeline(
+            detectors: PatternCatalog.makeAll()
+        )
         let manager = AlertStateManager(debounceInterval: 0)
 
         let now = Date()
