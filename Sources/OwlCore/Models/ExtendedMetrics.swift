@@ -179,9 +179,9 @@ public struct BatteryMetrics: Sendable, Equatable {
     }
 
     public var stateText: String {
-        if isCharging { return "Charging" }
-        if isPluggedIn { return "Plugged In" }
-        return "Discharging"
+        if isCharging { return L10n.tr(.batteryCharging) }
+        if isPluggedIn { return L10n.tr(.batteryPluggedIn) }
+        return L10n.tr(.batteryDischarging)
     }
 
     public static let unavailable = BatteryMetrics(

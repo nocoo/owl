@@ -48,10 +48,13 @@ public struct Alert: Sendable, Equatable {
             description
         ]
         if !suggestion.isEmpty {
-            lines.append("Suggestion: \(suggestion)")
+            lines.append(L10n.tr(.clipboardSuggestion(suggestion)))
         }
         lines.append(
-            "Detector: \(detectorID) | \(Self.clipboardFormatter.string(from: timestamp))"
+            L10n.tr(.clipboardDetector(
+                detectorID,
+                Self.clipboardFormatter.string(from: timestamp)
+            ))
         )
         return lines.joined(separator: "\n")
     }

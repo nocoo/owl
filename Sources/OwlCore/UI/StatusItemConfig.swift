@@ -62,49 +62,49 @@ public enum StatusItemMapper {
         case .normal:
             return StatusItemConfig(
                 symbolName: "bird",
-                accessibilityLabel: "Owl — system normal",
+                accessibilityLabel: "Owl — \(L10n.tr(.severityNormal))",
                 isFilled: false,
                 colorName: isRecovering ? .green : .default,
                 shouldPulse: false,
                 showRecoveryFlash: isRecovering,
                 dotColor: nil,
-                statusLabel: "Normal"
+                statusLabel: L10n.tr(.severityNormal)
             )
         case .info:
             return StatusItemConfig(
                 symbolName: "bird",
-                accessibilityLabel: "Owl — info",
+                accessibilityLabel: "Owl — \(L10n.tr(.severityInfo))",
                 isFilled: false,
                 colorName: isRecovering ? .green : .blue,
                 shouldPulse: false,
                 showRecoveryFlash: isRecovering,
                 dotColor: .blue,
                 statusLabel: alertCount > 0
-                    ? "Info (\(alertCount))" : "Info"
+                    ? "\(L10n.tr(.severityInfo)) (\(alertCount))" : L10n.tr(.severityInfo)
             )
         case .warning:
             return StatusItemConfig(
                 symbolName: "bird.fill",
-                accessibilityLabel: "Owl — warning detected",
+                accessibilityLabel: "Owl — \(L10n.tr(.severityWarning))",
                 isFilled: true,
                 colorName: .yellow,
                 shouldPulse: false,
                 showRecoveryFlash: false,
                 dotColor: .yellow,
                 statusLabel: alertCount > 0
-                    ? "Warning (\(alertCount))" : "Warning"
+                    ? "\(L10n.tr(.severityWarning)) (\(alertCount))" : L10n.tr(.severityWarning)
             )
         case .critical:
             return StatusItemConfig(
                 symbolName: "bird.fill",
-                accessibilityLabel: "Owl — critical issue",
+                accessibilityLabel: "Owl — \(L10n.tr(.severityCritical))",
                 isFilled: true,
                 colorName: .red,
                 shouldPulse: true,
                 showRecoveryFlash: false,
                 dotColor: .red,
                 statusLabel: alertCount > 0
-                    ? "Critical (\(alertCount))" : "Critical"
+                    ? "\(L10n.tr(.severityCritical)) (\(alertCount))" : L10n.tr(.severityCritical)
             )
         }
     }

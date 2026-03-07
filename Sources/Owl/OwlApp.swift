@@ -92,7 +92,7 @@ extension AppDelegate {
         )
         button.image?.isTemplate = true
         button.imagePosition = .imageLeading
-        setStatusTitle(" Normal", on: button)
+        setStatusTitle(" \(L10n.tr(.severityNormal))", on: button)
 
         button.action = #selector(handleClick(_:))
         button.target = self
@@ -135,7 +135,7 @@ extension AppDelegate {
         let menu = NSMenu()
         menu.addItem(
             NSMenuItem(
-                title: "Settings...",
+                title: L10n.tr(.contextSettings),
                 action: #selector(openSettings),
                 keyEquivalent: ","
             )
@@ -143,7 +143,7 @@ extension AppDelegate {
         menu.addItem(.separator())
         menu.addItem(
             NSMenuItem(
-                title: "Quit Owl",
+                title: L10n.tr(.contextQuit),
                 action: #selector(quitApp),
                 keyEquivalent: "q"
             )
@@ -185,7 +185,7 @@ extension AppDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "Owl Settings"
+        window.title = L10n.tr(.settingsWindowTitle)
         window.contentViewController = hostingController
         window.isReleasedWhenClosed = false
         window.makeKeyAndOrderFront(nil)
@@ -389,7 +389,7 @@ extension AppDelegate {
 
         guard let birdImage = NSImage(
             systemSymbolName: symbolName,
-            accessibilityDescription: "Owl"
+            accessibilityDescription: L10n.tr(.appName)
         )?.withSymbolConfiguration(sizeConfig) else {
             return nil
         }
