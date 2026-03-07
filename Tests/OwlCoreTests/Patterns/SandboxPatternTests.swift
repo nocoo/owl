@@ -18,6 +18,13 @@ struct SandboxPatternTests {
         #expect(detector.accepts(entry))
     }
 
+    @Test("accepts System Policy deny log entries")
+    func acceptsSystemPolicyDenyEntries() {
+        let detector = SandboxPattern.makeDetector()
+        let entry = TestFixtures.Sandbox.entry(TestFixtures.Sandbox.systemPolicyDeny)
+        #expect(detector.accepts(entry))
+    }
+
     @Test("rejects non-deny entries")
     func rejectsNonDenyEntries() {
         let detector = SandboxPattern.makeDetector()
@@ -87,5 +94,49 @@ struct SandboxPatternTests {
         }
 
         #expect(lastAlert?.description.contains("Google Chrome") == true)
+    }
+
+    @Test("extracts process name from System Policy deny entries")
+    func extractsProcessNameFromSystemPolicy() {
+        let detector = SandboxPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 2000)
+
+        var lastAlert: Alert?
+        for i in 0..<10 {
+            let entry = TestFixtures.Sandbox.entry(
+                TestFixtures.Sandbox.systemPolicyDeny,
+                timestamp: t0.addingTimeInterval(Double(i))
+            )
+            lastAlert = detector.process(entry) ?? lastAlert
+        }
+
+        #expect(lastAlert != nil)
+        #expect(lastAlert?.severity == .warning)
+        #expect(lastAlert?.description.contains("wdavdaemon") == true)
+    }
+
+    @Test("groups Sandbox and System Policy entries by process independently")
+    func groupsSandboxAndSystemPolicySeparately() {
+        let detector = SandboxPattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 3000)
+
+        // 5 Sandbox: deny from Chrome -- below warning threshold
+        for i in 0..<5 {
+            let entry = TestFixtures.Sandbox.entry(
+                TestFixtures.Sandbox.deny,
+                timestamp: t0.addingTimeInterval(Double(i))
+            )
+            _ = detector.process(entry)
+        }
+
+        // 5 System Policy: deny from wdavdaemon -- below warning threshold
+        for i in 5..<10 {
+            let entry = TestFixtures.Sandbox.entry(
+                TestFixtures.Sandbox.systemPolicyDeny,
+                timestamp: t0.addingTimeInterval(Double(i))
+            )
+            let alert = detector.process(entry)
+            #expect(alert == nil, "Different processes should be counted independently")
+        }
     }
 }

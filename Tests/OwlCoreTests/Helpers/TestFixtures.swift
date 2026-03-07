@@ -82,6 +82,8 @@ enum TestFixtures {
 
     enum Sandbox {
         static let deny = #"Sandbox: Google Chrome(85321) deny(1) file-read-data /private/var/folders/xx/tmp"#
+        // swiftlint:disable:next line_length
+        static let systemPolicyDeny = #"System Policy: wdavdaemon(562) deny(1) file-read-data /private/var/folders/g2/6htthtys08v10qxbs_0nxfyr0000gn/0/com.apple.ScreenTimeAgent/Store"#
 
         static func entry(_ msg: String, timestamp: Date = Date()) -> LogEntry {
             makeEntry(message: msg, timestamp: timestamp, process: "kernel", category: "Sandbox")

@@ -5,6 +5,9 @@ import Foundation
 /// Detects applications generating excessive sandbox deny events.
 /// Uses RateDetector with capture group extraction of process name.
 ///
+/// Matches both `Sandbox:` and `System Policy:` prefixed deny messages
+/// from the kernel log stream.
+///
 /// - Regex: extracts process name from deny messages
 /// - Window: 60 seconds
 /// - Warning: 10 events/window per process
@@ -17,7 +20,7 @@ public enum SandboxPattern {
     public static func makeDetector() -> RateDetector {
         RateDetector(config: RateConfig(
             id: id,
-            regex: #"Sandbox:\s+(.+?)\(\d+\)\s+deny\(1\)"#,
+            regex: #"(?:Sandbox|System Policy):\s+(.+?)\(\d+\)\s+deny\(1\)"#,
             groupBy: .captureGroup,
             windowSeconds: 60,
             warningRate: 10,
