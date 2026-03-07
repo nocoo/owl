@@ -12,11 +12,11 @@ public struct GaugeThresholds: Sendable {
 
     func color(for value: Double) -> Color {
         if value >= redAt {
-            return .red
+            return OwlPalette.red
         } else if value >= yellowAt {
-            return .yellow
+            return OwlPalette.amber
         }
-        return .green
+        return OwlPalette.green
     }
 
     /// Default thresholds for each metric type.

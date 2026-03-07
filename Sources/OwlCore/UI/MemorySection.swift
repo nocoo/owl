@@ -28,7 +28,7 @@ struct MemorySection: View {
                 "Free",
                 value: mem.freePercent,
                 text: String(format: "%.1f%%", mem.freePercent),
-                color: .green
+                color: OwlPalette.green
             )
 
             // Total row

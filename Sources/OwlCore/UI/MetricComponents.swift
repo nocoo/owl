@@ -61,7 +61,7 @@ struct MiniBar: View {
     init(
         value: Double,
         max maxValue: Double = 100,
-        color: Color = .green
+        color: Color = OwlPalette.green
     ) {
         self.value = value
         self.maxValue = maxValue
@@ -101,7 +101,7 @@ struct MetricRow: View {
         value: Double,
         max maxValue: Double = 100,
         text: String,
-        color: Color = .green
+        color: Color = OwlPalette.green
     ) {
         self.label = label
         self.value = value

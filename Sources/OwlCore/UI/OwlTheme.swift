@@ -1,5 +1,36 @@
 import SwiftUI
 
+// MARK: - Palette (derived from owl.png logo)
+
+/// Four base accent colors extracted from the Owl logo.
+///
+/// - ``green``: Teal-green from the feathers (#3AA17C)
+/// - ``amber``: Warm gold from the body (#CB9D46)
+/// - ``red``: Coral-red from the beak / highlights (#E47567)
+/// - ``purple``: Deep purple from the eyes / accents (#5F4487)
+enum OwlPalette {
+    static let green = Color(
+        red: 0x3A / 255.0,
+        green: 0xA1 / 255.0,
+        blue: 0x7C / 255.0
+    )
+    static let amber = Color(
+        red: 0xCB / 255.0,
+        green: 0x9D / 255.0,
+        blue: 0x46 / 255.0
+    )
+    static let red = Color(
+        red: 0xE4 / 255.0,
+        green: 0x75 / 255.0,
+        blue: 0x67 / 255.0
+    )
+    static let purple = Color(
+        red: 0x5F / 255.0,
+        green: 0x44 / 255.0,
+        blue: 0x87 / 255.0
+    )
+}
+
 // MARK: - Typography
 
 /// Centralized typography tokens for the Owl UI.
@@ -143,75 +174,75 @@ enum OwlFont {
 
 /// Signature accent colors for each popover section.
 enum OwlSectionColor {
-    static let cpu = Color.green
-    static let memory = Color.purple
-    static let disk = Color.orange
-    static let power = Color.yellow
-    static let temperature = Color.orange
-    static let network = Color.blue
-    static let processes = Color.mint
+    static let cpu = OwlPalette.green
+    static let memory = OwlPalette.purple
+    static let disk = OwlPalette.amber
+    static let power = OwlPalette.amber
+    static let temperature = OwlPalette.red
+    static let network = OwlPalette.purple
+    static let processes = OwlPalette.green
 }
 
 // MARK: - Severity Colors
 
 /// Maps ``Severity`` to SwiftUI colors throughout the app.
 enum OwlSeverityColor {
-    static let normal = Color.green
-    static let info = Color.blue
-    static let warning = Color.yellow
-    static let critical = Color.red
+    static let normal = OwlPalette.green
+    static let info = OwlPalette.purple
+    static let warning = OwlPalette.amber
+    static let critical = OwlPalette.red
 }
 
 // MARK: - Threshold Helpers
 
-/// Returns a traffic-light color (green → yellow → red) for a
+/// Returns a traffic-light color (green → amber → red) for a
 /// percentage value.
 func owlThresholdColor(
     _ value: Double,
     yellow: Double = 50,
     red: Double = 80
 ) -> Color {
-    if value >= red { return .red }
-    if value >= yellow { return .yellow }
-    return .green
+    if value >= red { return OwlPalette.red }
+    if value >= yellow { return OwlPalette.amber }
+    return OwlPalette.green
 }
 
-/// Battery level color: ≤10 red, ≤20 orange, else green.
+/// Battery level color: ≤10 red, ≤20 amber, else green.
 func owlBatteryColor(_ level: Double) -> Color {
-    if level <= 10 { return .red }
-    if level <= 20 { return .orange }
-    return .green
+    if level <= 10 { return OwlPalette.red }
+    if level <= 20 { return OwlPalette.amber }
+    return OwlPalette.green
 }
 
-/// Battery health color: <50 red, <80 yellow, else green.
+/// Battery health color: <50 red, <80 amber, else green.
 func owlHealthColor(_ health: Double) -> Color {
-    if health < 50 { return .red }
-    if health < 80 { return .yellow }
-    return .green
+    if health < 50 { return OwlPalette.red }
+    if health < 80 { return OwlPalette.amber }
+    return OwlPalette.green
 }
 
-/// Temperature color: <45 green, <70 yellow, <90 orange, ≥90 red.
+/// Temperature color: <45 green, <70 amber, <90 red, ≥90 red.
 func owlTempColor(_ celsius: Double) -> Color {
-    if celsius >= 90 { return .red }
-    if celsius >= 70 { return .orange }
-    if celsius >= 45 { return .yellow }
-    return .green
+    if celsius >= 90 { return OwlPalette.red }
+    if celsius >= 70 { return OwlPalette.red }
+    if celsius >= 45 { return OwlPalette.amber }
+    return OwlPalette.green
 }
 
 // MARK: - Disk Throughput Colors
 
 /// Colors for disk read/write indicators.
 enum OwlDiskColor {
-    static let read = Color.green
-    static let write = Color.red
+    static let read = OwlPalette.green
+    static let write = OwlPalette.red
 }
 
 // MARK: - Network Sparkline Colors
 
 /// Colors for download/upload sparklines.
 enum OwlNetworkColor {
-    static let download = Color.green
-    static let upload = Color.red
+    static let download = OwlPalette.green
+    static let upload = OwlPalette.red
 }
 
 // MARK: - Layout Constants

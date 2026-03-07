@@ -1,3 +1,4 @@
+import SwiftUI
 import Testing
 @testable import OwlCore
 
@@ -8,37 +9,37 @@ struct MetricHelpersTests {
 
     @Test func thresholdColorGreenBelow50() {
         let color = thresholdColor(30)
-        #expect(color == .green)
+        #expect(color == OwlPalette.green)
     }
 
     @Test func thresholdColorYellowAt50() {
         let color = thresholdColor(50)
-        #expect(color == .yellow)
+        #expect(color == OwlPalette.amber)
     }
 
     @Test func thresholdColorYellowAt79() {
         let color = thresholdColor(79)
-        #expect(color == .yellow)
+        #expect(color == OwlPalette.amber)
     }
 
     @Test func thresholdColorRedAt80() {
         let color = thresholdColor(80)
-        #expect(color == .red)
+        #expect(color == OwlPalette.red)
     }
 
     @Test func thresholdColorCustomThresholds() {
         let color = thresholdColor(60, yellow: 70, red: 90)
-        #expect(color == .green)
+        #expect(color == OwlPalette.green)
     }
 
     @Test func thresholdColorCustomYellow() {
         let color = thresholdColor(75, yellow: 70, red: 90)
-        #expect(color == .yellow)
+        #expect(color == OwlPalette.amber)
     }
 
     @Test func thresholdColorCustomRed() {
         let color = thresholdColor(95, yellow: 70, red: 90)
-        #expect(color == .red)
+        #expect(color == OwlPalette.red)
     }
 
     // MARK: - formatBytes
