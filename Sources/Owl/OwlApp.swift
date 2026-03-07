@@ -92,10 +92,7 @@ extension AppDelegate {
         )
         button.image?.isTemplate = true
         button.imagePosition = .imageLeading
-        button.title = " Normal"
-        button.font = NSFont.monospacedSystemFont(
-            ofSize: 10, weight: .medium
-        )
+        setStatusTitle(" Normal", on: button)
 
         button.action = #selector(handleClick(_:))
         button.target = self
@@ -347,7 +344,7 @@ extension AppDelegate {
         }
 
         button.image = image
-        button.title = " \(iconConfig.statusLabel)"
+        setStatusTitle(" \(iconConfig.statusLabel)", on: button)
 
         stopPulseAnimation()
         if iconConfig.shouldPulse {
@@ -359,8 +356,11 @@ extension AppDelegate {
         }
     }
 
-    /// Compose an NSImage with the bird SF Symbol and an optional
-    /// colored status dot at the bottom-right corner.
+    /// Return the bird SF Symbol, optionally composed with a colored
+    /// status dot.  When no dot is needed the raw symbol is returned
+    /// so that `isTemplate = true` works correctly — drawing into a
+    /// custom canvas bakes in pixel colors and breaks template
+    /// rendering.
     func composeBirdIcon(
         symbolName: String,
         dotColor: StatusIconColor?
@@ -376,14 +376,20 @@ extension AppDelegate {
             return nil
         }
 
-        // Canvas size for the composed icon
+        // No dot — return the raw SF Symbol so macOS can apply
+        // template tinting (auto light/dark menu bar adaptation).
+        guard let dotColor else {
+            return birdImage
+        }
+
+        // With dot — compose onto a canvas (isTemplate will be false
+        // for alert states, so baked colors are fine here).
         let canvasSize = NSSize(width: 20, height: 18)
 
         let composed = NSImage(
             size: canvasSize,
             flipped: false
         ) { rect in
-            // Draw the bird centered in canvas
             let birdSize = birdImage.size
             let birdX = (rect.width - birdSize.width) / 2
             let birdY = (rect.height - birdSize.height) / 2
@@ -395,29 +401,26 @@ extension AppDelegate {
                 )
             )
 
-            // Draw status dot at bottom-right
-            if let dotColor {
-                let dotSize: CGFloat = 6
-                let dotX = rect.width - dotSize - 0.5
-                let dotY: CGFloat = 0.5
-                let dotRect = NSRect(
-                    x: dotX, y: dotY,
-                    width: dotSize, height: dotSize
-                )
+            let dotSize: CGFloat = 6
+            let dotX = rect.width - dotSize - 0.5
+            let dotY: CGFloat = 0.5
+            let dotRect = NSRect(
+                x: dotX, y: dotY,
+                width: dotSize, height: dotSize
+            )
 
-                // White outline for contrast
-                let outlineRect = dotRect.insetBy(
-                    dx: -1, dy: -1
-                )
-                NSColor.white.setFill()
-                NSBezierPath(
-                    ovalIn: outlineRect
-                ).fill()
+            // White outline for contrast
+            let outlineRect = dotRect.insetBy(
+                dx: -1, dy: -1
+            )
+            NSColor.white.setFill()
+            NSBezierPath(
+                ovalIn: outlineRect
+            ).fill()
 
-                // Colored fill
-                self.nsColor(for: dotColor).setFill()
-                NSBezierPath(ovalIn: dotRect).fill()
-            }
+            // Colored fill
+            self.nsColor(for: dotColor).setFill()
+            NSBezierPath(ovalIn: dotRect).fill()
 
             return true
         }
@@ -438,6 +441,19 @@ extension AppDelegate {
         case .green:
             return .systemGreen
         }
+    }
+
+    /// Set the status bar button title.  Using plain `title` +
+    /// `font` instead of `attributedTitle` lets macOS automatically
+    /// adapt the text color to the menu bar appearance (light text
+    /// on dark backgrounds and vice-versa).
+    func setStatusTitle(
+        _ title: String, on button: NSStatusBarButton
+    ) {
+        button.font = NSFont.monospacedSystemFont(
+            ofSize: 10, weight: .medium
+        )
+        button.title = title
     }
 }
 
