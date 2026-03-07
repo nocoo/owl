@@ -1,15 +1,50 @@
 import Foundation
 import IOKit
 
-/// Reads CPU temperature via IOKit SMC (best effort).
+/// Reads temperatures via IOKit SMC (best effort).
 /// Returns nil if SMC is not accessible.
 public struct SMCTemperatureProvider: Sendable {
     public init() {}
 
+    /// Known sensor groups: (label, candidate SMC keys).
+    /// First valid key wins per group.
+    private static let sensorGroups: [(String, [String])] = [
+        ("CPU", ["Tp0T", "TC0D", "TC0P", "TC0E"]),
+        ("GPU", ["Tg05", "TG0D", "TG0P"]),
+        ("SSD", ["TH0x", "TH0a", "TH0b"]),
+    ]
+
     /// Attempt to read CPU die temperature.
     /// Returns Celsius value or nil if unavailable.
     public func cpuTemperature() -> Double? {
-        // Try AppleSMC service
+        withSMCConnection { conn in
+            readFirstValid(
+                connection: conn,
+                keys: ["Tp0T", "TC0D", "TC0P", "TC0E"]
+            )
+        } ?? nil
+    }
+
+    /// Read all available temperature sensors.
+    /// Returns array of (label, celsius) for sensors that responded.
+    public func allTemperatures() -> [(String, Double)] {
+        withSMCConnection { conn in
+            var results: [(String, Double)] = []
+            for (label, keys) in Self.sensorGroups {
+                if let temp = readFirstValid(
+                    connection: conn, keys: keys
+                ) {
+                    results.append((label, temp))
+                }
+            }
+            return results
+        } ?? []
+    }
+
+    /// Open SMC connection, run closure, close.
+    private func withSMCConnection<T>(
+        _ body: (io_connect_t) -> T
+    ) -> T? {
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault,
             IOServiceMatching("AppleSMC")
@@ -25,18 +60,20 @@ public struct SMCTemperatureProvider: Sendable {
             return nil
         }
         defer { IOServiceClose(connection) }
+        return body(connection)
+    }
 
-        // SMC key "TC0P" = CPU proximity temperature
-        // key "TC0D" = CPU die temperature (preferred)
-        // Tp0T = CPU composite on Apple Silicon; TC0D/TC0P/TC0E = Intel
-        for key in ["Tp0T", "TC0D", "TC0P", "TC0E"] {
+    /// Try multiple SMC keys, return first valid reading.
+    private func readFirstValid(
+        connection: io_connect_t, keys: [String]
+    ) -> Double? {
+        for key in keys {
             if let temp = readSMCKey(
                 connection: connection, key: key
             ), temp > 0, temp < 150 {
                 return temp
             }
         }
-
         return nil
     }
 

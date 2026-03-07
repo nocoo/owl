@@ -38,6 +38,9 @@ public struct PopoverContentView: View {
                     MemorySection(metrics: appState.metrics)
                     DiskSection(metrics: appState.metrics)
                     PowerSection(metrics: appState.metrics)
+                    TemperatureSection(
+                        sensors: appState.metrics.temperatures
+                    )
                     NetworkSection(
                         metrics: appState.metrics,
                         inHistory: appState.networkInHistory,

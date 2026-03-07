@@ -35,6 +35,9 @@ public struct SystemMetrics: Sendable, Equatable {
     /// Top processes by CPU.
     public let topProcesses: [ProcessMetric]
 
+    /// Temperature sensors (CPU, GPU, SSD, Battery…).
+    public let temperatures: [TemperatureSensor]
+
     /// Memory pressure as a percentage (0.0 to 100.0).
     public var memoryPressure: Double {
         guard memoryTotal > 0 else { return 0 }
@@ -52,7 +55,8 @@ public struct SystemMetrics: Sendable, Equatable {
         disk: DiskMetrics = .zero,
         battery: BatteryMetrics = .unavailable,
         network: NetworkMetrics = .zero,
-        topProcesses: [ProcessMetric] = []
+        topProcesses: [ProcessMetric] = [],
+        temperatures: [TemperatureSensor] = []
     ) {
         self.cpuUsage = cpuUsage
         self.memoryTotal = memoryTotal
@@ -65,6 +69,7 @@ public struct SystemMetrics: Sendable, Equatable {
         self.battery = battery
         self.network = network
         self.topProcesses = topProcesses
+        self.temperatures = temperatures
     }
 
     /// Default "zero" metrics for initial state.
@@ -351,6 +356,7 @@ public actor SystemMetricsPoller {
         let battery = batteryProvider.batteryInfo()
         let network = sampleNetwork()
         let topProcs = sampleTopProcesses()
+        let temps = sampleTemperatures(battery: battery)
 
         currentMetrics = SystemMetrics(
             cpuUsage: cpuUsage,
@@ -363,7 +369,8 @@ public actor SystemMetricsPoller {
             disk: disk,
             battery: battery,
             network: network,
-            topProcesses: Array(topProcs.prefix(5))
+            topProcesses: Array(topProcs.prefix(5)),
+            temperatures: temps
         )
     }
 
@@ -499,5 +506,22 @@ public actor SystemMetricsPoller {
                 id: new.coreID, usage: usage
             )
         }
+    }
+
+    private func sampleTemperatures(
+        battery: BatteryMetrics
+    ) -> [TemperatureSensor] {
+        var sensors = smcProvider.allTemperatures().map {
+            TemperatureSensor(label: $0.0, celsius: $0.1)
+        }
+        // Append battery temperature if available
+        if let battTemp = battery.temperature {
+            sensors.append(
+                TemperatureSensor(
+                    label: "Battery", celsius: battTemp
+                )
+            )
+        }
+        return sensors
     }
 }

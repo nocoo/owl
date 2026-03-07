@@ -77,12 +77,7 @@ struct CPUSection: View {
     }
 
     private var totalText: String {
-        if let temp = metrics.cpuTemperature {
-            let pct = String(format: "%.1f%%", metrics.cpuUsage)
-            let deg = String(format: "%.0f°C", temp)
-            return "\(pct) @ \(deg)"
-        }
-        return String(format: "%.1f%%", metrics.cpuUsage)
+        String(format: "%.1f%%", metrics.cpuUsage)
     }
 
     private var loadAverageRow: some View {

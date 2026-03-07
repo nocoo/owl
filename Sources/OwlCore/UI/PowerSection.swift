@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Power section: battery level/health bars, state+cycles two-column row,
-/// condition + temperature bottom row.
+/// condition row.
 struct PowerSection: View {
     let metrics: SystemMetrics
 
@@ -37,8 +37,10 @@ struct PowerSection: View {
                 rightValue: "\(batt.cycleCount)"
             )
 
-            // Bottom row: condition · temperature
-            bottomRow(batt)
+            // Condition row
+            let condText = batt.condition == "Unavailable"
+                ? "N/A" : batt.condition
+            InfoRow("Cond", value: condText)
         }
     }
 
@@ -53,19 +55,6 @@ struct PowerSection: View {
             return formatTimeRemaining(mins)
         }
         return ""
-    }
-
-    private func bottomRow(
-        _ batt: BatteryMetrics
-    ) -> some View {
-        let condText = batt.condition == "Unavailable" ? "N/A" : batt.condition
-        let tempText = batt.temperature.map { String(format: "%.1f°C", $0) } ?? "N/A"
-        return TwoColumnInfoRow(
-            leftLabel: condText,
-            leftValue: "",
-            rightLabel: "Temp",
-            rightValue: tempText
-        )
     }
 
     private func formatTimeRemaining(_ minutes: Int) -> String {

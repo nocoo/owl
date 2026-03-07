@@ -233,3 +233,16 @@ public struct ProcessMetric: Sendable, Equatable, Identifiable {
         self.cpuPercent = cpuPercent
     }
 }
+
+/// A named temperature sensor reading.
+public struct TemperatureSensor: Sendable, Equatable, Identifiable {
+    public let id: String // label used as ID
+    public let label: String
+    public let celsius: Double
+
+    public init(label: String, celsius: Double) {
+        self.id = label
+        self.label = label
+        self.celsius = celsius
+    }
+}
