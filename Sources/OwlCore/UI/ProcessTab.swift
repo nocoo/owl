@@ -25,12 +25,12 @@ public struct ProcessTab: View {
             } else if isLoading {
                 Spacer()
                 ProgressView("Collecting process data…")
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                 Spacer()
             } else {
                 Spacer()
                 Text("No data")
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
                 Spacer()
             }
@@ -49,14 +49,14 @@ public struct ProcessTab: View {
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
                     Text("System Uptime")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                 }
 
                 Text(formatUptime(stats.uptime))
-                    .font(.system(size: 20, weight: .medium, design: .monospaced))
+                    .font(.system(size: 16, weight: .medium, design: .monospaced))
 
                 Text("Booted \(formatBootTime(stats.bootTime))")
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
             }
         } else {
@@ -66,10 +66,10 @@ public struct ProcessTab: View {
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
                     Text("System Uptime")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                 }
                 Text("—")
-                    .font(.system(size: 20, weight: .medium, design: .monospaced))
+                    .font(.system(size: 16, weight: .medium, design: .monospaced))
             }
         }
     }
@@ -94,7 +94,7 @@ public struct ProcessTab: View {
                     Text("N")
                         .frame(width: 28, alignment: .trailing)
                 }
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .padding(.vertical, 6)
                 .padding(.horizontal, 16)
@@ -149,7 +149,7 @@ public struct ProcessTab: View {
                 .frame(width: 28, alignment: .trailing)
                 .foregroundStyle(.tertiary)
         }
-        .font(.system(size: 10, design: .monospaced))
+        .font(.system(size: 12, design: .monospaced))
         .padding(.vertical, 3)
         .padding(.horizontal, 16)
         .background(

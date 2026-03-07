@@ -23,7 +23,7 @@ public struct AlertRow: View {
                         Text(alert.title)
                             .font(
                                 .system(
-                                    size: 12,
+                                    size: 14,
                                     weight: .semibold
                                 )
                             )
@@ -31,24 +31,24 @@ public struct AlertRow: View {
                         Spacer()
                         if showCopied {
                             Text("Copied")
-                                .font(.system(size: 9))
+                                .font(.system(size: 12))
                                 .foregroundStyle(.green)
                                 .transition(.opacity)
                         } else {
                             Text(relativeTime)
-                                .font(.system(size: 10))
+                                .font(.system(size: 12))
                                 .foregroundStyle(
                                     .tertiary
                                 )
                         }
                     }
                     Text(alert.description)
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                     if !alert.suggestion.isEmpty {
                         Text(alert.suggestion)
-                            .font(.system(size: 10))
+                            .font(.system(size: 12))
                             .foregroundStyle(.tertiary)
                             .lineLimit(1)
                     }

@@ -96,6 +96,16 @@ public struct PopoverContentView: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.primary)
 
+            Text("v\(OwlInfo.version)")
+                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1)
+                .background(
+                    Capsule()
+                        .fill(Color.primary.opacity(0.08))
+                )
+
             Spacer()
 
             // Status dot

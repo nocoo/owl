@@ -34,15 +34,15 @@ public struct GeneralTab: View {
                         .shadow(radius: 4, y: 2)
                 } else {
                     Image(systemName: "bird.fill")
-                        .font(.system(size: 36))
+                        .font(.system(size: 16))
                         .foregroundStyle(.secondary)
                 }
 
                 Text("Owl")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 16, weight: .bold))
 
                 Text("v\(version) · System Health Monitor")
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
             }
             .padding(.top, 20)
@@ -76,6 +76,7 @@ public struct GeneralTab: View {
                 }
             }
             .formStyle(.grouped)
+            .font(.system(size: 14))
 
             Spacer()
 
@@ -85,7 +86,7 @@ public struct GeneralTab: View {
                     string: "https://github.com/nocoo/owl"
                 ) {
                     Link("GitHub", destination: url)
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                 }
             }
             .padding(.bottom, 12)

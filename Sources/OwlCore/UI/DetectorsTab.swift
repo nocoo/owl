@@ -9,9 +9,9 @@ struct DetectorToggleRow: View {
         Toggle(isOn: $isEnabled) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(info.displayName)
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                 Text(info.description)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
         }
@@ -49,7 +49,7 @@ public struct DetectorsTab: View {
                         category.rawValue,
                         systemImage: category.symbolName
                     )
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
                 }
             }

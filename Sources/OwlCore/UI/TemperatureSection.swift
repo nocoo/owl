@@ -13,7 +13,7 @@ struct TemperatureSection: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                "Temp", symbol: "thermometer.medium",
+                "Temperature", symbol: "thermometer.medium",
                 color: .orange
             )
 

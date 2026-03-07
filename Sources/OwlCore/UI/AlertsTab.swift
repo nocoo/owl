@@ -23,10 +23,10 @@ public struct AlertsTab: View {
         VStack(spacing: 8) {
             Spacer()
             Image(systemName: "checkmark.circle")
-                .font(.system(size: 32))
+                .font(.system(size: 16))
                 .foregroundStyle(.green)
             Text("No Alerts")
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 16, weight: .medium))
             Text("System is running normally")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
