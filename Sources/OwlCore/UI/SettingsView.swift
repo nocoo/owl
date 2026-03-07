@@ -51,8 +51,16 @@ public struct SettingsView: View {
                             "exclamationmark.bubble"
                     )
                 }
+
+            ProcessTab()
+                .tabItem {
+                    Label(
+                        "Processes",
+                        systemImage: "chart.bar.doc.horizontal"
+                    )
+                }
         }
-        .frame(width: 520, height: 480)
+        .frame(width: 520, height: 520)
     }
 }
 
