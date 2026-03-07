@@ -89,6 +89,11 @@ else
     echo "    WARN: owl.png not found, skipping icon generation"
 fi
 
+# Copy owl.png to Resources for runtime use
+if [[ -f "$ICON_SOURCE" ]]; then
+    cp "$ICON_SOURCE" "$RESOURCES_DIR/owl.png"
+fi
+
 # Code sign if identity provided
 if [[ -n "$SIGN_IDENTITY" ]]; then
     ENTITLEMENTS="$PROJECT_DIR/Sources/Owl/Resources/Owl.entitlements"

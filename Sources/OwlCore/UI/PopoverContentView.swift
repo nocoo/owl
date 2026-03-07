@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Root SwiftUI view for the popover.
@@ -8,15 +9,18 @@ import SwiftUI
 public struct PopoverContentView: View {
     @ObservedObject var appState: AppState
 
+    let logoImage: NSImage?
     let onSettings: () -> Void
     let onQuit: () -> Void
 
     public init(
         appState: AppState,
+        logoImage: NSImage? = nil,
         onSettings: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
         self.appState = appState
+        self.logoImage = logoImage
         self.onSettings = onSettings
         self.onQuit = onQuit
     }
@@ -76,9 +80,17 @@ public struct PopoverContentView: View {
 
     private var appHeader: some View {
         HStack(spacing: 8) {
-            Image(systemName: "bird.fill")
-                .font(.system(size: 20))
-                .foregroundStyle(.primary)
+            if let logoImage {
+                Image(nsImage: logoImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 22, height: 22)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+            } else {
+                Image(systemName: "bird.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.primary)
+            }
 
             Text("Owl")
                 .font(.system(size: 15, weight: .semibold))

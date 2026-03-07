@@ -3,11 +3,11 @@ import Foundation
 /// Category for grouping detectors in Settings UI.
 public enum DetectorCategory: String, Sendable, CaseIterable {
     case hardware = "Hardware"
-    case process = "Process"
+    case memory = "Memory"
+    case power = "Power"
     case network = "Network"
     case security = "Security"
-    case power = "Power"
-    case memory = "Memory"
+    case process = "Process"
 
     public var symbolName: String {
         switch self {
@@ -44,9 +44,9 @@ public struct DetectorInfo: Sendable, Equatable, Identifiable {
 /// Provides display metadata for all 14 detectors (15 instances).
 public enum DetectorCatalog {
 
-    /// All detector info entries in display order.
+    /// All detector info entries in display order (matches popover section order).
     public static let all: [DetectorInfo] = [
-        // Hardware
+        // Hardware (CPU + Disk)
         DetectorInfo(
             id: "thermal_throttling",
             displayName: "Thermal Throttling",
@@ -59,24 +59,37 @@ public enum DetectorCatalog {
             description: "USB device transfer errors",
             category: .hardware
         ),
-        // Process
         DetectorInfo(
-            id: "process_crash_loop",
-            displayName: "Process Crash Loop",
-            description: "Repeated process crashes",
-            category: .process
+            id: "apfs_flush_delay",
+            displayName: "APFS Flush Delay",
+            description: "Disk write flush too slow",
+            category: .hardware
+        ),
+        // Memory
+        DetectorInfo(
+            id: "jetsam_kill",
+            displayName: "Jetsam Memory Kill",
+            description: "Process killed for memory",
+            category: .memory
         ),
         DetectorInfo(
-            id: "process_crash_signal",
-            displayName: "Crash Signal",
-            description: "SEGFAULT, SIGBUS, etc.",
-            category: .process
+            id: "jetsam_kill_escalation",
+            displayName: "Jetsam Escalation",
+            description: "Rapid jetsam kills",
+            category: .memory
+        ),
+        // Power
+        DetectorInfo(
+            id: "sleep_assertion_leak",
+            displayName: "Sleep Assertion Leak",
+            description: "Unreleased sleep assertions",
+            category: .power
         ),
         DetectorInfo(
-            id: "app_hang",
-            displayName: "App Hang",
-            description: "Application unresponsive",
-            category: .process
+            id: "darkwake_abnormal",
+            displayName: "Dark Wake",
+            description: "Excessive background wakes",
+            category: .power
         ),
         // Network
         DetectorInfo(
@@ -110,39 +123,25 @@ public enum DetectorCatalog {
             description: "Privacy permission denials",
             category: .security
         ),
-        // Power
+        // Process
         DetectorInfo(
-            id: "sleep_assertion_leak",
-            displayName: "Sleep Assertion Leak",
-            description: "Unreleased sleep assertions",
-            category: .power
+            id: "process_crash_loop",
+            displayName: "Process Crash Loop",
+            description: "Repeated process crashes",
+            category: .process
         ),
         DetectorInfo(
-            id: "darkwake_abnormal",
-            displayName: "Dark Wake",
-            description: "Excessive background wakes",
-            category: .power
-        ),
-        // Memory
-        DetectorInfo(
-            id: "jetsam_kill",
-            displayName: "Jetsam Memory Kill",
-            description: "Process killed for memory",
-            category: .memory
+            id: "process_crash_signal",
+            displayName: "Crash Signal",
+            description: "SEGFAULT, SIGBUS, etc.",
+            category: .process
         ),
         DetectorInfo(
-            id: "jetsam_kill_escalation",
-            displayName: "Jetsam Escalation",
-            description: "Rapid jetsam kills",
-            category: .memory
+            id: "app_hang",
+            displayName: "App Hang",
+            description: "Application unresponsive",
+            category: .process
         ),
-        // Disk (put under Hardware)
-        DetectorInfo(
-            id: "apfs_flush_delay",
-            displayName: "APFS Flush Delay",
-            description: "Disk write flush too slow",
-            category: .hardware
-        )
     ]
 
     /// Detectors grouped by category, in category display order.

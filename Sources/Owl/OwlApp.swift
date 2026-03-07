@@ -167,7 +167,8 @@ extension AppDelegate {
         let settingsView = SettingsView(
             viewModel: settingsViewModel,
             appState: appState,
-            appIcon: Self.loadAppIcon()
+            appIcon: Self.loadAppIcon(),
+            logoImage: Self.loadLogoImage()
         )
         let hostingController = NSHostingController(
             rootView: settingsView
@@ -193,6 +194,16 @@ extension AppDelegate {
         if let url = Bundle.main.url(
             forResource: "AppIcon", withExtension: "icns"
         ) { return NSImage(contentsOf: url) }
+        return loadLogoImage()
+    }
+
+    /// Load owl.png logo from bundle Resources or project root.
+    static func loadLogoImage() -> NSImage? {
+        // Try bundle Resources first
+        if let url = Bundle.main.url(
+            forResource: "owl", withExtension: "png"
+        ) { return NSImage(contentsOf: url) }
+        // Fallback: search near executable (dev builds)
         let base = Bundle.main.executableURL?
             .deletingLastPathComponent()
         let searchDirs = [
@@ -272,8 +283,10 @@ extension AppDelegate {
 extension AppDelegate {
 
     func setupPopover() {
+        let logo = Self.loadLogoImage()
         let contentView = PopoverContentView(
             appState: appState,
+            logoImage: logo,
             onSettings: { [weak self] in self?.openSettings() },
             onQuit: { [weak self] in self?.quitApp() }
         )

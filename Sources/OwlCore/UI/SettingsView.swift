@@ -6,21 +6,25 @@ public struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var appState: AppState
     let appIcon: NSImage?
+    let logoImage: NSImage?
 
     public init(
         viewModel: SettingsViewModel,
         appState: AppState,
-        appIcon: NSImage? = nil
+        appIcon: NSImage? = nil,
+        logoImage: NSImage? = nil
     ) {
         self.viewModel = viewModel
         self.appState = appState
         self.appIcon = appIcon
+        self.logoImage = logoImage
     }
 
     public var body: some View {
         TabView {
             GeneralTab(
-                launchAtLogin: $viewModel.launchAtLogin
+                launchAtLogin: $viewModel.launchAtLogin,
+                logoImage: logoImage ?? appIcon
             )
             .tabItem {
                 Label(
@@ -45,14 +49,6 @@ public struct SettingsView: View {
                         "Alerts",
                         systemImage:
                             "exclamationmark.bubble"
-                    )
-                }
-
-            AboutTab(appIcon: appIcon)
-                .tabItem {
-                    Label(
-                        "About",
-                        systemImage: "info.circle"
                     )
                 }
         }
