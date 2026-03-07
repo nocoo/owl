@@ -2,12 +2,5 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Hardened Runtime is enabled via codesign --options runtime flag.
-         No additional entitlements are needed:
-         - No sandbox (required for log stream + Foundation.Process)
-         - No network access entitlement (Owl has no network I/O)
-         - No camera/microphone/contacts access
-         - No JIT or unsigned executable memory
-         - Foundation.Process works under Hardened Runtime by default -->
 </dict>
 </plist>

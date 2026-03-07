@@ -13,6 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 SIGN_IDENTITY=""
+DEFAULT_SIGN_IDENTITY="675988434F86B7962DFFF3CAFE8A143092E4997A"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --sign)
@@ -26,6 +27,10 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ -z "$SIGN_IDENTITY" ]]; then
+    SIGN_IDENTITY="$DEFAULT_SIGN_IDENTITY"
+fi
 
 BUILD_DIR="$PROJECT_DIR/build"
 RELEASE_DIR="$BUILD_DIR/release"
@@ -94,11 +99,10 @@ if [[ -f "$ICON_SOURCE" ]]; then
     cp "$ICON_SOURCE" "$RESOURCES_DIR/owl.png"
 fi
 
-# Code sign if identity provided
 if [[ -n "$SIGN_IDENTITY" ]]; then
     ENTITLEMENTS="$PROJECT_DIR/Sources/Owl/Resources/Owl.entitlements"
 
-    echo "==> Code signing with Hardened Runtime..."
+    echo "==> Code signing with identity: $SIGN_IDENTITY"
     codesign --force --options runtime \
         --sign "$SIGN_IDENTITY" \
         --entitlements "$ENTITLEMENTS" \
@@ -108,9 +112,6 @@ if [[ -n "$SIGN_IDENTITY" ]]; then
     echo "==> Verifying signature..."
     codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE" 2>&1
     echo "    Signature valid."
-else
-    echo "==> Skipping code signing (no --sign identity provided)"
-    echo "    To sign: $0 --sign \"Developer ID Application: Name (TEAMID)\""
 fi
 
 # Print result
