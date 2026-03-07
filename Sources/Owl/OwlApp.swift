@@ -165,8 +165,6 @@ extension AppDelegate {
         if let window = settingsWindow {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
-            // Center after layout pass completes
-            DispatchQueue.main.async { window.center() }
             return
         }
 
@@ -190,11 +188,10 @@ extension AppDelegate {
         window.title = L10n.tr(.settingsWindowTitle)
         window.contentViewController = hostingController
         window.isReleasedWhenClosed = false
+        window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow = window
-        // Center after hosting controller finishes layout
-        DispatchQueue.main.async { window.center() }
     }
 
     static func loadAppIcon() -> NSImage? {
