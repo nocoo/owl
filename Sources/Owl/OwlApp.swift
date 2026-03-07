@@ -121,6 +121,13 @@ extension AppDelegate {
                 preferredEdge: .minY
             )
             popover.behavior = .transient
+
+            // Activate the app so the popover's window becomes key
+            // immediately — without this, the popover appears with
+            // an inactive (translucent) background until clicked.
+            NSApp.activate(ignoringOtherApps: true)
+            popover.contentViewController?.view.window?
+                .makeKey()
         }
     }
 
