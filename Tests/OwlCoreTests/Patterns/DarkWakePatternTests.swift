@@ -85,4 +85,66 @@ struct DarkWakePatternTests {
 
         #expect(detector.groupCount == 1)
     }
+
+    @Test("accepts Deep Idle DarkWake entries")
+    func acceptsDeepIdleDarkWake() {
+        let detector = DarkWakePattern.makeDetector()
+        let entry = TestFixtures.DarkWake.entry(TestFixtures.DarkWake.deepIdle)
+        #expect(detector.accepts(entry))
+    }
+
+    @Test("accepts but does not count PMRD status noise")
+    func rejectsPMRDNoise() {
+        let detector = DarkWakePattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+        let entry = TestFixtures.DarkWake.entry(
+            TestFixtures.DarkWake.pmrdNoise,
+            timestamp: t0
+        )
+        // accepts() passes (contains "DarkWake"), but process() must not count it
+        #expect(detector.accepts(entry))
+        #expect(detector.process(entry) == nil)
+        #expect(detector.groupCount == 0)
+    }
+
+    @Test("accepts but does not count GPU crossbar noise")
+    func rejectsGPUNoise() {
+        let detector = DarkWakePattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+        let entry = TestFixtures.DarkWake.entry(
+            TestFixtures.DarkWake.gpuNoise,
+            timestamp: t0
+        )
+        #expect(detector.accepts(entry))
+        #expect(detector.process(entry) == nil)
+        #expect(detector.groupCount == 0)
+    }
+
+    @Test("noise messages do not inflate real DarkWake count")
+    func noiseDoesNotInflateCount() {
+        let detector = DarkWakePattern.makeDetector()
+        let t0 = Date(timeIntervalSince1970: 1000)
+
+        // Feed 5 real DarkWake events + 50 noise messages
+        for i in 0..<5 {
+            let real = TestFixtures.DarkWake.entry(
+                TestFixtures.DarkWake.wake,
+                timestamp: t0.addingTimeInterval(Double(i) * 60)
+            )
+            _ = detector.process(real)
+
+            // 10 noise messages per real event
+            for j in 0..<10 {
+                let noise = TestFixtures.DarkWake.entry(
+                    TestFixtures.DarkWake.pmrdNoise,
+                    timestamp: t0.addingTimeInterval(Double(i) * 60 + Double(j) + 1)
+                )
+                _ = detector.process(noise)
+            }
+        }
+
+        // Should NOT trigger warning (only 5 real events, threshold is 10)
+        // If noise were counted, it would be 55 events → critical
+        #expect(detector.groupCount == 1)
+    }
 }

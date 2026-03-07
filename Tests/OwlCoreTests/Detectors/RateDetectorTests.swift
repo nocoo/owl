@@ -188,6 +188,51 @@ struct RateDetectorTests {
         #expect(lastAlert?.severity == .warning)
     }
 
+    @Test func globalModeRejectsNonMatchingMessages() {
+        let detector = RateDetector(config: makeGlobalConfig(warningRate: 3))
+        let t0 = Date()
+
+        // Feed messages that contain the acceptsFilter ("network error")
+        // but do NOT match the full regex ("network error")
+        // Actually the global config regex IS "network error", so let's use
+        // a tighter regex to demonstrate the fix
+        let config = RateConfig(
+            id: "test_global",
+            regex: #"network error: timeout"#,
+            groupBy: .global,
+            windowSeconds: 60,
+            warningRate: 3,
+            criticalRate: 10,
+            cooldownInterval: 60,
+            maxGroups: 1,
+            titleKey: .alertNetworkTitle,
+            descriptionTemplateKey: .alertNetworkDesc("{window}", "{count}"),
+            suggestionKey: .alertNetworkSuggestion,
+            acceptsFilter: "network"
+        )
+        let det = RateDetector(config: config)
+
+        // These contain "network" but don't match "network error: timeout"
+        for i in 0..<5 {
+            let result = det.process(makeEntry(
+                message: "network status: connected",
+                timestamp: t0.addingTimeInterval(Double(i))
+            ))
+            #expect(result == nil)
+        }
+        // Should not have created any counter group
+        #expect(det.groupCount == 0)
+
+        // Now feed matching messages
+        for i in 0..<3 {
+            _ = det.process(makeEntry(
+                message: "network error: timeout on port 443",
+                timestamp: t0.addingTimeInterval(Double(i + 10))
+            ))
+        }
+        #expect(det.groupCount == 1)
+    }
+
     // MARK: - Cooldown
 
     @Test func cooldownPreventsRepeatedAlerts() {
