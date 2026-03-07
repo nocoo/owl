@@ -30,7 +30,7 @@ public struct SignatureConfig: Sendable {
     public let suggestionKey: L10nKey
     public let acceptsFilter: String
 
-    /// Optional target normalizer applied to each signature component before hashing.
+    /// Optional normalizer applied to each signature component before signature assembly.
     /// Use this to collapse path variations (UUIDs, PIDs, temp dirs) into stable classes.
     /// When nil, raw captured strings are used as-is.
     public let normalizer: (@Sendable (String) -> String)?
