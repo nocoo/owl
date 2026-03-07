@@ -19,10 +19,10 @@ struct SectionHeader: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: symbol)
-                .font(.system(size: 9, weight: .bold))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(color)
             Text(title)
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.primary)
 
             // Dashed separator fills remaining space
@@ -113,7 +113,7 @@ struct MetricRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(label)
-                .font(.system(size: 10, design: .monospaced))
+                .font(.system(size: 11, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(width: 40, alignment: .leading)
             MiniBar(
@@ -143,7 +143,7 @@ struct InfoRow: View {
     var body: some View {
         HStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 10, design: .monospaced))
+                .font(.system(size: 11, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(width: 40, alignment: .leading)
             Text(value)

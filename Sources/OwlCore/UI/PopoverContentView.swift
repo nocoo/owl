@@ -93,7 +93,7 @@ public struct PopoverContentView: View {
             }
 
             Text("Owl")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.primary)
 
             Text("v\(OwlInfo.version)")
@@ -114,7 +114,7 @@ public struct PopoverContentView: View {
                     .fill(statusColor)
                     .frame(width: 6, height: 6)
                 Text(statusText)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
         }

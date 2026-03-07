@@ -22,9 +22,9 @@ public struct ActiveAlertsSection: View {
                 .font(.system(size: 24))
                 .foregroundStyle(.green)
             Text("System Running Normally")
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
             Text("No anomalies detected")
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -35,7 +35,7 @@ public struct ActiveAlertsSection: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("Active Alerts")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                 if alerts.count > 3 {

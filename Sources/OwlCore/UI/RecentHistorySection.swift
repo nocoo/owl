@@ -17,7 +17,7 @@ public struct RecentHistorySection: View {
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Recent Events")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                     .padding(.horizontal, 12)

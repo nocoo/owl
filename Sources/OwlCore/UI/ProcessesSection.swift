@@ -33,7 +33,7 @@ struct ProcessesSection: View {
         HStack(spacing: 6) {
             Text(truncatedName(proc.name))
                 .font(
-                    .system(size: 10, design: .monospaced)
+                    .system(size: 11, design: .monospaced)
                 )
                 .foregroundStyle(.primary)
                 .frame(width: 80, alignment: .leading)

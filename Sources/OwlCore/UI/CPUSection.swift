@@ -49,7 +49,7 @@ struct CPUSection: View {
         // Group header
         HStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
                 .foregroundStyle(.tertiary)
             Spacer()
         }
@@ -89,7 +89,7 @@ struct CPUSection: View {
         let eCores = load.efficiencyCores
         return HStack(spacing: 4) {
             Text("Load")
-                .font(.system(size: 10, design: .monospaced))
+                .font(.system(size: 11, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(width: 40, alignment: .leading)
             Text(text)
