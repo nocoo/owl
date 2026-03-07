@@ -24,7 +24,7 @@ Owl 需要以下能力，均不允许在 App Store 沙箱中使用：
 | Bundle Identifier | `com.nocoo.owl` |
 | Deployment Target | macOS 14.0 (Sonoma) |
 | Swift Language Version | 5.9+ |
-| Signing | Developer ID Application |
+| Signing | Apple Development (`93WWLTN9XU`) |
 | Sandbox | **Disabled** (Hardened Runtime only) |
 | App Category | `public.app-category.utilities` |
 
@@ -76,15 +76,16 @@ Owl 不需要任何特殊 entitlement：
 
 | 证书类型 | 用途 |
 |---------|------|
-| Developer ID Application | 签名 .app |
-| Developer ID Installer（可选） | 签名 .pkg 安装包 |
+| Apple Development | 本地/开发分发，保持稳定签名与 TCC 权限 |
+| Developer ID Application | 正式对外分发（未来接入 notarization 时使用） |
 
 ### 签名命令（手动构建时）
 
 ```bash
 # Xcode 构建时自动签名（推荐）
 xcodebuild -scheme Owl -configuration Release \
-    CODE_SIGN_IDENTITY="Developer ID Application: ..." \
+    CODE_SIGN_IDENTITY="Apple Development" \
+    DEVELOPMENT_TEAM="93WWLTN9XU" \
     archive -archivePath build/Owl.xcarchive
 
 # 导出 .app

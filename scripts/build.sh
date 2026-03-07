@@ -13,7 +13,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 SIGN_IDENTITY=""
-DEFAULT_SIGN_IDENTITY="675988434F86B7962DFFF3CAFE8A143092E4997A"
+DEFAULT_SIGN_IDENTITY="Apple Development"
+DEFAULT_TEAM_ID="93WWLTN9XU"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --sign)
@@ -31,6 +32,8 @@ done
 if [[ -z "$SIGN_IDENTITY" ]]; then
     SIGN_IDENTITY="$DEFAULT_SIGN_IDENTITY"
 fi
+
+export DEVELOPMENT_TEAM="$DEFAULT_TEAM_ID"
 
 BUILD_DIR="$PROJECT_DIR/build"
 RELEASE_DIR="$BUILD_DIR/release"
@@ -105,6 +108,7 @@ if [[ -n "$SIGN_IDENTITY" ]]; then
     echo "==> Code signing with identity: $SIGN_IDENTITY"
     codesign --force --options runtime \
         --sign "$SIGN_IDENTITY" \
+        --identifier "com.nocoo.owl" \
         --entitlements "$ENTITLEMENTS" \
         --timestamp \
         "$APP_BUNDLE"
