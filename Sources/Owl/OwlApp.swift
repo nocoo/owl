@@ -159,6 +159,7 @@ extension AppDelegate {
 
     @objc func openSettings() {
         if let window = settingsWindow {
+            window.center()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
