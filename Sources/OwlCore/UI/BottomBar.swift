@@ -17,7 +17,7 @@ public struct BottomBar: View {
         HStack {
             Button(action: onSettings) {
                 Label("Settings", systemImage: "gearshape")
-                    .font(.system(size: 12))
+                    .font(OwlFont.bottomBarButton)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
@@ -25,13 +25,13 @@ public struct BottomBar: View {
             Spacer()
 
             Button(action: onQuit) {
-                Label("Quit Owl", systemImage: "power")
-                    .font(.system(size: 12))
+                Label("Quit", systemImage: "power")
+                    .font(OwlFont.bottomBarButton)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, OwlLayout.popoverPaddingH)
         .padding(.vertical, 8)
     }
 }
