@@ -240,11 +240,19 @@ public actor LogStreamReader {
     /// Read lines from the file handle and yield parsed LogEntry values.
     /// This is a static method to avoid actor isolation — it runs on a
     /// detached task and communicates via the continuation.
+    ///
+    /// `availableData` may return a partial line (pipe fragmentation).
+    /// A carry-over buffer preserves the incomplete tail across reads
+    /// so that no NDJSON record is silently dropped.
     private static func readLines(
         from fileHandle: FileHandle,
         continuation: AsyncStream<LogEntry>.Continuation?
     ) {
         guard let continuation else { return }
+
+        // Carry-over buffer for incomplete trailing lines across
+        // fragmented pipe reads.
+        var carryOver = ""
 
         // Use synchronous blocking read in a detached task.
         // availableData blocks until data arrives or EOF.
@@ -257,15 +265,34 @@ public actor LogStreamReader {
                     return true  // EOF
                 }
 
-                guard let text = String(
+                guard let chunk = String(
                     data: data, encoding: .utf8
                 ) else {
                     return false
                 }
 
-                text.enumerateLines { line, _ in
-                    guard passesPreFilter(line) else {
-                        return
+                // Prepend any leftover fragment from the previous read.
+                let text = carryOver + chunk
+                carryOver = ""
+
+                // If the chunk does not end with a newline, the last
+                // segment is an incomplete line — save it for next read.
+                let endsWithNewline = text.last == "\n"
+                    || text.last == "\r"
+
+                let lines = text.split(
+                    separator: "\n",
+                    omittingEmptySubsequences: false
+                )
+
+                let completeCount = endsWithNewline
+                    ? lines.count : max(lines.count - 1, 0)
+
+                for i in 0..<completeCount {
+                    let line = String(lines[i])
+                    guard !line.isEmpty,
+                          passesPreFilter(line) else {
+                        continue
                     }
                     do {
                         if let entry = try LogEntry.fromLine(
@@ -277,6 +304,12 @@ public actor LogStreamReader {
                         // Skip invalid lines
                     }
                 }
+
+                // Save the incomplete trailing fragment.
+                if !endsWithNewline, let last = lines.last {
+                    carryOver = String(last)
+                }
+
                 return false
             }
             if shouldBreak { break }
