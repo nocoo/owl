@@ -25,6 +25,13 @@ public struct PidCPUPercent: Sendable {
 
 /// Reads top processes by CPU usage via libproc.
 public struct TopProcessProvider: Sendable {
+    /// Mach absolute-time → nanosecond multiplier (computed once).
+    private static let machToNano: Double = {
+        var info = mach_timebase_info_data_t()
+        mach_timebase_info(&info)
+        return Double(info.numer) / Double(info.denom)
+    }()
+
     public init() {}
 
     /// Snapshot ALL running processes with their cumulative CPU time.
@@ -61,19 +68,15 @@ public struct TopProcessProvider: Sendable {
             )
             guard result == infoSize else { continue }
 
-            // Combine dead-thread times (pti_total_*) and live-thread
-            // times (pti_threads_*). Some system processes return
-            // garbage (near-UInt64.max) in pti_threads_system, so we
-            // guard against that with a reasonable upper bound.
-            let maxPlausible: UInt64 = UInt64.max / 2
-            let threadsUser = taskInfo.pti_threads_user <= maxPlausible
-                ? taskInfo.pti_threads_user : 0
-            let threadsSys = taskInfo.pti_threads_system <= maxPlausible
-                ? taskInfo.pti_threads_system : 0
-            let cpuTimeNs = taskInfo.pti_total_user
+            // pti_total_user/system already include live-thread
+            // times, so we must NOT add pti_threads_* on top.
+            // Values are in Mach absolute-time ticks; convert to
+            // nanoseconds so computeDelta's math is correct.
+            let machTicks = taskInfo.pti_total_user
                 + taskInfo.pti_total_system
-                + threadsUser
-                + threadsSys
+            let cpuTimeNs = UInt64(
+                Double(machTicks) * Self.machToNano
+            )
 
             snapshots.append(ProcessSnapshot(
                 pid: pid, cpuTimeNs: cpuTimeNs
