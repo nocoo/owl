@@ -79,6 +79,7 @@ struct MiniBar: View {
             }
         }
         .frame(height: OwlLayout.miniBarHeight)
+        .animation(.easeInOut(duration: 0.6), value: value)
     }
 
     private func fillWidth(in totalWidth: CGFloat) -> CGFloat {

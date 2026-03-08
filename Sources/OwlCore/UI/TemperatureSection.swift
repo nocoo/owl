@@ -70,6 +70,11 @@ private struct TempMiniRow: View {
                 .font(OwlFont.miniValue)
                 .foregroundStyle(.secondary)
                 .frame(width: 28, alignment: .trailing)
+                .contentTransition(.numericText())
+                .animation(
+                    .easeInOut(duration: 0.6),
+                    value: sensor.celsius
+                )
         }
         .frame(maxWidth: .infinity)
     }
