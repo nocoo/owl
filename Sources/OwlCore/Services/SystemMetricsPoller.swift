@@ -289,15 +289,16 @@ public actor SystemMetricsPoller {
 
     // Previous process snapshot for CPU delta (full snapshot)
     private var prevProcessSnapshots: [ProcessSnapshot] = []
+    private var prevProcessTime: Date = .distantPast
 
     // MARK: - Init
 
     /// Create a SystemMetricsPoller.
     /// - Parameters:
-    ///   - interval: Polling interval in seconds (default 2.0).
+    ///   - interval: Polling interval in seconds (default 1.0).
     ///   - provider: Metrics data source (default: real Mach APIs).
     public init(
-        interval: TimeInterval = 2.0,
+        interval: TimeInterval = 1.0,
         provider: MetricsProvider = MachMetricsProvider()
     ) {
         self.interval = interval
@@ -329,6 +330,7 @@ public actor SystemMetricsPoller {
         prevDiskIO = diskProvider.diskIOBytes()
         prevDiskTime = Date()
         prevProcessSnapshots = processProvider.allProcessSnapshots()
+        prevProcessTime = Date()
 
         pollTask = Task { [weak self] in
             await self?.pollLoop()
@@ -491,14 +493,21 @@ public actor SystemMetricsPoller {
 
     private func sampleTopProcesses() -> [ProcessMetric] {
         let curSnapshots = processProvider.allProcessSnapshots()
-        let topProcs = TopProcessProvider.computeCPUPercent(
+        let now = Date()
+        let elapsed = now.timeIntervalSince(prevProcessTime)
+        defer {
+            prevProcessSnapshots = curSnapshots
+            prevProcessTime = now
+        }
+
+        guard elapsed > 0 else { return [] }
+
+        return TopProcessProvider.computeCPUPercent(
             previous: prevProcessSnapshots,
             current: curSnapshots,
-            interval: interval,
+            interval: elapsed,
             coreCount: max(prevCoreTicks.count, 1)
         )
-        prevProcessSnapshots = curSnapshots
-        return topProcs
     }
 
     private func computePerCoreCPU(
