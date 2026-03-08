@@ -7,7 +7,7 @@ import SwiftUI
 /// active alerts (scrollable if >4), followed by all metrics
 /// sections displayed in full without scrolling.
 public struct PopoverContentView: View {
-    @ObservedObject var appState: AppState
+    var appState: AppState
 
     let logoImage: NSImage?
     let onSettings: () -> Void

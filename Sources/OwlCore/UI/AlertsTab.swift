@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Alerts tab in Settings showing active and recent alerts.
 public struct AlertsTab: View {
-    @ObservedObject var appState: AppState
+    var appState: AppState
 
     public init(appState: AppState) {
         self.appState = appState

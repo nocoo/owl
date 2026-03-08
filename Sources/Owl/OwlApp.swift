@@ -337,17 +337,25 @@ extension AppDelegate {
     }
 
     func startObserving() {
-        // React to severity OR alert count changes
-        appState.$currentSeverity
-            .combineLatest(appState.$activeAlerts)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] severity, alerts in
-                self?.updateIcon(
-                    severity: severity,
-                    alertCount: alerts.count
+        // React to severity OR alert count changes using
+        // Observation framework (property-level tracking).
+        startObservationLoop()
+    }
+
+    private func startObservationLoop() {
+        withObservationTracking {
+            _ = appState.currentSeverity
+            _ = appState.activeAlerts
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.updateIcon(
+                    severity: self.appState.currentSeverity,
+                    alertCount: self.appState.activeAlerts.count
                 )
+                self.startObservationLoop()
             }
-            .store(in: &cancellables)
+        }
     }
 
     func updateIcon(severity: Severity, alertCount: Int) {

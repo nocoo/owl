@@ -1,36 +1,40 @@
 import Foundation
-import Combine
+import Observation
 
 /// Observable application state that bridges the core engine to the UI layer.
 ///
 /// Aggregates data from AlertStateManager and SystemMetricsPoller into
-/// a single @Published surface for SwiftUI views. Runs on @MainActor
-/// so all UI updates are safe.
+/// a single observable surface for SwiftUI views. Uses `@Observable`
+/// (Swift 5.9+) for property-level tracking — only views that read a
+/// specific property re-evaluate when that property changes.
+///
+/// Runs on @MainActor so all UI updates are safe.
 @MainActor
-public final class AppState: ObservableObject {
+@Observable
+public final class AppState {
 
     public init() {}
 
-    // MARK: - Published State
+    // MARK: - State
 
     /// Current aggregated severity (drives Menu Bar icon).
-    @Published public private(set) var currentSeverity: Severity = .normal
+    public private(set) var currentSeverity: Severity = .normal
 
     /// Previous severity (used for recovery flash detection).
-    @Published public private(set) var previousSeverity: Severity?
+    public private(set) var previousSeverity: Severity?
 
     /// Active alerts sorted by severity (descending) then time (descending).
-    @Published public private(set) var activeAlerts: [Alert] = []
+    public private(set) var activeAlerts: [Alert] = []
 
     /// Recent history (last N expired alerts).
-    @Published public private(set) var alertHistory: [Alert] = []
+    public private(set) var alertHistory: [Alert] = []
 
     /// Latest system metrics snapshot.
-    @Published public private(set) var metrics: SystemMetrics = .zero
+    public private(set) var metrics: SystemMetrics = .zero
 
     /// Network speed history for sparkline (last 30 samples).
-    @Published public private(set) var networkInHistory: [Double] = []
-    @Published public private(set) var networkOutHistory: [Double] = []
+    public private(set) var networkInHistory: [Double] = []
+    public private(set) var networkOutHistory: [Double] = []
 
     private let maxNetworkSamples = 30
 

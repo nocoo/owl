@@ -4,7 +4,7 @@ import SwiftUI
 /// Root settings window view with tabs.
 public struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
-    @ObservedObject var appState: AppState
+    var appState: AppState
     let appIcon: NSImage?
     let logoImage: NSImage?
 
