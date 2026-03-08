@@ -45,9 +45,9 @@ struct PowerSection: View {
     }
 
     private func stateValue(_ batt: BatteryMetrics) -> String {
-        if batt.isCharging { return "⚡" }
-        if batt.isPluggedIn { return "🔌" }
-        return "🔋"
+        if batt.isCharging { return "⚡ \(L10n.tr(.powerCharging))" }
+        if batt.isPluggedIn { return "🔌 \(L10n.tr(.powerPlugged))" }
+        return "🔋 \(L10n.tr(.powerBattery))"
     }
 
     private func timeRemainingLabel(_ batt: BatteryMetrics) -> String {
