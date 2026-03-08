@@ -1,12 +1,35 @@
 import Darwin
 import Foundation
 
+/// Raw per-PID CPU time snapshot (lightweight, no name resolution).
+public struct ProcessSnapshot: Sendable {
+    public let pid: pid_t
+    public let cpuTimeNs: UInt64
+
+    public init(pid: pid_t, cpuTimeNs: UInt64) {
+        self.pid = pid
+        self.cpuTimeNs = cpuTimeNs
+    }
+}
+
+/// Intermediate result: PID + computed CPU percent (before name resolution).
+public struct PidCPUPercent: Sendable {
+    public let pid: pid_t
+    public let percent: Double
+
+    public init(pid: pid_t, percent: Double) {
+        self.pid = pid
+        self.percent = percent
+    }
+}
+
 /// Reads top processes by CPU usage via libproc.
 public struct TopProcessProvider: Sendable {
     public init() {}
 
-    /// Returns the top N processes by CPU usage.
-    public func topProcesses(count: Int = 5) -> [ProcessMetric] {
+    /// Snapshot ALL running processes with their cumulative CPU time.
+    /// Lightweight: no proc_name calls. Use this for delta calculation.
+    public func allProcessSnapshots() -> [ProcessSnapshot] {
         let bufSize = proc_listallpids(nil, 0)
         guard bufSize > 0 else { return [] }
 
@@ -20,15 +43,8 @@ public struct TopProcessProvider: Sendable {
 
         let pidCount = Int(actualSize)
 
-        // Phase 1: Collect CPU times only (skip expensive proc_name).
-        // Use a lightweight struct to hold (pid, cpuTimeNs).
-        struct PidCPU {
-            let pid: pid_t
-            let cpuTimeNs: UInt64
-        }
-
-        var candidates: [PidCPU] = []
-        candidates.reserveCapacity(min(pidCount, 200))
+        var snapshots: [ProcessSnapshot] = []
+        snapshots.reserveCapacity(min(pidCount, 500))
 
         for idx in 0..<pidCount {
             let pid = pids[idx]
@@ -48,69 +64,93 @@ public struct TopProcessProvider: Sendable {
             let cpuTimeNs = taskInfo.pti_total_user
                 + taskInfo.pti_total_system
 
-            candidates.append(PidCPU(
+            snapshots.append(ProcessSnapshot(
                 pid: pid, cpuTimeNs: cpuTimeNs
             ))
         }
 
-        // Phase 2: Sort by CPU time descending, take top N.
-        candidates.sort { $0.cpuTimeNs > $1.cpuTimeNs }
-        let topCandidates = candidates.prefix(count)
-
-        // Phase 3: Resolve process names only for top N.
-        var entries: [ProcessMetric] = []
-        entries.reserveCapacity(topCandidates.count)
-
-        for candidate in topCandidates {
-            var nameBuffer = [CChar](repeating: 0, count: 256)
-            proc_name(candidate.pid, &nameBuffer, 256)
-            let name = String(cString: nameBuffer)
-            guard !name.isEmpty else { continue }
-
-            entries.append(ProcessMetric(
-                id: candidate.pid,
-                name: name,
-                cpuPercent: Double(candidate.cpuTimeNs)
-            ))
-        }
-
-        return entries
+        return snapshots
     }
 
-    /// Computes CPU percent from two snapshots taken
-    /// `interval` seconds apart.
-    public static func computeCPUPercent(
-        previous: [ProcessMetric],
-        current: [ProcessMetric],
+    /// Resolve process name for a given PID.
+    public static func resolveProcessName(
+        pid: pid_t
+    ) -> String? {
+        var nameBuffer = [CChar](repeating: 0, count: 256)
+        proc_name(pid, &nameBuffer, 256)
+        let name = String(cString: nameBuffer)
+        return name.isEmpty ? nil : name
+    }
+
+    /// Pure delta calculation: computes CPU percent for all
+    /// processes present in both snapshots. No name resolution.
+    /// Returns sorted by percent descending, limited to `count`.
+    public static func computeDelta(
+        previous: [ProcessSnapshot],
+        current: [ProcessSnapshot],
         interval: TimeInterval,
-        coreCount: Int
-    ) -> [ProcessMetric] {
+        coreCount: Int,
+        count: Int = 5
+    ) -> [PidCPUPercent] {
         let prevMap = Dictionary(
             uniqueKeysWithValues: previous.map {
-                ($0.id, $0.cpuPercent)
+                ($0.pid, $0.cpuTimeNs)
             }
         )
 
         let nsPerInterval = interval * 1_000_000_000
         let maxPercent = Double(coreCount) * 100.0
 
-        return current.compactMap { proc in
-            guard let prevTime = prevMap[proc.id] else {
-                return nil
+        var results: [PidCPUPercent] = []
+        for snap in current {
+            guard let prevTime = prevMap[snap.pid] else {
+                continue
             }
-            let delta = proc.cpuPercent - prevTime
-            guard delta > 0 else { return nil }
+            let delta = snap.cpuTimeNs >= prevTime
+                ? snap.cpuTimeNs - prevTime : 0
+            guard delta > 0 else { continue }
             let percent = min(
-                (delta / nsPerInterval) * 100.0,
+                (Double(delta) / nsPerInterval) * 100.0,
                 maxPercent
             )
-            guard percent >= 0.1 else { return nil }
+            guard percent >= 0.1 else { continue }
+            results.append(PidCPUPercent(
+                pid: snap.pid, percent: percent
+            ))
+        }
+
+        results.sort { $0.percent > $1.percent }
+        return Array(results.prefix(count))
+    }
+
+    /// Computes CPU percent from two full snapshots, then
+    /// resolves names for only the top N results.
+    public static func computeCPUPercent(
+        previous: [ProcessSnapshot],
+        current: [ProcessSnapshot],
+        interval: TimeInterval,
+        coreCount: Int,
+        count: Int = 5
+    ) -> [ProcessMetric] {
+        let topDeltas = computeDelta(
+            previous: previous,
+            current: current,
+            interval: interval,
+            coreCount: coreCount,
+            count: count
+        )
+
+        return topDeltas.compactMap { entry in
+            guard let name = resolveProcessName(
+                pid: entry.pid
+            ) else {
+                return nil
+            }
             return ProcessMetric(
-                id: proc.id,
-                name: proc.name,
-                cpuPercent: percent
+                id: entry.pid,
+                name: name,
+                cpuPercent: entry.percent
             )
         }
-        .sorted { $0.cpuPercent > $1.cpuPercent }
     }
 }

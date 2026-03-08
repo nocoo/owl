@@ -274,8 +274,8 @@ public actor SystemMetricsPoller {
     ) = (0, 0)
     private var prevDiskTime: Date = .distantPast
 
-    // Previous process snapshot for CPU delta
-    private var prevProcesses: [ProcessMetric] = []
+    // Previous process snapshot for CPU delta (full snapshot)
+    private var prevProcessSnapshots: [ProcessSnapshot] = []
 
     // MARK: - Init
 
@@ -315,7 +315,7 @@ public actor SystemMetricsPoller {
         prevNetTime = Date()
         prevDiskIO = diskProvider.diskIOBytes()
         prevDiskTime = Date()
-        prevProcesses = processProvider.topProcesses()
+        prevProcessSnapshots = processProvider.allProcessSnapshots()
 
         pollTask = Task { [weak self] in
             await self?.pollLoop()
@@ -475,14 +475,14 @@ public actor SystemMetricsPoller {
     }
 
     private func sampleTopProcesses() -> [ProcessMetric] {
-        let curProcesses = processProvider.topProcesses()
+        let curSnapshots = processProvider.allProcessSnapshots()
         let topProcs = TopProcessProvider.computeCPUPercent(
-            previous: prevProcesses,
-            current: curProcesses,
+            previous: prevProcessSnapshots,
+            current: curSnapshots,
             interval: interval,
             coreCount: max(prevCoreTicks.count, 1)
         )
-        prevProcesses = curProcesses
+        prevProcessSnapshots = curSnapshots
         return topProcs
     }
 
