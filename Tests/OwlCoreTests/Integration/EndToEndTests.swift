@@ -5,6 +5,7 @@ import Testing
 // MARK: - Integration: Full Pipeline E2E
 
 @Suite("Integration - End to End", .timeLimit(.minutes(1)))
+@MainActor
 struct EndToEndTests {
 
     // MARK: - Crash Loop Detection
@@ -362,6 +363,7 @@ struct EndToEndTests {
 // MARK: - Full Path via LogStreamReader
 
 @Suite("Integration - Stream to Pipeline", .timeLimit(.minutes(1)))
+@MainActor
 struct StreamToPipelineTests {
 
     @Test func logStreamReaderToPipelineToAlerts() async {

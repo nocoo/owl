@@ -13,6 +13,7 @@ import Foundation
 ///
 /// `currentSeverity` is always the max severity of all active alerts, or `.normal`
 /// if no alerts are active. This drives the Menu Bar icon state.
+@MainActor
 public final class AlertStateManager {
 
     /// Alerts waiting to be confirmed (within debounce window).

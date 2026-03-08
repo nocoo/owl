@@ -3,6 +3,7 @@ import Foundation
 @testable import OwlCore
 
 @Suite("AlertStateManager")
+@MainActor
 struct AlertStateManagerTests {
 
     // MARK: - Helpers
