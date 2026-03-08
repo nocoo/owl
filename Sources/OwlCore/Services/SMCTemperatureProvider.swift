@@ -15,6 +15,11 @@ public final class SMCTemperatureProvider: Sendable {
     nonisolated(unsafe) private var cachedConnection: io_connect_t = 0
     nonisolated(unsafe) private var connectionOpen = false
 
+    /// Last-known-good temperature per sensor key.
+    /// SMC firmware sporadically returns bad data (~25% of reads),
+    /// so we cache valid readings and replay them on anomalous reads.
+    nonisolated(unsafe) private var lastGoodTemp: [String: Double] = [:]
+
     public init() {}
 
     deinit {
@@ -79,14 +84,23 @@ public final class SMCTemperatureProvider: Sendable {
     }
 
     /// Try multiple SMC keys, return first valid reading.
+    /// On a valid read the value is cached per-key so that sporadic
+    /// bad reads from SMC firmware don't produce nil / flickering.
     private func readFirstValid(
         connection: io_connect_t, keys: [String]
     ) -> Double? {
         for key in keys {
             if let temp = readSMCKey(
                 connection: connection, key: key
-            ), temp > Self.validTempMin, temp < Self.validTempMax {
-                return temp
+            ) {
+                if temp > Self.validTempMin, temp < Self.validTempMax {
+                    lastGoodTemp[key] = temp
+                    return temp
+                }
+                // Bad read — try cached value for this key.
+                if let cached = lastGoodTemp[key] {
+                    return cached
+                }
             }
         }
         return nil
