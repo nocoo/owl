@@ -1,19 +1,98 @@
+import AppKit
 import SwiftUI
 
+// MARK: - CopyableSection Environment
+
+/// Environment key that CopyableSection sets to true after a copy,
+/// so child SectionHeaders can show the "Copied" badge.
+private struct ShowCopiedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var showCopied: Bool {
+        get { self[ShowCopiedKey.self] }
+        set { self[ShowCopiedKey.self] = newValue }
+    }
+}
+
+// MARK: - CopyableSection
+
+/// Wraps any metric section in a tappable button that copies
+/// a snapshot of the section's data to the clipboard.
+///
+/// On click the text is written to `NSPasteboard` and a green
+/// "Copied" badge briefly appears in the section header via
+/// the `showCopied` environment value.
+struct CopyableSection<Content: View>: View {
+    let clipboardText: String
+    @ViewBuilder let content: () -> Content
+
+    @State private var copied = false
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: copyToClipboard) {
+            content()
+                .environment(\.showCopied, copied)
+        }
+        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.primary.opacity(isHovered ? 0.03 : 0))
+        )
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+
+    private func copyToClipboard() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(
+            clipboardText, forType: .string
+        )
+        withAnimation(.easeInOut(duration: 0.2)) {
+            copied = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                copied = false
+            }
+        }
+    }
+}
+
+// MARK: - SectionHeader
+
 /// Reusable section header with icon, title, and dashed separator.
+/// When `showCopied` is true, a green "Copied" label appears at the
+/// trailing end of the dashed line as brief visual feedback.
+///
+/// By default reads the `showCopied` environment value set by
+/// ``CopyableSection``, but can also be overridden explicitly.
 struct SectionHeader: View {
     let symbol: String
     let title: String
     let color: Color
+    private let overrideCopied: Bool?
+
+    @Environment(\.showCopied) private var envCopied
 
     init(
         _ title: String,
         symbol: String,
-        color: Color = .secondary
+        color: Color = .secondary,
+        showCopied: Bool? = nil
     ) {
         self.title = title
         self.symbol = symbol
         self.color = color
+        self.overrideCopied = showCopied
+    }
+
+    private var isCopied: Bool {
+        overrideCopied ?? envCopied
     }
 
     var body: some View {
@@ -35,6 +114,13 @@ struct SectionHeader: View {
                 )
                 .foregroundStyle(.quaternary)
                 .frame(height: 1)
+
+            if isCopied {
+                Text(L10n.tr(.copied))
+                    .font(OwlFont.historyCopied)
+                    .foregroundStyle(OwlSeverityColor.normal)
+                    .transition(.opacity)
+            }
         }
         .frame(height: OwlLayout.sectionHeaderHeight)
     }
