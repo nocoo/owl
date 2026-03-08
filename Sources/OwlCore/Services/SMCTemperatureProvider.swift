@@ -16,8 +16,8 @@ public final class SMCTemperatureProvider: Sendable {
     nonisolated(unsafe) private var connectionOpen = false
 
     /// Last-known-good temperature per sensor key.
-    /// Defense-in-depth: even with the corrected struct layout,
-    /// cache valid readings so a single bad read doesn't flicker the UI.
+    /// SMC firmware sporadically returns bad data (~25% of reads),
+    /// so we cache valid readings and replay them on anomalous reads.
     nonisolated(unsafe) private var lastGoodTemp: [String: Double] = [:]
 
     public init() {}
@@ -85,7 +85,7 @@ public final class SMCTemperatureProvider: Sendable {
 
     /// Try multiple SMC keys, return first valid reading.
     /// On a valid read the value is cached per-key so that sporadic
-    /// bad reads don't produce nil / flickering.
+    /// bad reads from SMC firmware don't produce nil / flickering.
     private func readFirstValid(
         connection: io_connect_t, keys: [String]
     ) -> Double? {
@@ -109,49 +109,59 @@ public final class SMCTemperatureProvider: Sendable {
     private func readSMCKey(
         connection: io_connect_t, key: String
     ) -> Double? {
+        var inputStruct = SMCKeyData()
+        var outputStruct = SMCKeyData()
+
         let keyBytes = Array(key.utf8)
         guard keyBytes.count == 4 else { return nil }
-        let keyCode = UInt32(keyBytes[0]) << 24
+        inputStruct.key = UInt32(keyBytes[0]) << 24
             | UInt32(keyBytes[1]) << 16
             | UInt32(keyBytes[2]) << 8
             | UInt32(keyBytes[3])
+        inputStruct.data8 = SMCKeyData.kReadCommand
 
-        // --- Step 1: kGetKeyInfoCommand ---
-        var input = SMCParamStruct()
-        var output = SMCParamStruct()
-        input.setKey(keyCode)
-        input.setData8(SMCParamStruct.kGetKeyInfoCommand)
+        var outputSize = MemoryLayout<SMCKeyData>.stride
 
-        var outputSize = SMCParamStruct.size
+        // Get key info to learn the data type
+        inputStruct.data8 = SMCKeyData.kGetKeyInfoCommand
         let infoResult = callSMC(
             connection: connection,
-            input: &input.raw,
-            output: &output.raw,
+            input: &inputStruct,
+            output: &outputStruct,
             outputSize: &outputSize
         )
-        guard infoResult == kIOReturnSuccess else { return nil }
+        guard infoResult == kIOReturnSuccess else {
+            return nil
+        }
 
-        let dataType = output.kiDataType
-        let dataSize = output.kiDataSize
+        let dataType = outputStruct.keyInfo.dataType
+        let dataSize = outputStruct.keyInfo.dataSize
 
-        // --- Step 2: kReadCommand (fresh structs) ---
-        input = SMCParamStruct()
-        output = SMCParamStruct()
-        input.setKey(keyCode)
-        input.setData8(SMCParamStruct.kReadCommand)
-        input.setKiDataSize(dataSize)
-        outputSize = SMCParamStruct.size
+        // Now read the value – fully reset both structs so no
+        // stale bytes from the kGetKeyInfo call can leak into the
+        // read result (root cause of sporadic 40°C → 2°C jumps).
+        inputStruct = SMCKeyData()
+        inputStruct.key = UInt32(keyBytes[0]) << 24
+            | UInt32(keyBytes[1]) << 16
+            | UInt32(keyBytes[2]) << 8
+            | UInt32(keyBytes[3])
+        inputStruct.data8 = SMCKeyData.kReadCommand
+        inputStruct.keyInfo.dataSize = dataSize
+        outputStruct = SMCKeyData()
+        outputSize = MemoryLayout<SMCKeyData>.stride
 
         let readResult = callSMC(
             connection: connection,
-            input: &input.raw,
-            output: &output.raw,
+            input: &inputStruct,
+            output: &outputStruct,
             outputSize: &outputSize
         )
-        guard readResult == kIOReturnSuccess else { return nil }
+        guard readResult == kIOReturnSuccess else {
+            return nil
+        }
 
         return Self.decodeTemperature(
-            bytes: output.dataBytes,
+            bytes: outputStruct.bytes,
             dataType: dataType,
             dataSize: dataSize
         )
@@ -159,17 +169,18 @@ public final class SMCTemperatureProvider: Sendable {
 
     private func callSMC(
         connection: io_connect_t,
-        input: inout SMCRawBuffer,
-        output: inout SMCRawBuffer,
+        input: inout SMCKeyData,
+        output: inout SMCKeyData,
         outputSize: inout Int
     ) -> IOReturn {
-        withUnsafeMutablePointer(to: &input) { inp in
+        let inputSize = MemoryLayout<SMCKeyData>.stride
+        return withUnsafeMutablePointer(to: &input) { inp in
             withUnsafeMutablePointer(to: &output) { outp in
                 IOConnectCallStructMethod(
                     connection,
                     2, // kSMCHandleYPCEvent
                     inp,
-                    SMCParamStruct.size,
+                    inputSize,
                     outp,
                     &outputSize
                 )
@@ -225,9 +236,9 @@ public final class SMCTemperatureProvider: Sendable {
     }
 }
 
-// MARK: - SMC Wire Format
+// MARK: - SMC Type Aliases
 
-/// 32-byte buffer for decoded SMC data payload.
+// 32-byte buffer for SMC data.
 // swiftlint:disable:next large_tuple
 typealias SMCByteBuffer = (
     UInt8, UInt8, UInt8, UInt8,
@@ -240,130 +251,48 @@ typealias SMCByteBuffer = (
     UInt8, UInt8, UInt8, UInt8
 )
 
-/// Raw 76-byte buffer that exactly matches the kernel's packed
-/// `SMCKeyData_t` C struct (compiled with `#pragma pack(1)`).
-///
-/// Using a flat UInt8 tuple avoids Swift's automatic struct padding
-/// which would insert extra bytes and shift field offsets, causing
-/// the `bytes` payload to read from the wrong memory location.
-///
-/// Kernel C layout (76 bytes total):
-/// ```
-/// offset  0: UInt32     key           (4 bytes)
-/// offset  4: SMCVers    vers          (6 bytes: 4×UInt8 + UInt16)
-/// offset 10: SMCPLimit  pLimitData    (16 bytes: 2×UInt16 + 3×UInt32)
-/// offset 26: SMCKeyInfo keyInfo       (9 bytes: 2×UInt32 + UInt8)
-/// offset 35: UInt16     padding       (2 bytes)
-/// offset 37: UInt8      result        (1 byte)
-/// offset 38: UInt8      status        (1 byte)
-/// offset 39: UInt8      data8         (1 byte)
-/// offset 40: UInt32     data32        (4 bytes)
-/// offset 44: UInt8[32]  bytes         (32 bytes)
-/// ```
-// swiftlint:disable:next large_tuple
-typealias SMCRawBuffer = (
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  //  0- 7
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  //  8-15
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  // 16-23
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  // 24-31
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  // 32-39
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  // 40-47
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  // 48-55
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  // 56-63
-    UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,  // 64-71
-    UInt8, UInt8, UInt8, UInt8                                // 72-75
-)
+// MARK: - SMC Data Structures
 
-// MARK: - SMCParamStruct (safe accessor over raw buffer)
-
-/// Type-safe wrapper around the 76-byte raw SMC buffer.
-/// Provides named accessors for the fields we actually use,
-/// reading/writing at the correct packed offsets.
-struct SMCParamStruct: Sendable {
+/// Raw SMC key data structure for IOKit calls.
+struct SMCKeyData: Sendable {
     static let kReadCommand: UInt8 = 5
     static let kGetKeyInfoCommand: UInt8 = 9
-    static let size = MemoryLayout<SMCRawBuffer>.size  // 76
 
-    // Field offsets matching kernel's packed C struct.
-    static let offsetKey: Int = 0            // UInt32
-    static let offsetKiDataSize: Int = 26    // UInt32
-    static let offsetKiDataType: Int = 30    // UInt32
-    static let offsetData8: Int = 39         // UInt8
-    static let offsetBytes: Int = 44         // 32 × UInt8
+    var key: UInt32 = 0
+    var vers = SMCVersion()
+    var pLimitData = SMCPLimitData()
+    var keyInfo = SMCKeyInfoData()
+    var padding: UInt16 = 0
+    var result: UInt8 = 0
+    var status: UInt8 = 0
+    var data8: UInt8 = 0
+    var data32: UInt32 = 0
+    var bytes: SMCByteBuffer = (
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+    )
+}
 
-    var raw: SMCRawBuffer
+struct SMCVersion: Sendable {
+    var major: UInt8 = 0
+    var minor: UInt8 = 0
+    var build: UInt8 = 0
+    var reserved: UInt8 = 0
+    var release: UInt16 = 0
+}
 
-    init() {
-        raw = (
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0
-        )
-    }
+struct SMCPLimitData: Sendable {
+    var version: UInt16 = 0
+    var length: UInt16 = 0
+    var cpuPLimit: UInt32 = 0
+    var gpuPLimit: UInt32 = 0
+    var memPLimit: UInt32 = 0
+}
 
-    // MARK: Writers
-
-    mutating func setKey(_ value: UInt32) {
-        withUnsafeMutableBytes(of: &raw) { buf in
-            buf.storeBytes(
-                of: value, toByteOffset: Self.offsetKey, as: UInt32.self
-            )
-        }
-    }
-
-    mutating func setData8(_ value: UInt8) {
-        withUnsafeMutableBytes(of: &raw) { buf in
-            buf[Self.offsetData8] = value
-        }
-    }
-
-    mutating func setKiDataSize(_ value: UInt32) {
-        withUnsafeMutableBytes(of: &raw) { buf in
-            buf.storeBytes(
-                of: value, toByteOffset: Self.offsetKiDataSize, as: UInt32.self
-            )
-        }
-    }
-
-    // MARK: Readers
-
-    var kiDataSize: UInt32 {
-        withUnsafeBytes(of: raw) { buf in
-            buf.loadUnaligned(
-                fromByteOffset: Self.offsetKiDataSize, as: UInt32.self
-            )
-        }
-    }
-
-    var kiDataType: UInt32 {
-        withUnsafeBytes(of: raw) { buf in
-            buf.loadUnaligned(
-                fromByteOffset: Self.offsetKiDataType, as: UInt32.self
-            )
-        }
-    }
-
-    /// Extract the 32-byte data payload as an SMCByteBuffer tuple.
-    var dataBytes: SMCByteBuffer {
-        withUnsafeBytes(of: raw) { buf in
-            let o = Self.offsetBytes
-            return (
-                buf[o], buf[o+1], buf[o+2], buf[o+3],
-                buf[o+4], buf[o+5], buf[o+6], buf[o+7],
-                buf[o+8], buf[o+9], buf[o+10], buf[o+11],
-                buf[o+12], buf[o+13], buf[o+14], buf[o+15],
-                buf[o+16], buf[o+17], buf[o+18], buf[o+19],
-                buf[o+20], buf[o+21], buf[o+22], buf[o+23],
-                buf[o+24], buf[o+25], buf[o+26], buf[o+27],
-                buf[o+28], buf[o+29], buf[o+30], buf[o+31]
-            )
-        }
-    }
+struct SMCKeyInfoData: Sendable {
+    var dataSize: UInt32 = 0
+    var dataType: UInt32 = 0
+    var dataAttributes: UInt8 = 0
 }
