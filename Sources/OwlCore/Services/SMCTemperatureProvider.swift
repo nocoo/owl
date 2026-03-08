@@ -3,8 +3,25 @@ import IOKit
 
 /// Reads temperatures via IOKit SMC (best effort).
 /// Returns nil if SMC is not accessible.
-public struct SMCTemperatureProvider: Sendable {
+///
+/// Caches the IOKit SMC connection for the provider's lifetime
+/// instead of opening/closing on every call.
+public final class SMCTemperatureProvider: Sendable {
+
+    /// Cached SMC connection. Opened lazily on first use.
+    /// Access is protected by `nonisolated(unsafe)` because
+    /// this provider is always held inside an actor
+    /// (SystemMetricsPoller) that serializes calls.
+    nonisolated(unsafe) private var cachedConnection: io_connect_t = 0
+    nonisolated(unsafe) private var connectionOpen = false
+
     public init() {}
+
+    deinit {
+        if connectionOpen {
+            IOServiceClose(cachedConnection)
+        }
+    }
 
     /// Known sensor groups: (label, candidate SMC keys).
     /// First valid key wins per group.
@@ -17,34 +34,32 @@ public struct SMCTemperatureProvider: Sendable {
     /// Attempt to read CPU die temperature.
     /// Returns Celsius value or nil if unavailable.
     public func cpuTemperature() -> Double? {
-        withSMCConnection { conn in
-            readFirstValid(
-                connection: conn,
-                keys: ["Tp0T", "TC0D", "TC0P", "TC0E"]
-            )
-        } ?? nil
+        guard let conn = ensureConnection() else { return nil }
+        return readFirstValid(
+            connection: conn,
+            keys: ["Tp0T", "TC0D", "TC0P", "TC0E"]
+        )
     }
 
     /// Read all available temperature sensors.
     /// Returns array of (label, celsius) for sensors that responded.
     public func allTemperatures() -> [(String, Double)] {
-        withSMCConnection { conn in
-            var results: [(String, Double)] = []
-            for (label, keys) in Self.sensorGroups {
-                if let temp = readFirstValid(
-                    connection: conn, keys: keys
-                ) {
-                    results.append((label, temp))
-                }
+        guard let conn = ensureConnection() else { return [] }
+        var results: [(String, Double)] = []
+        for (label, keys) in Self.sensorGroups {
+            if let temp = readFirstValid(
+                connection: conn, keys: keys
+            ) {
+                results.append((label, temp))
             }
-            return results
-        } ?? []
+        }
+        return results
     }
 
-    /// Open SMC connection, run closure, close.
-    private func withSMCConnection<T>(
-        _ body: (io_connect_t) -> T
-    ) -> T? {
+    /// Return the cached SMC connection, opening it lazily if needed.
+    private func ensureConnection() -> io_connect_t? {
+        if connectionOpen { return cachedConnection }
+
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault,
             IOServiceMatching("AppleSMC")
@@ -53,14 +68,14 @@ public struct SMCTemperatureProvider: Sendable {
         defer { IOObjectRelease(service) }
 
         var connection: io_connect_t = 0
-        let openResult = IOServiceOpen(
+        let result = IOServiceOpen(
             service, mach_task_self_, 0, &connection
         )
-        guard openResult == kIOReturnSuccess else {
-            return nil
-        }
-        defer { IOServiceClose(connection) }
-        return body(connection)
+        guard result == kIOReturnSuccess else { return nil }
+
+        cachedConnection = connection
+        connectionOpen = true
+        return connection
     }
 
     /// Try multiple SMC keys, return first valid reading.
