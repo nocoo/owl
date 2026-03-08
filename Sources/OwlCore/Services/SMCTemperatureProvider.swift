@@ -85,7 +85,7 @@ public final class SMCTemperatureProvider: Sendable {
         for key in keys {
             if let temp = readSMCKey(
                 connection: connection, key: key
-            ), temp > 5, temp < 130 {
+            ), temp > Self.validTempMin, temp < Self.validTempMax {
                 return temp
             }
         }
@@ -146,7 +146,7 @@ public final class SMCTemperatureProvider: Sendable {
             return nil
         }
 
-        return decodeTemperature(
+        return Self.decodeTemperature(
             bytes: outputStruct.bytes,
             dataType: dataType,
             dataSize: dataSize
@@ -174,7 +174,14 @@ public final class SMCTemperatureProvider: Sendable {
         }
     }
 
-    private func decodeTemperature(
+    /// Minimum plausible temperature in Celsius.
+    static let validTempMin: Double = 5
+    /// Maximum plausible temperature in Celsius.
+    static let validTempMax: Double = 130
+
+    /// Decode raw SMC bytes into a Celsius value.
+    /// `internal` visibility for unit testing.
+    static func decodeTemperature(
         bytes: SMCByteBuffer,
         dataType: UInt32,
         dataSize: UInt32
@@ -205,7 +212,9 @@ public final class SMCTemperatureProvider: Sendable {
         return nil
     }
 
-    private func fourCC(_ str: String) -> UInt32 {
+    /// Convert a 4-character ASCII string to a UInt32 FourCC code.
+    /// `internal` visibility for unit testing.
+    static func fourCC(_ str: String) -> UInt32 {
         let bytes = Array(str.utf8)
         guard bytes.count == 4 else { return 0 }
         return UInt32(bytes[0]) << 24 | UInt32(bytes[1]) << 16
