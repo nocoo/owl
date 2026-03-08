@@ -35,26 +35,79 @@ extension AppDelegate {
             batch.reserveCapacity(64)
             var lastFlush = ContinuousClock.now
 
-            for await entry in await reader.entries {
-                batch.append(entry)
+            // Merge log entries with a periodic flush signal so that
+            // entries are never stuck in the buffer during low-traffic
+            // periods. Without this, the 250ms threshold only triggers
+            // when the *next* entry arrives.
+            let merged = Self.mergedEntryStream(
+                entries: await reader.entries,
+                flushInterval: .milliseconds(250)
+            )
 
-                let now = ContinuousClock.now
-                let elapsed = now - lastFlush
-                guard batch.count >= 64
-                    || elapsed >= .milliseconds(250)
-                else {
-                    continue
+            for await event in merged {
+                switch event {
+                case .entry(let entry):
+                    batch.append(entry)
+                    guard batch.count >= 64 else { continue }
+                case .flush:
+                    guard !batch.isEmpty else { continue }
+                    let elapsed = ContinuousClock.now - lastFlush
+                    guard elapsed >= .milliseconds(200) else {
+                        continue
+                    }
                 }
 
                 let alerts = await pipeline.processBatch(batch)
                 batch.removeAll(keepingCapacity: true)
-                lastFlush = now
+                lastFlush = ContinuousClock.now
                 self.deliverAlerts(alerts)
             }
 
             if !batch.isEmpty {
                 let alerts = await pipeline.processBatch(batch)
                 self.deliverAlerts(alerts)
+            }
+        }
+    }
+
+    /// Events for the merged log-entry + flush-timer stream.
+    private enum EngineEvent: Sendable {
+        case entry(LogEntry)
+        case flush
+    }
+
+    /// Merge a log entry stream with a periodic flush timer into
+    /// a single `AsyncStream<EngineEvent>`.
+    private static func mergedEntryStream(
+        entries: AsyncStream<LogEntry>,
+        flushInterval: Duration
+    ) -> AsyncStream<EngineEvent> {
+        AsyncStream { continuation in
+            let task = Task {
+                await withTaskGroup(of: Void.self) { group in
+                    // Child 1: forward log entries
+                    group.addTask {
+                        for await entry in entries {
+                            continuation.yield(.entry(entry))
+                        }
+                    }
+                    // Child 2: periodic flush signal
+                    group.addTask {
+                        while !Task.isCancelled {
+                            try? await Task.sleep(
+                                for: flushInterval
+                            )
+                            continuation.yield(.flush)
+                        }
+                    }
+                    // Wait for entries to finish (EOF / cancel)
+                    await group.next()
+                    group.cancelAll()
+                    continuation.finish()
+                }
+            }
+            continuation.onTermination = { _ in
+                task.cancel()
             }
         }
     }
