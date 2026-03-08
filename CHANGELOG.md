@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.4.0
+
+### Features
+
+- Add battery wattage display in Power section via IOKit (Voltage × Amperage)
+- Refine popover section labels for CPU, memory, disk, and power
+
+### Bug Fixes
+
+- Fix CPU usage calculation: convert Mach absolute ticks to nanoseconds via `mach_timebase_info` and remove double-counted thread times
+- Fix real-time top processes display by expanding process sampling range
+- Align full-width row bars (MetricRow, InfoRow, SpeedRow) with two-column layout edges
+- Restore full state text in power section (Charging/Plugged/Battery)
+
+### Refactoring
+
+- Standardize all 2-column bar layouts (CoreMiniRow, DualThroughputRow) to TempMiniRow spec: label 38pt, bar flex, value 28pt, spacing 3, infoRowHeight 12pt
+- Merge memory info rows (Cache/Avail + PageIn/PageOut) into single 4-column row
+- Merge power info rows (State/Cycles/Condition) into single 4-column row with wattage
+- Compact disk, memory, and power section layouts
+
+### Tests
+
+- Add TopProcessProvider tests for sampling and CPU calculation
+
 ## v1.3.0
 
 ### Features
