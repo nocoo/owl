@@ -30,29 +30,34 @@ struct PowerSection: View {
                 color: owlHealthColor(batt.health)
             )
 
-            // State + Cycles — two-column
-            TwoColumnInfoRow(
-                leftLabel: L10n.tr(.powerState),
-                leftValue: stateValue(batt),
-                rightLabel: L10n.tr(.powerCycles),
-                rightValue: "\(batt.cycleCount)"
+            // State + Cycles + Condition + Time — four-column
+            FourColumnInfoRow(
+                c1Label: L10n.tr(.powerState),
+                c1Value: stateValue(batt),
+                c2Label: L10n.tr(.powerCycles),
+                c2Value: "\(batt.cycleCount)",
+                c3Label: L10n.tr(.powerCond),
+                c3Value: conditionText(batt),
+                c4Label: timeRemainingLabel(batt),
+                c4Value: timeRemainingValue(batt)
             )
-
-            // Condition row
-            InfoRow(L10n.tr(.powerCond), value: conditionText(batt))
         }
     }
 
     private func stateValue(_ batt: BatteryMetrics) -> String {
-        var label: String
-        if batt.isCharging { label = "⚡ \(L10n.tr(.powerCharging))" }
-        else if batt.isPluggedIn { label = "🔌 \(L10n.tr(.powerPlugged))" }
-        else { label = "🔋 \(L10n.tr(.powerBattery))" }
+        if batt.isCharging { return "⚡" }
+        if batt.isPluggedIn { return "🔌" }
+        return "🔋"
+    }
 
-        if let mins = batt.timeRemaining, mins > 0 {
-            label += " \(formatTimeRemaining(mins))"
-        }
-        return label
+    private func timeRemainingLabel(_ batt: BatteryMetrics) -> String {
+        guard let mins = batt.timeRemaining, mins > 0 else { return "" }
+        return "ETA"
+    }
+
+    private func timeRemainingValue(_ batt: BatteryMetrics) -> String {
+        guard let mins = batt.timeRemaining, mins > 0 else { return "" }
+        return formatTimeRemaining(mins)
     }
 
     private func formatTimeRemaining(_ minutes: Int) -> String {
