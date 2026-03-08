@@ -72,6 +72,10 @@ struct MemorySection: View {
 
     /// Format a large count to human-readable (e.g. 1.2M, 345K).
     private func formatCount(_ count: UInt64) -> String {
+        Self.formatCount(count)
+    }
+
+    static func formatCount(_ count: UInt64) -> String {
         if count >= 1_000_000 {
             return String(
                 format: "%.1fM",
@@ -85,6 +89,34 @@ struct MemorySection: View {
             )
         }
         return "\(count)"
+    }
+
+    // MARK: - Clipboard
+
+    /// Format current memory metrics as plain text for clipboard.
+    static func clipboardText(_ m: SystemMetrics) -> String {
+        let mem = m.extendedMemory
+        var lines: [String] = []
+        lines.append(
+            "[Memory] Used: \(String(format: "%.1f%%", mem.usedPercent))"
+            + " (\(formatBytes(mem.used)) / \(formatBytes(mem.total)))"
+        )
+        lines.append(
+            "Free: \(String(format: "%.1f%%", mem.freePercent))"
+            + " | Cache: \(formatBytes(mem.cached))"
+            + " | Avail: \(formatBytes(mem.available))"
+        )
+        lines.append(
+            "PageIn: \(formatCount(mem.pageins))"
+            + " | PageOut: \(formatCount(mem.pageouts))"
+        )
+        if mem.swapTotal > 0 {
+            lines.append(
+                "Swap: \(String(format: "%.1f%%", mem.swapPercent))"
+                + " (\(formatBytes(mem.swapUsed)) / \(formatBytes(mem.swapTotal)))"
+            )
+        }
+        return lines.joined(separator: "\n")
     }
 }
 

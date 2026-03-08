@@ -41,6 +41,21 @@ struct TemperatureSection: View {
             }
         }
     }
+
+    // MARK: - Clipboard
+
+    /// Format current temperature readings as plain text for clipboard.
+    static func clipboardText(
+        _ sensors: [TemperatureSensor]
+    ) -> String {
+        guard !sensors.isEmpty else { return "[Temperature] No data" }
+        var lines: [String] = ["[Temperature]"]
+        let parts = sensors.map {
+            "\($0.label): \(String(format: "%.0f°C", $0.celsius))"
+        }
+        lines.append(parts.joined(separator: " | "))
+        return lines.joined(separator: "\n")
+    }
 }
 
 // MARK: - Temp Mini Row

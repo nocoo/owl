@@ -57,6 +57,26 @@ struct NetworkSection: View {
         if name.hasPrefix("en") { return L10n.tr(.netEthernet(name)) }
         return name
     }
+
+    // MARK: - Clipboard
+
+    /// Format current network metrics as plain text for clipboard.
+    static func clipboardText(_ m: SystemMetrics) -> String {
+        let net = m.network
+        var lines: [String] = []
+        lines.append(
+            "[Network] Down: \(formatThroughput(net.bytesInPerSec))"
+            + " | Up: \(formatThroughput(net.bytesOutPerSec))"
+        )
+        if !net.activeInterface.isEmpty {
+            var info = "Interface: \(net.activeInterface)"
+            if !net.localIP.isEmpty {
+                info += " | IP: \(net.localIP)"
+            }
+            lines.append(info)
+        }
+        return lines.joined(separator: "\n")
+    }
 }
 
 // MARK: - Speed Row with inline sparkline

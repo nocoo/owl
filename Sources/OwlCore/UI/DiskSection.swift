@@ -41,6 +41,26 @@ struct DiskSection: View {
             )
         }
     }
+
+    // MARK: - Clipboard
+
+    /// Format current disk metrics as plain text for clipboard.
+    static func clipboardText(_ m: SystemMetrics) -> String {
+        let disk = m.disk
+        var lines: [String] = []
+        lines.append(
+            "[Disk] Usage: \(String(format: "%.1f%%", disk.usedPercent))"
+            + " (\(formatBytes(disk.usedBytes)) / \(formatBytes(disk.totalBytes)))"
+        )
+        lines.append(
+            "Read: \(formatThroughput(disk.readBytesPerSec))"
+            + " | Write: \(formatThroughput(disk.writeBytesPerSec))"
+        )
+        lines.append(
+            "Available: \(formatBytes(disk.freeBytes))"
+        )
+        return lines.joined(separator: "\n")
+    }
 }
 
 /// Two-column throughput row: Read (left) and Write (right), each with

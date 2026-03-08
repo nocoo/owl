@@ -114,6 +114,52 @@ struct CPUSection: View {
         }
         .frame(height: OwlLayout.metricRowHeight)
     }
+
+    // MARK: - Clipboard
+
+    /// Format current CPU metrics as plain text for clipboard.
+    static func clipboardText(_ m: SystemMetrics) -> String {
+        var lines: [String] = []
+        lines.append(
+            "[CPU] Total: \(String(format: "%.1f%%", m.cpuUsage))"
+        )
+
+        if !m.perCoreCPU.isEmpty {
+            let load = m.loadAverage
+            let pCount = load.performanceCores
+            let eCount = load.efficiencyCores
+            let sorted = m.perCoreCPU.sorted { $0.id < $1.id }
+
+            if pCount > 0 {
+                let pCores = sorted.prefix(pCount)
+                let vals = pCores.map {
+                    String(format: "P%02d %.0f%%", $0.id, $0.usage)
+                }
+                lines.append("P-Cores ×\(pCount): \(vals.joined(separator: " | "))")
+            }
+
+            if eCount > 0 {
+                let eCores = sorted.dropFirst(pCount).prefix(eCount)
+                let vals = eCores.map {
+                    String(format: "E%02d %.0f%%", $0.id, $0.usage)
+                }
+                lines.append("E-Cores ×\(eCount): \(vals.joined(separator: " | "))")
+            }
+
+            if pCount == 0 && eCount == 0 {
+                let vals = sorted.map {
+                    String(format: "C%02d %.0f%%", $0.id, $0.usage)
+                }
+                lines.append("Cores: \(vals.joined(separator: " | "))")
+            }
+        }
+
+        let la = m.loadAverage
+        lines.append(
+            "Load: \(String(format: "%.2f / %.2f / %.2f", la.one, la.five, la.fifteen))"
+        )
+        return lines.joined(separator: "\n")
+    }
 }
 
 // MARK: - Core Mini Row

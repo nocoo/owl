@@ -38,19 +38,49 @@ public struct PopoverContentView: View {
             // Scrollable content: metrics + alerts
             ScrollView {
                 VStack(alignment: .leading, spacing: 6) {
-                    CPUSection(metrics: appState.metrics)
-                    MemorySection(metrics: appState.metrics)
-                    DiskSection(metrics: appState.metrics)
-                    PowerSection(metrics: appState.metrics)
-                    TemperatureSection(
-                        sensors: appState.metrics.temperatures
-                    )
-                    NetworkSection(
-                        metrics: appState.metrics,
-                        inHistory: appState.networkInHistory,
-                        outHistory: appState.networkOutHistory
-                    )
-                    ProcessesSection(metrics: appState.metrics)
+                    CopyableSection(
+                        clipboardText: CPUSection.clipboardText(appState.metrics)
+                    ) {
+                        CPUSection(metrics: appState.metrics)
+                    }
+                    CopyableSection(
+                        clipboardText: MemorySection.clipboardText(appState.metrics)
+                    ) {
+                        MemorySection(metrics: appState.metrics)
+                    }
+                    CopyableSection(
+                        clipboardText: DiskSection.clipboardText(appState.metrics)
+                    ) {
+                        DiskSection(metrics: appState.metrics)
+                    }
+                    CopyableSection(
+                        clipboardText: PowerSection.clipboardText(appState.metrics)
+                    ) {
+                        PowerSection(metrics: appState.metrics)
+                    }
+                    CopyableSection(
+                        clipboardText: TemperatureSection.clipboardText(
+                            appState.metrics.temperatures
+                        )
+                    ) {
+                        TemperatureSection(
+                            sensors: appState.metrics.temperatures
+                        )
+                    }
+                    CopyableSection(
+                        clipboardText: NetworkSection.clipboardText(appState.metrics)
+                    ) {
+                        NetworkSection(
+                            metrics: appState.metrics,
+                            inHistory: appState.networkInHistory,
+                            outHistory: appState.networkOutHistory
+                        )
+                    }
+                    CopyableSection(
+                        clipboardText: ProcessesSection.clipboardText(appState.metrics)
+                    ) {
+                        ProcessesSection(metrics: appState.metrics)
+                    }
                 }
                 .padding(.horizontal, OwlLayout.popoverPaddingH)
                 .padding(.vertical, OwlLayout.popoverPaddingV)

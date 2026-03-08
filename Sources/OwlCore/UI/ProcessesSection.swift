@@ -61,4 +61,23 @@ struct ProcessesSection: View {
         }
         return name
     }
+
+    // MARK: - Clipboard
+
+    /// Format current top processes as plain text for clipboard.
+    static func clipboardText(_ m: SystemMetrics) -> String {
+        let procs = m.topProcesses
+        guard !procs.isEmpty else {
+            return "[Top Processes] No data"
+        }
+        var lines: [String] = ["[Top Processes]"]
+        for (i, proc) in procs.prefix(3).enumerated() {
+            lines.append(
+                "\(i + 1). \(proc.name)"
+                + " \(String(format: "%.1f%%", proc.cpuPercent))"
+                + " (pid \(proc.id))"
+            )
+        }
+        return lines.joined(separator: "\n")
+    }
 }

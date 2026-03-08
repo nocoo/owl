@@ -68,4 +68,29 @@ struct PowerSection: View {
         }
     }
 
+    // MARK: - Clipboard
+
+    /// Format current power/battery metrics as plain text for clipboard.
+    static func clipboardText(_ m: SystemMetrics) -> String {
+        let batt = m.battery
+        var lines: [String] = []
+        lines.append(
+            "[Power] Level: \(String(format: "%.0f%%", batt.level))"
+            + " | Health: \(String(format: "%.0f%%", batt.health))"
+        )
+
+        var state: String
+        if batt.isCharging { state = "Charging" }
+        else if batt.isPluggedIn { state = "Plugged In" }
+        else { state = "Battery" }
+
+        var detail = "State: \(state) | Cycles: \(batt.cycleCount)"
+        detail += " | Condition: \(batt.condition)"
+        if let w = batt.wattage {
+            detail += " | \(String(format: "%.1fW", w))"
+        }
+        lines.append(detail)
+        return lines.joined(separator: "\n")
+    }
+
 }
