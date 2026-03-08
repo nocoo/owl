@@ -37,14 +37,17 @@ struct MemorySection: View {
                 value: "\(formatBytes(mem.used)) / \(formatBytes(mem.total))"
             )
 
-            if mem.cached > 0 || mem.available > 0 {
-                TwoColumnInfoRow(
-                    leftLabel: L10n.tr(.memCache),
-                    leftValue: formatBytes(mem.cached),
-                    rightLabel: L10n.tr(.memAvail),
-                    rightValue: formatBytes(mem.available)
-                )
-            }
+            // Cache / Avail / PageIn / PageOut — merged 4-column row
+            FourColumnInfoRow(
+                c1Label: L10n.tr(.memCache),
+                c1Value: formatBytes(mem.cached),
+                c2Label: L10n.tr(.memAvail),
+                c2Value: formatBytes(mem.available),
+                c3Label: L10n.tr(.memPageIn),
+                c3Value: formatCount(mem.pageins),
+                c4Label: L10n.tr(.memPageOut),
+                c4Value: formatCount(mem.pageouts)
+            )
 
             // Swap bar + info rows
             if mem.swapTotal > 0 {
@@ -62,16 +65,6 @@ struct MemorySection: View {
                 InfoRow(
                     "",
                     value: "\(formatBytes(mem.swapUsed)) / \(formatBytes(mem.swapTotal))"
-                )
-            }
-
-            // Pageins / Pageouts (cumulative since boot)
-            if mem.pageins > 0 || mem.pageouts > 0 {
-                TwoColumnInfoRow(
-                    leftLabel: L10n.tr(.memPageIn),
-                    leftValue: formatCount(mem.pageins),
-                    rightLabel: L10n.tr(.memPageOut),
-                    rightValue: formatCount(mem.pageouts)
                 )
             }
         }
@@ -92,6 +85,40 @@ struct MemorySection: View {
             )
         }
         return "\(count)"
+    }
+}
+
+/// Four-column info row: 4 label-value pairs in a single row.
+struct FourColumnInfoRow: View {
+    let c1Label: String
+    let c1Value: String
+    let c2Label: String
+    let c2Value: String
+    let c3Label: String
+    let c3Value: String
+    let c4Label: String
+    let c4Value: String
+
+    var body: some View {
+        HStack(spacing: 0) {
+            column(label: c1Label, value: c1Value)
+            column(label: c2Label, value: c2Value)
+            column(label: c3Label, value: c3Value)
+            column(label: c4Label, value: c4Value)
+        }
+        .frame(height: OwlLayout.infoRowHeight)
+    }
+
+    private func column(label: String, value: String) -> some View {
+        HStack(spacing: 2) {
+            Text(label)
+                .font(OwlFont.twoColumnText)
+                .foregroundStyle(.tertiary)
+            Text(value)
+                .font(OwlFont.twoColumnText)
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
