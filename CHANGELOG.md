@@ -1,5 +1,42 @@
 # Changelog
 
+## v1.3.0
+
+### Features
+
+- Add HID thermal sensor support via `IOHIDEventSystemClient` for reliable CPU temperature on Apple Silicon (replaces unreliable SMC `Tp*` keys)
+- Add `HIDThermalBridge` Obj-C target and `HIDTemperatureProvider` Swift wrapper with automatic chip generation detection (M1/M2 pACC/eACC, M3/M4 PMU tdie)
+- Add smooth animation to MiniBar and temperature text transitions
+- Show aggregated CPU/GPU/SSD/Battery temperatures instead of raw HID sensor dump
+
+### Bug Fixes
+
+- Fix CPU temperature flickering on Apple Silicon (M4 Max) — SMC `Tp*` keys return garbage data; now uses HID sensors as primary source
+- Tighten temperature validation range to 5–130°C to reject spurious readings
+- Cache last-known-good temperature to survive sporadic bad reads
+- Reset SMC input/output structs before second call to prevent stale data
+- Cache IOKit SMC connection for provider lifetime instead of per-call open/close
+- Add carry-over buffer to prevent pipe-fragmented line drops in log stream
+- Retain log stream reader reference to prevent subprocess leak on shutdown
+- Handle `\uXXXX` unicode escapes and surrogate pairs in fast JSON parser
+- Defer `proc_name` calls to top-N candidates only to reduce syscall overhead
+- Add independent timer flush to prevent entries stuck in batch during low traffic
+- Annotate `AlertStateManager` with `@MainActor` for compile-time isolation
+
+### Performance
+
+- Replace O(n log n) sort with linear scan in LRU eviction
+- Avoid temporary set allocation in `distinctCount` by counting incrementally
+
+### Refactoring
+
+- Migrate `AppState` from `ObservableObject` to `@Observable` for property-level tracking
+
+### Tests
+
+- Add unit tests for SMC temperature decoding and validation range
+- Add 12 tests for HIDTemperatureProvider sensor name parsing across chip generations
+
 ## v1.2.0
 
 ### Features

@@ -41,7 +41,7 @@ Owl 需要以下能力，均不允许在 App Store 沙箱中使用：
 
 <!-- 版本号 -->
 <key>CFBundleShortVersionString</key>
-<string>1.2.0</string>
+<string>1.3.0</string>
 <key>CFBundleVersion</key>
 <string>2</string>
 ```
@@ -172,8 +172,8 @@ Notarization 需要 App-Specific Password（非 Apple ID 密码）：
 
 最简单的分发方式，适合开发者用户群：
 
-1. 在 GitHub repo 创建 Release tag（例如 `v1.2.0`）
-2. 上传已公证的 `Owl-v1.2.0.dmg`
+1. 在 GitHub repo 创建 Release tag（例如 `v1.3.0`）
+2. 上传已公证的 `Owl-v1.3.0.dmg`
 3. 用户下载后解压，拖入 /Applications
 
 ### 安装方式
@@ -214,7 +214,7 @@ xcrun stapler staple build/release/Owl.dmg
 
 ```ruby
 cask "owl" do
-  version "1.2.0"
+  version "1.3.0"
   sha256 "..."
   url "https://github.com/nocoo/owl/releases/download/v#{version}/Owl.dmg"
   name "Owl"
@@ -331,6 +331,7 @@ jobs:
 |------|---------|
 | 1.0.0 | 首发，14 个检测器 + Menu Bar UI |
 | 1.2.0 | SignatureDetector、P05 signature migration、GitHub DMG release script |
+| 1.3.0 | HID thermal sensors for Apple Silicon, smooth MiniBar animations |
 | 1.1.0 | 新增检测器或 UI 改进 |
 | 1.0.1 | Bug 修复 |
 | 2.0.0 | 重大架构变更（如加入自动更新、插件系统等） |
