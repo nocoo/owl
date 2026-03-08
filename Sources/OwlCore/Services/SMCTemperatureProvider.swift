@@ -123,9 +123,17 @@ public final class SMCTemperatureProvider: Sendable {
         let dataType = outputStruct.keyInfo.dataType
         let dataSize = outputStruct.keyInfo.dataSize
 
-        // Now read the value
+        // Now read the value – fully reset both structs so no
+        // stale bytes from the kGetKeyInfo call can leak into the
+        // read result (root cause of sporadic 40°C → 2°C jumps).
+        inputStruct = SMCKeyData()
+        inputStruct.key = UInt32(keyBytes[0]) << 24
+            | UInt32(keyBytes[1]) << 16
+            | UInt32(keyBytes[2]) << 8
+            | UInt32(keyBytes[3])
         inputStruct.data8 = SMCKeyData.kReadCommand
         inputStruct.keyInfo.dataSize = dataSize
+        outputStruct = SMCKeyData()
         outputSize = MemoryLayout<SMCKeyData>.stride
 
         let readResult = callSMC(
