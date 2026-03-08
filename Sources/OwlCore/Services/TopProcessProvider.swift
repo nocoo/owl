@@ -19,8 +19,16 @@ public struct TopProcessProvider: Sendable {
         guard actualSize > 0 else { return [] }
 
         let pidCount = Int(actualSize)
-        var entries: [ProcessMetric] = []
-        entries.reserveCapacity(min(pidCount, 200))
+
+        // Phase 1: Collect CPU times only (skip expensive proc_name).
+        // Use a lightweight struct to hold (pid, cpuTimeNs).
+        struct PidCPU {
+            let pid: pid_t
+            let cpuTimeNs: UInt64
+        }
+
+        var candidates: [PidCPU] = []
+        candidates.reserveCapacity(min(pidCount, 200))
 
         for idx in 0..<pidCount {
             let pid = pids[idx]
@@ -37,26 +45,36 @@ public struct TopProcessProvider: Sendable {
             )
             guard result == infoSize else { continue }
 
-            // CPU time in nanoseconds
             let cpuTimeNs = taskInfo.pti_total_user
                 + taskInfo.pti_total_system
 
-            // Get process name
+            candidates.append(PidCPU(
+                pid: pid, cpuTimeNs: cpuTimeNs
+            ))
+        }
+
+        // Phase 2: Sort by CPU time descending, take top N.
+        candidates.sort { $0.cpuTimeNs > $1.cpuTimeNs }
+        let topCandidates = candidates.prefix(count)
+
+        // Phase 3: Resolve process names only for top N.
+        var entries: [ProcessMetric] = []
+        entries.reserveCapacity(topCandidates.count)
+
+        for candidate in topCandidates {
             var nameBuffer = [CChar](repeating: 0, count: 256)
-            proc_name(pid, &nameBuffer, 256)
+            proc_name(candidate.pid, &nameBuffer, 256)
             let name = String(cString: nameBuffer)
             guard !name.isEmpty else { continue }
 
             entries.append(ProcessMetric(
-                id: pid,
+                id: candidate.pid,
                 name: name,
-                cpuPercent: Double(cpuTimeNs)
+                cpuPercent: Double(candidate.cpuTimeNs)
             ))
         }
 
-        // Sort by CPU time descending, take top N
-        entries.sort { $0.cpuPercent > $1.cpuPercent }
-        return Array(entries.prefix(count))
+        return entries
     }
 
     /// Computes CPU percent from two snapshots taken
