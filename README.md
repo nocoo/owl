@@ -1,128 +1,157 @@
-# Owl
+<p align="center"><img src="owl.png" width="128" height="128" /></p>
 
-**macOS system health monitor in the Menu Bar.**
+<h1 align="center">Owl</h1>
 
-Owl watches the macOS unified log stream in real-time, detects known anomaly patterns (thermal throttling, crash loops, disk issues, WiFi degradation, etc.), and surfaces them as visual alerts in the Menu Bar — so problems never go unnoticed.
+<p align="center"><strong>macOS 菜单栏系统健康监控器</strong><br>实时日志分析 · 异常模式检测 · 零依赖原生应用</p>
 
-## Why
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS_14+-000000?logo=apple&logoColor=white" />
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" />
+  <img src="https://img.shields.io/badge/tests-485-brightgreen" />
+  <img src="https://img.shields.io/github/license/nocoo/owl" />
+</p>
 
-macOS already logs every significant system event. Thermal throttling, process crashes, memory pressure kills, Bluetooth disconnects — it's all there in the unified log. But nobody watches the log. Owl does.
+<p align="center">
+  <img src="https://s.zhe.to/dcd0e6e42358/20260307/bd240b86-6874-4f0c-a147-9000629cc37c.jpg" width="720" />
+</p>
 
-## How It Works
+---
 
-1. Spawns `/usr/bin/log stream --style ndjson` with a predicate filter (kernel-side, minimal overhead)
-2. Parses each JSON log entry and routes it through 14 pattern detectors
-3. Each detector uses one of three simple algorithms: **Threshold**, **Rate counting**, or **State tracking**
-4. Alerts appear as color changes on the Menu Bar icon; click for details
+## 这是什么
 
-**Performance**: RAM ~12 MB, zero external dependencies, 100% native Swift.
+Owl 监听 macOS 统一日志流（Unified Log），通过 14 个模式检测器实时识别系统异常，并在菜单栏以颜色变化呈现告警。
 
-## Detectable Patterns
+macOS 已经在日志中记录了所有重要的系统事件——热节流、进程崩溃、内存压力杀死、蓝牙断连——只是没人看。Owl 替你看。
 
-| # | Pattern | Algorithm |
-|---|---------|-----------|
-| 1 | Thermal throttling | Threshold |
-| 2 | Process crash-loop | Rate |
-| 3 | APFS disk flush delay | Threshold |
-| 4 | WiFi signal degradation | Threshold |
-| 5 | Sandbox violation storm | Rate |
-| 6 | Sleep assertion leak | State |
-| 7 | Process crash signals | Rate |
-| 8 | Bluetooth disconnects | Rate |
-| 9 | TCC permission storm | Rate |
-| 10 | Jetsam memory kill | Threshold + Rate |
-| 11 | App hang / not responding | Rate |
-| 12 | Network connection failures | Rate |
-| 13 | USB device errors | Rate |
-| 14 | DarkWake abnormal wakes | Rate |
-
-## Requirements
-
-- macOS 14 Sonoma or later
-- No external dependencies — 100% Apple native frameworks
-
-## Install
-
-Download the latest `Owl.dmg` from [Releases](https://github.com/nocoo/owl/releases), open it, and drag `Owl.app` to `/Applications`.
-
-Owl runs as a Menu Bar app (no Dock icon). Click the owl icon to see system status, active alerts, and recent history. Right-click for Settings and Quit.
-
-## Build from Source
-
-```bash
-# Clone
-git clone https://github.com/nocoo/owl.git
-cd owl
-
-# Build and run (debug)
-swift build && .build/debug/Owl
-
-# Build release .app bundle
-./scripts/build.sh
-
-# Build with code signing (for distribution)
-./scripts/build.sh --sign "Developer ID Application: Your Name (TEAMID)"
-
-# Package as DMG
-./scripts/package-dmg.sh
-
-# Package and upload versioned DMG to GitHub Releases
-./scripts/release-gh.sh
-
-# Notarize (requires Apple Developer credentials)
-./scripts/notarize.sh        # notarize .app
-./scripts/notarize.sh --dmg  # notarize .dmg
+```
+┌─────────────┐     ┌───────────────┐     ┌──────────────┐     ┌────────────┐
+│  log stream  │────▶│  14 Patterns  │────▶│  4 Detector  │────▶│  Menu Bar  │
+│  (ndjson)    │     │  (filter)     │     │  Engines     │     │  (alerts)  │
+└─────────────┘     └───────────────┘     └──────────────┘     └────────────┘
 ```
 
-## Test
+**性能**：内存 ~12 MB，零外部依赖，100% 原生 Swift。
 
-```bash
-# Run all 366 tests (38 suites)
-swift test
+## 功能
 
-# Run only integration tests
-swift test --filter Integration
+- **热节流检测** — 内核功率预算低于阈值时发出警告
+- **进程崩溃循环** — 追踪 launchd 服务反复崩溃重启
+- **磁盘刷写延迟** — APFS tx_flush 超过阈值时告警
+- **WiFi 信号衰退** — RSSI 值持续低于安全范围
+- **沙盒违规风暴** — 统计进程被 Sandbox/SystemPolicy 拒绝的签名多样性
+- **睡眠断言泄漏** — 追踪 powerd Created/Released 配对，检测未释放断言
+- **进程崩溃信号** — 检测 QUIT/SIGABRT/SIGSEGV 等异常退出
+- **蓝牙断连** — 按 MAC 地址分组追踪设备断连频率
+- **TCC 权限风暴** — 检测应用被系统反复拒绝权限请求
+- **Jetsam 内存杀** — 单次杀死即时告警，频繁杀死升级为严重
+- **应用挂起** — 追踪 WindowServer 报告的 App Not Responding
+- **网络连接失败** — 全局统计 ping 失败和网络异常
+- **USB 设备错误** — 按设备 ID 分组追踪 abortGated 错误
+- **DarkWake 异常唤醒** — 检测系统频繁异常唤醒
 
-# Lint
-swiftlint --strict
-```
+## 安装
 
-Test architecture:
-- **L1**: 366 unit + integration tests via Swift Testing framework
-- **L2**: SwiftLint strict mode (zero violations)
-- **L3**: 11 end-to-end integration tests (log stream → pipeline → alerts)
+从 [Releases](https://github.com/nocoo/owl/releases) 下载最新 `Owl.dmg`，打开后将 `Owl.app` 拖入 `/Applications`。
 
-## Project Structure
+Owl 以菜单栏应用运行（无 Dock 图标）。点击猫头鹰图标查看系统状态、活跃告警和历史记录。右键点击可进入设置或退出。
+
+## 可检测模式
+
+| # | 模式 | 算法 | 说明 |
+|---|------|------|------|
+| 1 | Thermal Throttling | Threshold | 内核功率预算阈值检测 |
+| 2 | Crash Loop | Rate | launchd 服务崩溃频率 |
+| 3 | Disk Flush Delay | Threshold | APFS tx_flush 延迟 |
+| 4 | WiFi Degradation | Threshold | RSSI 信号强度 |
+| 5 | Sandbox Violation | Signature | 沙盒拒绝签名多样性 |
+| 6 | Sleep Assertion Leak | State | 睡眠断言配对追踪 |
+| 7 | Crash Signals | Rate | 进程异常退出信号 |
+| 8 | Bluetooth Disconnect | Rate | 蓝牙设备断连频率 |
+| 9 | TCC Permission Storm | Rate | 权限请求拒绝频率 |
+| 10 | Jetsam Memory Kill | Threshold + Rate | 内存压力杀死（混合检测） |
+| 11 | App Hang | Rate | 应用无响应事件 |
+| 12 | Network Failure | Rate | 网络连接失败 |
+| 13 | USB Device Error | Rate | USB 设备错误 |
+| 14 | DarkWake | Rate | 系统异常唤醒 |
+
+## 项目结构
 
 ```
 owl/
 ├── Sources/
-│   ├── Owl/                    # App entry point (AppDelegate, Menu Bar)
-│   └── OwlCore/                # Core library (all testable logic)
+│   ├── Owl/                    # 应用入口 (AppDelegate, Menu Bar)
+│   └── OwlCore/                # 核心库 (全部可测试逻辑)
+│       ├── Detectors/          # Threshold / Rate / Signature / State 四种引擎
 │       ├── Models/             # LogEntry, Alert, Severity
-│       ├── Detectors/          # ThresholdDetector, RateDetector, StateDetector
-│       ├── Patterns/           # 14 pattern configs + PatternCatalog
+│       ├── Patterns/           # 14 个模式配置 + PatternCatalog
 │       ├── Pipeline/           # DetectorPipeline, AlertStateManager
 │       ├── Services/           # LogStreamReader, SystemMetricsPoller
 │       ├── Settings/           # AppSettings, DetectorCatalog
 │       └── UI/                 # SwiftUI views, AppState, StatusItemMapper
-├── Tests/OwlCoreTests/         # 366 tests in 38 suites
-├── scripts/                    # build, notarize, DMG packaging
-└── docs/                       # Design documentation
+├── Tests/OwlCoreTests/         # 485 tests / 42 suites
+├── scripts/                    # build, notarize, DMG 打包
+└── docs/                       # 设计文档
 ```
 
-## Documentation
+## 技术栈
 
-Detailed design docs in [`docs/`](docs/):
+| 层 | 技术 |
+|----|------|
+| 语言 | [Swift 6](https://www.swift.org/) + swift-tools-version 5.9 |
+| UI 框架 | [SwiftUI](https://developer.apple.com/xcode/swiftui/) (MenuBarExtra) |
+| 日志采集 | `/usr/bin/log stream --style ndjson`（内核侧谓词过滤） |
+| 并发模型 | [Swift Concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) (Actor, AsyncSequence) |
+| 系统接口 | [IOKit](https://developer.apple.com/documentation/iokit) (CPU/内存/磁盘指标) |
+| 构建 | [Swift Package Manager](https://www.swift.org/documentation/package-manager/) |
+| 测试 | [Swift Testing](https://developer.apple.com/xcode/swift-testing/) |
 
-1. [Project Overview](docs/01-overview.md)
-2. [Technical Architecture](docs/02-architecture.md)
-3. [Detectable Pattern Catalog](docs/03-patterns.md)
-4. [Detection Algorithm Design](docs/04-detection-algorithms.md)
-5. [Menu Bar UI Design](docs/05-ui-design.md)
-6. [Build & Distribution](docs/06-distribution.md)
-7. [Development Plan](docs/07-development-plan.md)
+## 开发
+
+**环境要求**：macOS 14 Sonoma 或更高版本，Xcode 16+
+
+**快速开始**：
+
+```bash
+git clone https://github.com/nocoo/owl.git
+cd owl
+swift build -c release --product Owl
+nohup .build/release/Owl > /dev/null 2>&1 &
+```
+
+**常用命令**：
+
+| 命令 | 说明 |
+|------|------|
+| `swift build` | Debug 构建 |
+| `swift build -c release --product Owl` | Release 构建 |
+| `swift test` | 运行全部 485 个测试 |
+| `swift test --filter Integration` | 仅运行集成测试 |
+| `./scripts/build.sh` | 构建 .app bundle |
+| `./scripts/package-dmg.sh` | 打包 DMG |
+| `./scripts/release-gh.sh` | 打包并发布到 GitHub Releases |
+| `./scripts/notarize.sh` | 公证 .app |
+| `./scripts/notarize.sh --dmg` | 公证 .dmg |
+
+## 测试
+
+| 层 | 内容 | 触发时机 |
+|----|------|----------|
+| L1 | 485 个单元 + 集成测试 (Swift Testing) | `swift test` / pre-commit |
+| L2 | SwiftLint strict mode（零违规） | pre-commit |
+| L3 | 11 个端到端集成测试（日志流 → Pipeline → 告警） | `swift test --filter Integration` |
+
+## 文档
+
+| 文档 | 内容 |
+|------|------|
+| [01-overview.md](docs/01-overview.md) | 项目概述 |
+| [02-architecture.md](docs/02-architecture.md) | 技术架构 |
+| [03-patterns.md](docs/03-patterns.md) | 可检测模式目录 |
+| [04-detection-algorithms.md](docs/04-detection-algorithms.md) | 检测算法设计 |
+| [05-ui-design.md](docs/05-ui-design.md) | 菜单栏 UI 设计 |
+| [06-distribution.md](docs/06-distribution.md) | 构建与分发 |
+| [07-development-plan.md](docs/07-development-plan.md) | 开发计划 |
 
 ## License
 
-See [LICENSE](LICENSE).
+[MIT](LICENSE) © 2026
