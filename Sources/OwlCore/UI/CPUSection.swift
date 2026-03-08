@@ -30,7 +30,8 @@ struct CPUSection: View {
                     let pCores = Array(sorted.prefix(pCount))
                     coreGroup(
                         label: "\(L10n.tr(.cpuPCores)) ×\(pCount)",
-                        cores: pCores
+                        cores: pCores,
+                        prefix: "P"
                     )
                 }
 
@@ -38,7 +39,8 @@ struct CPUSection: View {
                     let eCores = Array(sorted.dropFirst(pCount).prefix(eCount))
                     coreGroup(
                         label: "\(L10n.tr(.cpuECores)) ×\(eCount)",
-                        cores: eCores
+                        cores: eCores,
+                        prefix: "E"
                     )
                 }
 
@@ -54,7 +56,11 @@ struct CPUSection: View {
     }
 
     @ViewBuilder
-    private func coreGroup(label: String, cores: [CoreCPUUsage]) -> some View {
+    private func coreGroup(
+        label: String,
+        cores: [CoreCPUUsage],
+        prefix: String = "C"
+    ) -> some View {
         // Group header
         HStack(spacing: 4) {
             Text(label)
@@ -73,7 +79,7 @@ struct CPUSection: View {
         ForEach(Array(pairs.enumerated()), id: \.offset) { _, pair in
             HStack(spacing: 6) {
                 ForEach(pair) { core in
-                    CoreMiniRow(core: core)
+                    CoreMiniRow(core: core, prefix: prefix)
                 }
                 // If odd core count, fill the empty space
                 if pair.count == 1 {
@@ -112,16 +118,18 @@ struct CPUSection: View {
 
 // MARK: - Core Mini Row
 
-/// Compact single-core display: "C0" label + tiny bar + percentage.
+/// Compact single-core display: "P01" / "E04" label + tiny bar + percentage.
 private struct CoreMiniRow: View {
     let core: CoreCPUUsage
+    let prefix: String
 
     var body: some View {
         HStack(spacing: 3) {
-            Text(String(format: "%2d", core.id))
+            Text(String(format: "%@%02d", prefix, core.id))
                 .font(OwlFont.miniLabel)
                 .foregroundStyle(.tertiary)
-                .frame(width: 14, alignment: .trailing)
+                .frame(width: 38, alignment: .leading)
+                .lineLimit(1)
 
             MiniBar(
                 value: core.usage,
@@ -132,6 +140,11 @@ private struct CoreMiniRow: View {
                 .font(OwlFont.miniValue)
                 .foregroundStyle(.secondary)
                 .frame(width: 28, alignment: .trailing)
+                .contentTransition(.numericText())
+                .animation(
+                    .easeInOut(duration: 0.6),
+                    value: core.usage
+                )
         }
         .frame(maxWidth: .infinity)
     }

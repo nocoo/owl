@@ -44,7 +44,7 @@ struct DiskSection: View {
 }
 
 /// Two-column throughput row: Read (left) and Write (right), each with
-/// a mini bar and value text. Compact layout without fixed label widths.
+/// a mini bar and value text. Styled to match TempMiniRow standard.
 private struct DualThroughputRow: View {
     let readBytesPerSec: Double
     let writeBytesPerSec: Double
@@ -68,7 +68,7 @@ private struct DualThroughputRow: View {
                 color: OwlDiskColor.write.opacity(0.7)
             )
         }
-        .frame(height: OwlLayout.metricRowHeight)
+        .frame(height: OwlLayout.infoRowHeight)
     }
 
     private func halfColumn(
@@ -78,18 +78,25 @@ private struct DualThroughputRow: View {
     ) -> some View {
         HStack(spacing: 3) {
             Text(label)
-                .font(OwlFont.twoColumnText)
-                .foregroundStyle(.secondary)
-                .fixedSize()
+                .font(OwlFont.miniLabel)
+                .foregroundStyle(.tertiary)
+                .frame(width: 38, alignment: .leading)
+                .lineLimit(1)
             MiniBar(
                 value: min(bytes, maxRate),
                 max: maxRate,
                 color: color
             )
             Text(formatThroughput(bytes))
-                .font(OwlFont.twoColumnText)
+                .font(OwlFont.miniValue)
                 .foregroundStyle(.secondary)
-                .fixedSize()
+                .frame(width: 28, alignment: .trailing)
+                .contentTransition(.numericText())
+                .animation(
+                    .easeInOut(duration: 0.6),
+                    value: bytes
+                )
         }
+        .frame(maxWidth: .infinity)
     }
 }
