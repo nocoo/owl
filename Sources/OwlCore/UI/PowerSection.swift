@@ -30,7 +30,7 @@ struct PowerSection: View {
                 color: owlHealthColor(batt.health)
             )
 
-            // State + Cycles + Condition + Time — four-column
+            // State + Cycles + Condition + Wattage — four-column
             FourColumnInfoRow(
                 c1Label: L10n.tr(.powerState),
                 c1Value: stateValue(batt),
@@ -38,8 +38,8 @@ struct PowerSection: View {
                 c2Value: "\(batt.cycleCount)",
                 c3Label: L10n.tr(.powerCond),
                 c3Value: conditionText(batt),
-                c4Label: timeRemainingLabel(batt),
-                c4Value: timeRemainingValue(batt)
+                c4Label: wattageLabel(batt),
+                c4Value: wattageValue(batt)
             )
         }
     }
@@ -50,20 +50,14 @@ struct PowerSection: View {
         return "🔋 \(L10n.tr(.powerBattery))"
     }
 
-    private func timeRemainingLabel(_ batt: BatteryMetrics) -> String {
-        guard let mins = batt.timeRemaining, mins > 0 else { return "" }
-        return "ETA"
+    private func wattageLabel(_ batt: BatteryMetrics) -> String {
+        guard batt.wattage != nil else { return "" }
+        return L10n.tr(.powerWatt)
     }
 
-    private func timeRemainingValue(_ batt: BatteryMetrics) -> String {
-        guard let mins = batt.timeRemaining, mins > 0 else { return "" }
-        return formatTimeRemaining(mins)
-    }
-
-    private func formatTimeRemaining(_ minutes: Int) -> String {
-        let h = minutes / 60
-        let m = minutes % 60
-        return String(format: "%d:%02d", h, m)
+    private func wattageValue(_ batt: BatteryMetrics) -> String {
+        guard let w = batt.wattage else { return "" }
+        return String(format: "%.1fW", w)
     }
 
     private func conditionText(_ batt: BatteryMetrics) -> String {

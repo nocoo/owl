@@ -102,6 +102,7 @@ public enum L10nKey: Sendable {
     case powerUnavailable
     case powerNA
     case powerNormal
+    case powerWatt
 
     // Temperature (no extra keys needed — sensor labels are dynamic)
 
@@ -388,6 +389,7 @@ public enum L10n {
         case .powerUnavailable: return "Unavailable"
         case .powerNA: return "N/A"
         case .powerNormal: return "Normal"
+        case .powerWatt: return "Watt"
 
         // Network
         case .netDown: return "Down"
@@ -709,6 +711,7 @@ public enum L10n {
         case .powerUnavailable: return "不可用"
         case .powerNA: return "N/A"
         case .powerNormal: return "正常"
+        case .powerWatt: return "功率"
 
         // Network
         case .netDown: return "下行"

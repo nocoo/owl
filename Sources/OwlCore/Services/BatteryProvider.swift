@@ -56,7 +56,8 @@ public struct BatteryProvider: Sendable {
             isPluggedIn: isPluggedIn,
             temperature: temperature,
             timeRemaining: timeMinutes,
-            condition: condition
+            condition: condition,
+            wattage: readWattage()
         )
     }
 
@@ -119,5 +120,34 @@ public struct BatteryProvider: Sendable {
             0
         )
         return prop?.takeRetainedValue() as? Int ?? 0
+    }
+
+    /// Read instantaneous power in watts from AppleSmartBattery.
+    /// Voltage (mV) × Amperage (mA) / 1_000_000 = Watts.
+    /// Amperage is negative when discharging; we return abs value.
+    private func readWattage() -> Double? {
+        let service = IOServiceGetMatchingService(
+            kIOMainPortDefault,
+            IOServiceMatching("AppleSmartBattery")
+        )
+        guard service != IO_OBJECT_NULL else { return nil }
+        defer { IOObjectRelease(service) }
+
+        guard let vProp = IORegistryEntryCreateCFProperty(
+            service, "Voltage" as CFString,
+            kCFAllocatorDefault, 0
+        ),
+            let aProp = IORegistryEntryCreateCFProperty(
+                service, "Amperage" as CFString,
+                kCFAllocatorDefault, 0
+            )
+        else { return nil }
+
+        guard let mV = vProp.takeRetainedValue() as? Int,
+              let mA = aProp.takeRetainedValue() as? Int,
+              mV > 0
+        else { return nil }
+
+        return abs(Double(mV) * Double(mA)) / 1_000_000
     }
 }

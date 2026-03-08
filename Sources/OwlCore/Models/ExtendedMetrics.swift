@@ -165,6 +165,7 @@ public struct BatteryMetrics: Sendable, Equatable {
     public let temperature: Double? // Celsius
     public let timeRemaining: Int? // minutes
     public let condition: String // "Normal", "Service Recommended"
+    public let wattage: Double? // Watts (positive = charging, negative = discharging)
 
     public init(
         level: Double,
@@ -174,7 +175,8 @@ public struct BatteryMetrics: Sendable, Equatable {
         isPluggedIn: Bool,
         temperature: Double?,
         timeRemaining: Int?,
-        condition: String
+        condition: String,
+        wattage: Double? = nil
     ) {
         self.level = level
         self.health = health
@@ -184,6 +186,7 @@ public struct BatteryMetrics: Sendable, Equatable {
         self.temperature = temperature
         self.timeRemaining = timeRemaining
         self.condition = condition
+        self.wattage = wattage
     }
 
     public var stateText: String {
