@@ -8,9 +8,19 @@ let package = Package(
         .macOS(.v14)
     ],
     targets: [
+        // Obj-C bridge for Apple Silicon IOHIDEventSystemClient temperature API
+        .target(
+            name: "HIDThermalBridge",
+            path: "Sources/HIDThermalBridge",
+            publicHeadersPath: "include",
+            linkerSettings: [
+                .linkedFramework("IOKit")
+            ]
+        ),
         // Core library — all testable business logic lives here
         .target(
             name: "OwlCore",
+            dependencies: ["HIDThermalBridge"],
             path: "Sources/OwlCore",
             linkerSettings: [
                 .linkedFramework("IOKit")
