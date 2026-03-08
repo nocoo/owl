@@ -85,7 +85,7 @@ public final class SMCTemperatureProvider: Sendable {
         for key in keys {
             if let temp = readSMCKey(
                 connection: connection, key: key
-            ), temp > 0, temp < 150 {
+            ), temp > 5, temp < 130 {
                 return temp
             }
         }
