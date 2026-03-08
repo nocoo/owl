@@ -514,29 +514,30 @@ public actor SystemMetricsPoller {
     private func sampleTemperatures(
         battery: BatteryMetrics
     ) -> [TemperatureSensor] {
-        // On Apple Silicon, HID provides reliable CPU/GPU/SOC sensors.
-        // SMC still provides SSD (TH*) and other non-CPU sensors.
-        let hidSensors = hidProvider.allTemperatures().map {
-            TemperatureSensor(label: $0.0, celsius: $0.1)
-        }
-        let smcSensors = smcProvider.allTemperatures().map {
-            TemperatureSensor(label: $0.0, celsius: $0.1)
+        // Build the same 3 summary rows as before: CPU, GPU, SSD.
+        // On Apple Silicon, HID provides reliable CPU/GPU averages;
+        // SMC provides SSD and serves as fallback for Intel.
+        var sensors: [TemperatureSensor] = []
+
+        // CPU — prefer HID die average, fall back to SMC
+        if let cpu = hidProvider.cpuTemperature()
+            ?? smcProvider.cpuTemperature() {
+            sensors.append(TemperatureSensor(label: "CPU", celsius: cpu))
         }
 
-        // If HID sensors are available, prefer them for CPU/GPU
-        // and merge with SMC-only sensors (SSD, etc.)
-        var sensors: [TemperatureSensor]
-        if hidSensors.isEmpty {
-            // Intel or HID unavailable — use SMC for everything
-            sensors = smcSensors
-        } else {
-            // HID available — use HID sensors plus SMC non-CPU/GPU
-            let hidLabels = Set(hidSensors.map(\.label))
-            let smcOnly = smcSensors.filter { !hidLabels.contains($0.label) }
-            sensors = hidSensors + smcOnly
+        // GPU — prefer HID, fall back to SMC
+        let smcAll = smcProvider.allTemperatures()
+        if let gpu = hidProvider.gpuTemperature()
+            ?? smcAll.first(where: { $0.0 == "GPU" })?.1 {
+            sensors.append(TemperatureSensor(label: "GPU", celsius: gpu))
         }
 
-        // Append battery temperature if available
+        // SSD — SMC only (HID doesn't provide a useful SSD reading)
+        if let ssd = smcAll.first(where: { $0.0 == "SSD" })?.1 {
+            sensors.append(TemperatureSensor(label: "SSD", celsius: ssd))
+        }
+
+        // Battery temperature from IOKit power source
         if let battTemp = battery.temperature {
             sensors.append(
                 TemperatureSensor(
