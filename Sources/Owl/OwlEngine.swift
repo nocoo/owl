@@ -7,6 +7,7 @@ extension AppDelegate {
 
     func startEngine() {
         let reader = LogStreamReader()
+        self.reader = reader
         startLogProcessing(reader: reader)
         startTickLoop()
         startMetricsLoop()
@@ -104,7 +105,10 @@ extension AppDelegate {
         tickTask = nil
         metricsTask = nil
 
+        let reader = self.reader
+        self.reader = nil
         Task {
+            await reader?.stop()
             await metricsPoller.stop()
         }
 

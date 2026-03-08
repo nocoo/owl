@@ -38,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let pipeline = DetectorPipeline()
     let alertManager = AlertStateManager()
     let metricsPoller = SystemMetricsPoller()
+    var reader: LogStreamReader?
 
     // Observation
     var cancellables = Set<AnyCancellable>()
