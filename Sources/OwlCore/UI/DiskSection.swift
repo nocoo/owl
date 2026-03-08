@@ -32,21 +32,19 @@ struct DiskSection: View {
                 writeBytesPerSec: disk.writeBytesPerSec
             )
 
-            // Available / Total info rows
-            InfoRow(
-                L10n.tr(.diskAvail),
-                value: formatBytes(disk.freeBytes)
-            )
-            InfoRow(
-                L10n.tr(.diskTotal),
-                value: formatBytes(disk.totalBytes)
+            // Available / Total — two-column info row
+            TwoColumnInfoRow(
+                leftLabel: L10n.tr(.diskAvail),
+                leftValue: formatBytes(disk.freeBytes),
+                rightLabel: L10n.tr(.diskTotal),
+                rightValue: formatBytes(disk.totalBytes)
             )
         }
     }
 }
 
 /// Two-column throughput row: Read (left) and Write (right), each with
-/// a mini bar and value text.
+/// a mini bar and value text. Compact layout without fixed label widths.
 private struct DualThroughputRow: View {
     let readBytesPerSec: Double
     let writeBytesPerSec: Double
@@ -55,51 +53,43 @@ private struct DualThroughputRow: View {
     private let maxRate: Double = 500 * 1_048_576
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 6) {
             // Read column
-            HStack(spacing: 4) {
-                Text(L10n.tr(.diskRead))
-                    .font(OwlFont.throughputLabel)
-                    .foregroundStyle(.secondary)
-                    .frame(
-                        width: OwlLayout.labelColumnWidth,
-                        alignment: .leading
-                    )
-                MiniBar(
-                    value: min(readBytesPerSec, maxRate),
-                    max: maxRate,
-                    color: OwlDiskColor.read.opacity(0.7)
-                )
-                Text(formatThroughput(readBytesPerSec))
-                    .font(OwlFont.throughputValue)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .fixedSize()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            halfColumn(
+                label: L10n.tr(.diskRead),
+                bytes: readBytesPerSec,
+                color: OwlDiskColor.read.opacity(0.7)
+            )
 
             // Write column
-            HStack(spacing: 4) {
-                Text(L10n.tr(.diskWrite))
-                    .font(OwlFont.throughputLabel)
-                    .foregroundStyle(.secondary)
-                    .frame(
-                        width: OwlLayout.labelColumnWidth,
-                        alignment: .leading
-                    )
-                MiniBar(
-                    value: min(writeBytesPerSec, maxRate),
-                    max: maxRate,
-                    color: OwlDiskColor.write.opacity(0.7)
-                )
-                Text(formatThroughput(writeBytesPerSec))
-                    .font(OwlFont.throughputValue)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .fixedSize()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            halfColumn(
+                label: L10n.tr(.diskWrite),
+                bytes: writeBytesPerSec,
+                color: OwlDiskColor.write.opacity(0.7)
+            )
         }
         .frame(height: OwlLayout.metricRowHeight)
+    }
+
+    private func halfColumn(
+        label: String,
+        bytes: Double,
+        color: Color
+    ) -> some View {
+        HStack(spacing: 3) {
+            Text(label)
+                .font(OwlFont.twoColumnText)
+                .foregroundStyle(.secondary)
+                .fixedSize()
+            MiniBar(
+                value: min(bytes, maxRate),
+                max: maxRate,
+                color: color
+            )
+            Text(formatThroughput(bytes))
+                .font(OwlFont.twoColumnText)
+                .foregroundStyle(.secondary)
+                .fixedSize()
+        }
     }
 }

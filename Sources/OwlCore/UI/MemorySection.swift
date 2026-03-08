@@ -38,13 +38,11 @@ struct MemorySection: View {
             )
 
             if mem.cached > 0 || mem.available > 0 {
-                InfoRow(
-                    L10n.tr(.memCache),
-                    value: formatBytes(mem.cached)
-                )
-                InfoRow(
-                    L10n.tr(.memAvail),
-                    value: formatBytes(mem.available)
+                TwoColumnInfoRow(
+                    leftLabel: L10n.tr(.memCache),
+                    leftValue: formatBytes(mem.cached),
+                    rightLabel: L10n.tr(.memAvail),
+                    rightValue: formatBytes(mem.available)
                 )
             }
 

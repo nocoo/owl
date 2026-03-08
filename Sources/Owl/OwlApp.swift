@@ -213,7 +213,11 @@ extension AppDelegate {
             .deletingLastPathComponent()
         let searchDirs = [
             base,
+            base?.deletingLastPathComponent(),
             base?.deletingLastPathComponent()
+                .deletingLastPathComponent(),
+            base?.deletingLastPathComponent()
+                .deletingLastPathComponent()
                 .deletingLastPathComponent()
         ]
         for dir in searchDirs {

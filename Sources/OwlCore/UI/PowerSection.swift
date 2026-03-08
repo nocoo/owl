@@ -30,16 +30,12 @@ struct PowerSection: View {
                 color: owlHealthColor(batt.health)
             )
 
-            // State
-            InfoRow(
-                L10n.tr(.powerState),
-                value: stateValue(batt)
-            )
-
-            // Cycles
-            InfoRow(
-                L10n.tr(.powerCycles),
-                value: "\(batt.cycleCount)"
+            // State + Cycles — two-column
+            TwoColumnInfoRow(
+                leftLabel: L10n.tr(.powerState),
+                leftValue: stateValue(batt),
+                rightLabel: L10n.tr(.powerCycles),
+                rightValue: "\(batt.cycleCount)"
             )
 
             // Condition row
