@@ -112,7 +112,7 @@ struct MetricRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 3) {
             Text(label)
                 .font(OwlFont.rowLabel)
                 .foregroundStyle(.secondary)
@@ -126,7 +126,7 @@ struct MetricRow: View {
                 color: barColor
             )
             Text(valueText)
-                .font(OwlFont.rowValue)
+                .font(OwlFont.miniValue)
                 .foregroundStyle(.primary)
                 .frame(
                     width: OwlLayout.valueColumnWidth,
@@ -148,7 +148,7 @@ struct InfoRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Text(label)
                 .font(OwlFont.infoLabel)
                 .foregroundStyle(.secondary)

@@ -259,10 +259,13 @@ enum OwlLayout {
     static let popoverPaddingV: CGFloat = 8
 
     /// Row label column width for MetricRow / InfoRow.
-    static let labelColumnWidth: CGFloat = 40
+    static let labelColumnWidth: CGFloat = 38
 
     /// Row value column width for MetricRow.
-    static let valueColumnWidth: CGFloat = 68
+    static let valueColumnWidth: CGFloat = 28
+
+    /// Speed value column width for SpeedRow (wider for throughput text).
+    static let speedValueWidth: CGFloat = 58
 
     /// Process name column width.
     static let processNameWidth: CGFloat = 80

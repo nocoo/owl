@@ -69,7 +69,7 @@ private struct SpeedRow: View {
     let color: Color
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Text(label)
                 .font(OwlFont.speedLabel)
                 .foregroundStyle(.secondary)
@@ -88,7 +88,7 @@ private struct SpeedRow: View {
                 .font(OwlFont.speedValue)
                 .foregroundStyle(.primary)
                 .frame(
-                    width: OwlLayout.valueColumnWidth,
+                    width: OwlLayout.speedValueWidth,
                     alignment: .trailing
                 )
         }
