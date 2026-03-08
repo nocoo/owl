@@ -167,7 +167,8 @@ public struct LogEntry: Sendable {
     }
 
     /// Read a JSON string value starting at the given index
-    /// (just after the opening `"`). Handles escape sequences.
+    /// (just after the opening `"`). Handles escape sequences
+    /// including `\uXXXX` Unicode escapes and surrogate pairs.
     private static func readJSONStringValue(
         from json: String,
         startingAt start: String.Index
@@ -181,6 +182,56 @@ public struct LogEntry: Sendable {
             let char = json[index]
 
             if escaped {
+                if char == "u" {
+                    // \uXXXX Unicode escape
+                    let hexStart = json.index(after: index)
+                    guard let scalar = parseHex4(
+                        from: json, at: hexStart
+                    ) else {
+                        // Malformed — keep literal
+                        result.append(char)
+                        escaped = false
+                        index = json.index(after: index)
+                        continue
+                    }
+                    index = json.index(hexStart, offsetBy: 4)
+
+                    // Check for surrogate pair
+                    if scalar >= 0xD800, scalar <= 0xDBFF,
+                       index < end,
+                       json[index] == "\\",
+                       json.index(after: index) < end,
+                       json[json.index(after: index)] == "u" {
+                        let lowHexStart = json.index(
+                            index, offsetBy: 2
+                        )
+                        if let lowSurrogate = parseHex4(
+                            from: json, at: lowHexStart
+                        ), lowSurrogate >= 0xDC00,
+                           lowSurrogate <= 0xDFFF {
+                            let codePoint = 0x10000
+                                + (Int(scalar - 0xD800) << 10)
+                                + Int(lowSurrogate - 0xDC00)
+                            if let us = Unicode.Scalar(codePoint) {
+                                result.append(Character(us))
+                            }
+                            index = json.index(
+                                lowHexStart, offsetBy: 4
+                            )
+                        } else {
+                            // Lone high surrogate
+                            if let us = Unicode.Scalar(scalar) {
+                                result.append(Character(us))
+                            }
+                        }
+                    } else {
+                        if let us = Unicode.Scalar(scalar) {
+                            result.append(Character(us))
+                        }
+                    }
+                    escaped = false
+                    continue
+                }
                 result.append(unescapeChar(char))
                 escaped = false
             } else if char == "\\" {
@@ -195,6 +246,32 @@ public struct LogEntry: Sendable {
         }
 
         return nil // unterminated string
+    }
+
+    /// Parse 4 hex digits at the given position into a UInt16.
+    private static func parseHex4(
+        from json: String, at start: String.Index
+    ) -> UInt16? {
+        let end = json.endIndex
+        var value: UInt16 = 0
+        var pos = start
+        for _ in 0..<4 {
+            guard pos < end else { return nil }
+            let c = json[pos]
+            value <<= 4
+            switch c {
+            case "0"..."9":
+                value += UInt16(c.asciiValue! - 0x30)
+            case "a"..."f":
+                value += UInt16(c.asciiValue! - 0x61 + 10)
+            case "A"..."F":
+                value += UInt16(c.asciiValue! - 0x41 + 10)
+            default:
+                return nil
+            }
+            pos = json.index(after: pos)
+        }
+        return value
     }
 
     /// Convert a JSON escape sequence character to its actual value.
