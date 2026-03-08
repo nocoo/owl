@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.5.0
+
+### Features
+
+- Add click-to-copy for all metric sections (CPU, Memory, Disk, Power, Temperature, Network, Processes) — click any section to copy a formatted snapshot to clipboard
+- Add `CopyableSection` wrapper with green "Copied" feedback badge in section header and hover highlight
+
+### Bug Fixes
+
+- Fix missed clicks in metric sections by moving `contentShape` inside button label to prevent ScrollView gesture conflicts
+
+### Tests
+
+- Add 34 tests for clipboard text generation across all metric sections
+
 ## v1.4.0
 
 ### Features
