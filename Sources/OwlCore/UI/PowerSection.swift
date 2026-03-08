@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Power section: battery level/health bars, state+cycles two-column row,
+/// Power section: battery level/health bars, state row, cycles row,
 /// condition row.
 struct PowerSection: View {
     let metrics: SystemMetrics
@@ -30,12 +30,16 @@ struct PowerSection: View {
                 color: owlHealthColor(batt.health)
             )
 
-            // State + Cycles — two-column InfoRow style
-            TwoColumnInfoRow(
-                leftLabel: stateLabel(batt),
-                leftValue: timeRemainingText(batt),
-                rightLabel: L10n.tr(.powerCycles),
-                rightValue: "\(batt.cycleCount)"
+            // State
+            InfoRow(
+                L10n.tr(.powerState),
+                value: stateValue(batt)
+            )
+
+            // Cycles
+            InfoRow(
+                L10n.tr(.powerCycles),
+                value: "\(batt.cycleCount)"
             )
 
             // Condition row
@@ -43,17 +47,16 @@ struct PowerSection: View {
         }
     }
 
-    private func stateLabel(_ batt: BatteryMetrics) -> String {
-        if batt.isCharging { return "⚡ \(L10n.tr(.powerCharging))" }
-        if batt.isPluggedIn { return "🔌 \(L10n.tr(.powerPlugged))" }
-        return "🔋 \(L10n.tr(.powerBattery))"
-    }
+    private func stateValue(_ batt: BatteryMetrics) -> String {
+        var label: String
+        if batt.isCharging { label = "⚡ \(L10n.tr(.powerCharging))" }
+        else if batt.isPluggedIn { label = "🔌 \(L10n.tr(.powerPlugged))" }
+        else { label = "🔋 \(L10n.tr(.powerBattery))" }
 
-    private func timeRemainingText(_ batt: BatteryMetrics) -> String {
         if let mins = batt.timeRemaining, mins > 0 {
-            return formatTimeRemaining(mins)
+            label += " \(formatTimeRemaining(mins))"
         }
-        return ""
+        return label
     }
 
     private func formatTimeRemaining(_ minutes: Int) -> String {

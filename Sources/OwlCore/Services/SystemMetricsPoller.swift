@@ -116,15 +116,22 @@ public struct MemoryInfo: Sendable, Equatable {
     public let used: UInt64
     public let cached: UInt64
     public let available: UInt64
+    /// Cumulative page-in count since boot.
+    public let pageins: UInt64
+    /// Cumulative page-out count since boot.
+    public let pageouts: UInt64
 
     public init(
         total: UInt64, used: UInt64,
-        cached: UInt64 = 0, available: UInt64 = 0
+        cached: UInt64 = 0, available: UInt64 = 0,
+        pageins: UInt64 = 0, pageouts: UInt64 = 0
     ) {
         self.total = total
         self.used = used
         self.cached = cached
         self.available = available
+        self.pageins = pageins
+        self.pageouts = pageouts
     }
 }
 
@@ -217,11 +224,17 @@ public struct MachMetricsProvider: MetricsProvider {
         let inactive = UInt64(vmStats.inactive_count) * pageSize
         let available = free + inactive + purgeable
 
+        // Cumulative page-in / page-out counts
+        let pageins = UInt64(vmStats.pageins)
+        let pageouts = UInt64(vmStats.pageouts)
+
         return MemoryInfo(
             total: total,
             used: used,
             cached: cached,
-            available: available
+            available: available,
+            pageins: pageins,
+            pageouts: pageouts
         )
     }
 }
@@ -410,7 +423,9 @@ public actor SystemMetricsPoller {
             cached: mem.cached,
             available: mem.available,
             swapTotal: swap.total,
-            swapUsed: swap.used
+            swapUsed: swap.used,
+            pageins: mem.pageins,
+            pageouts: mem.pageouts
         )
     }
 

@@ -69,6 +69,10 @@ public struct ExtendedMemoryInfo: Sendable, Equatable {
     public let available: UInt64
     public let swapTotal: UInt64
     public let swapUsed: UInt64
+    /// Cumulative page-in count since boot (vm_statistics64).
+    public let pageins: UInt64
+    /// Cumulative page-out count since boot (vm_statistics64).
+    public let pageouts: UInt64
 
     public init(
         total: UInt64,
@@ -76,7 +80,9 @@ public struct ExtendedMemoryInfo: Sendable, Equatable {
         cached: UInt64 = 0,
         available: UInt64 = 0,
         swapTotal: UInt64,
-        swapUsed: UInt64
+        swapUsed: UInt64,
+        pageins: UInt64 = 0,
+        pageouts: UInt64 = 0
     ) {
         self.total = total
         self.used = used
@@ -84,6 +90,8 @@ public struct ExtendedMemoryInfo: Sendable, Equatable {
         self.available = available
         self.swapTotal = swapTotal
         self.swapUsed = swapUsed
+        self.pageins = pageins
+        self.pageouts = pageouts
     }
 
     public var free: UInt64 {
@@ -107,7 +115,7 @@ public struct ExtendedMemoryInfo: Sendable, Equatable {
 
     public static let zero = ExtendedMemoryInfo(
         total: 0, used: 0, cached: 0, available: 0,
-        swapTotal: 0, swapUsed: 0
+        swapTotal: 0, swapUsed: 0, pageins: 0, pageouts: 0
     )
 }
 

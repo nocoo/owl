@@ -28,12 +28,18 @@ struct CPUSection: View {
 
                 if pCount > 0 {
                     let pCores = Array(sorted.prefix(pCount))
-                    coreGroup(label: L10n.tr(.cpuPCores), cores: pCores)
+                    coreGroup(
+                        label: "\(L10n.tr(.cpuPCores)) ×\(pCount)",
+                        cores: pCores
+                    )
                 }
 
                 if eCount > 0 {
                     let eCores = Array(sorted.dropFirst(pCount).prefix(eCount))
-                    coreGroup(label: L10n.tr(.cpuECores), cores: eCores)
+                    coreGroup(
+                        label: "\(L10n.tr(.cpuECores)) ×\(eCount)",
+                        cores: eCores
+                    )
                 }
 
                 // Fallback: if no P/E topology detected, show all cores
@@ -88,8 +94,6 @@ struct CPUSection: View {
         let parts = [load.one, load.five, load.fifteen]
             .map { String(format: "%.2f", $0) }
         let text = parts.joined(separator: " / ")
-        let pCores = load.performanceCores
-        let eCores = load.efficiencyCores
         return HStack(spacing: 4) {
             Text(L10n.tr(.cpuLoad))
                 .font(OwlFont.loadLabel)
@@ -101,12 +105,6 @@ struct CPUSection: View {
             Text(text)
                 .font(OwlFont.loadValue)
                 .foregroundStyle(.secondary)
-            if pCores > 0 || eCores > 0 {
-                Spacer()
-                Text("\(pCores)P+\(eCores)E")
-                    .font(OwlFont.loadTopology)
-                    .foregroundStyle(.tertiary)
-            }
         }
         .frame(height: OwlLayout.metricRowHeight)
     }

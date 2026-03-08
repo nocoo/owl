@@ -80,17 +80,22 @@ public enum L10nKey: Sendable {
     case memCache
     case memAvail
     case memSwap
+    case memPageIn
+    case memPageOut
 
     // Disk
     case diskINTR
     case diskRead
     case diskWrite
+    case diskAvail
+    case diskTotal
 
     // Power
     case powerLevel
     case powerHealth
     case powerCycles
     case powerCond
+    case powerState
     case powerCharging
     case powerPlugged
     case powerBattery
@@ -361,17 +366,22 @@ public enum L10n {
         case .memCache: return "Cache"
         case .memAvail: return "Avail"
         case .memSwap: return "Swap"
+        case .memPageIn: return "PgIn"
+        case .memPageOut: return "PgOut"
 
         // Disk
         case .diskINTR: return "INTR"
         case .diskRead: return "Read"
         case .diskWrite: return "Write"
+        case .diskAvail: return "Avail"
+        case .diskTotal: return "Total"
 
         // Power
         case .powerLevel: return "Level"
         case .powerHealth: return "Health"
         case .powerCycles: return "Cycles"
         case .powerCond: return "Cond"
+        case .powerState: return "State"
         case .powerCharging: return "Charging"
         case .powerPlugged: return "Plugged"
         case .powerBattery: return "Battery"
@@ -677,17 +687,22 @@ public enum L10n {
         case .memCache: return "缓存"
         case .memAvail: return "可用"
         case .memSwap: return "交换"
+        case .memPageIn: return "换入"
+        case .memPageOut: return "换出"
 
         // Disk
         case .diskINTR: return "内置"
         case .diskRead: return "读取"
         case .diskWrite: return "写入"
+        case .diskAvail: return "可用"
+        case .diskTotal: return "总计"
 
         // Power
         case .powerLevel: return "电量"
         case .powerHealth: return "健康"
         case .powerCycles: return "循环"
         case .powerCond: return "状态"
+        case .powerState: return "状态"
         case .powerCharging: return "充电中"
         case .powerPlugged: return "已接入"
         case .powerBattery: return "电池"

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Memory section: used/free bars, total, cache+avail merged row, swap.
+/// Memory section: used/free bars, key-value info rows, swap.
 struct MemorySection: View {
     let metrics: SystemMetrics
 
@@ -31,20 +31,24 @@ struct MemorySection: View {
                 color: OwlPalette.green
             )
 
-            // Total row
-            InfoRow(L10n.tr(.memTotal), value: "\(formatBytes(mem.used)) / \(formatBytes(mem.total))")
+            // Key-value info rows (unified style)
+            InfoRow(
+                L10n.tr(.memTotal),
+                value: "\(formatBytes(mem.used)) / \(formatBytes(mem.total))"
+            )
 
-            // Cache + Available merged into one two-column row
             if mem.cached > 0 || mem.available > 0 {
-                TwoColumnInfoRow(
-                    leftLabel: L10n.tr(.memCache),
-                    leftValue: formatBytes(mem.cached),
-                    rightLabel: L10n.tr(.memAvail),
-                    rightValue: formatBytes(mem.available)
+                InfoRow(
+                    L10n.tr(.memCache),
+                    value: formatBytes(mem.cached)
+                )
+                InfoRow(
+                    L10n.tr(.memAvail),
+                    value: formatBytes(mem.available)
                 )
             }
 
-            // Swap bar + absolute values
+            // Swap bar + info rows
             if mem.swapTotal > 0 {
                 MetricRow(
                     L10n.tr(.memSwap),
@@ -62,7 +66,34 @@ struct MemorySection: View {
                     value: "\(formatBytes(mem.swapUsed)) / \(formatBytes(mem.swapTotal))"
                 )
             }
+
+            // Pageins / Pageouts (cumulative since boot)
+            if mem.pageins > 0 || mem.pageouts > 0 {
+                TwoColumnInfoRow(
+                    leftLabel: L10n.tr(.memPageIn),
+                    leftValue: formatCount(mem.pageins),
+                    rightLabel: L10n.tr(.memPageOut),
+                    rightValue: formatCount(mem.pageouts)
+                )
+            }
         }
+    }
+
+    /// Format a large count to human-readable (e.g. 1.2M, 345K).
+    private func formatCount(_ count: UInt64) -> String {
+        if count >= 1_000_000 {
+            return String(
+                format: "%.1fM",
+                Double(count) / 1_000_000
+            )
+        }
+        if count >= 1_000 {
+            return String(
+                format: "%.1fK",
+                Double(count) / 1_000
+            )
+        }
+        return "\(count)"
     }
 }
 
