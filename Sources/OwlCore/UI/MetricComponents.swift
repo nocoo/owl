@@ -35,9 +35,9 @@ struct CopyableSection<Content: View>: View {
         Button(action: copyToClipboard) {
             content()
                 .environment(\.showCopied, copied)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .contentShape(Rectangle())
         .background(
             RoundedRectangle(cornerRadius: 4)
                 .fill(Color.primary.opacity(isHovered ? 0.03 : 0))
