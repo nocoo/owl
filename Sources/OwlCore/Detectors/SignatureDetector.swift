@@ -290,11 +290,13 @@ public final class SignatureDetector: PatternDetector {
         guard groups.count >= config.maxGroups else { return }
 
         // TODO: Extract shared grouped-detector core if another signature-based detector lands.
+        // Linear scan for the oldest entry avoids O(n log n) full sort.
         let removeCount = groups.count - config.maxGroups + 1
-        let sorted = groups.sorted { $0.value.lastSeen < $1.value.lastSeen }
-
-        for (key, _) in sorted.prefix(removeCount) {
-            groups.removeValue(forKey: key)
+        for _ in 0..<removeCount {
+            guard let oldest = groups.min(
+                by: { $0.value.lastSeen < $1.value.lastSeen }
+            ) else { break }
+            groups.removeValue(forKey: oldest.key)
         }
     }
 }

@@ -191,11 +191,14 @@ public final class RateDetector: PatternDetector {
     private func evictIfNeeded() {
         guard counters.count >= config.maxGroups else { return }
 
-        // Evict least recently seen key
+        // Evict least recently seen key. Linear scan for the
+        // oldest entry avoids O(n log n) full sort.
         let removeCount = counters.count - config.maxGroups + 1
-        let sorted = lastSeen.sorted { $0.value < $1.value }
-
-        for (key, _) in sorted.prefix(removeCount) {
+        for _ in 0..<removeCount {
+            guard let oldest = lastSeen.min(
+                by: { $0.value < $1.value }
+            ) else { break }
+            let key = oldest.key
             counters.removeValue(forKey: key)
             lastSeen.removeValue(forKey: key)
             cooldownUntil.removeValue(forKey: key)
