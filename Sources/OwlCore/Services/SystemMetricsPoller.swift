@@ -252,6 +252,7 @@ public actor SystemMetricsPoller {
     // Extended providers
     private let perCoreProvider = PerCoreCPUProvider()
     private let smcProvider = SMCTemperatureProvider()
+    private let hidProvider = HIDTemperatureProvider()
     private let swapProvider = SwapProvider()
     private let diskProvider = DiskMetricsProvider()
     private let batteryProvider = BatteryProvider()
@@ -349,7 +350,9 @@ public actor SystemMetricsPoller {
         let cpuUsage = sampleCPU()
         let mem = provider.memoryInfo()
         let perCore = samplePerCoreCPU()
-        let temp = smcProvider.cpuTemperature()
+        // Prefer HID on Apple Silicon (reliable), fall back to SMC
+        let temp = hidProvider.cpuTemperature()
+            ?? smcProvider.cpuTemperature()
         let load = perCoreProvider.loadAverage()
         let extMem = sampleExtendedMemory(mem: mem)
         let disk = sampleDisk()
@@ -511,9 +514,28 @@ public actor SystemMetricsPoller {
     private func sampleTemperatures(
         battery: BatteryMetrics
     ) -> [TemperatureSensor] {
-        var sensors = smcProvider.allTemperatures().map {
+        // On Apple Silicon, HID provides reliable CPU/GPU/SOC sensors.
+        // SMC still provides SSD (TH*) and other non-CPU sensors.
+        let hidSensors = hidProvider.allTemperatures().map {
             TemperatureSensor(label: $0.0, celsius: $0.1)
         }
+        let smcSensors = smcProvider.allTemperatures().map {
+            TemperatureSensor(label: $0.0, celsius: $0.1)
+        }
+
+        // If HID sensors are available, prefer them for CPU/GPU
+        // and merge with SMC-only sensors (SSD, etc.)
+        var sensors: [TemperatureSensor]
+        if hidSensors.isEmpty {
+            // Intel or HID unavailable — use SMC for everything
+            sensors = smcSensors
+        } else {
+            // HID available — use HID sensors plus SMC non-CPU/GPU
+            let hidLabels = Set(hidSensors.map(\.label))
+            let smcOnly = smcSensors.filter { !hidLabels.contains($0.label) }
+            sensors = hidSensors + smcOnly
+        }
+
         // Append battery temperature if available
         if let battTemp = battery.temperature {
             sensors.append(
