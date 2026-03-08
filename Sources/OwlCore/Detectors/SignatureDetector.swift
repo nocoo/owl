@@ -34,8 +34,14 @@ public final class SignatureDetector: PatternDetector {
         var alertedSeverity: Severity?
         var cooldownUntil: Date?
 
+        /// Count of distinct signatures across both buffers
+        /// without allocating a temporary union set.
         var distinctCount: Int {
-            currentSet.union(previousSet).count
+            var count = currentSet.count
+            for sig in previousSet where !currentSet.contains(sig) {
+                count += 1
+            }
+            return count
         }
     }
 
