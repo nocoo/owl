@@ -1,5 +1,33 @@
 # Changelog
 
+## v1.6.0
+
+### Performance
+
+- Unify metrics polling into a single external control loop, eliminating the redundant internal poll loop in `SystemMetricsPoller`
+- Scale metrics polling by popover visibility — background mode (10s) collects only CPU and memory, foreground mode (2s) collects all sensors
+- Throttle top-process sampling to once per 10s in foreground mode, reusing cached rankings between refreshes
+- Reduce per-poll overhead by reusing HID/SMC sensor snapshots within a single sample cycle
+
+### Bug Fixes
+
+- Fix time-driven detector ticks by passing explicit clock values via `tick(at:)`, enabling deterministic leak detection without synthetic log entries
+- Expand log stream pre-filter keywords for P11 (app hang) and P12 (network failure) patterns
+- Fix potential crash in SMC temperature dictionary construction by using `uniquingKeysWith` instead of `uniqueKeysWithValues`
+
+### Refactoring
+
+- Extract `BatteryProvider` and `HIDTemperatureProvider` pure-logic methods as static functions for testability
+- Remove redundant `ThresholdDetector.tick(at:)` override, relying on protocol default extension
+- Clean up pre-filter keyword ordering to match detector ID sequence
+
+### Tests
+
+- Add unit tests for `BatteryProvider.buildMetrics` with property snapshot injection
+- Add unit tests for `HIDTemperatureProvider` static CPU/GPU temperature calculation
+- Add integration tests for log stream pre-filter pass-through (app hang, network failure)
+- Add unit tests for `SystemMetricsPoller` sampling profiles, top-process throttling, and mode switching
+
 ## v1.5.0
 
 ### Features
