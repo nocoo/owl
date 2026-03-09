@@ -308,6 +308,7 @@ public actor SystemMetricsPoller {
     // Previous process snapshot for CPU delta (full snapshot)
     private var prevProcessSnapshots: [ProcessSnapshot] = []
     private var prevProcessTime: Date = .distantPast
+    private var lastTopProcessesRefresh: Date?
 
     // MARK: - Init
 
@@ -425,6 +426,20 @@ public actor SystemMetricsPoller {
                 includeTemperatures: true
             )
         }
+    }
+
+    static func shouldRefreshTopProcesses(
+        now: Date,
+        lastRefresh: Date?,
+        currentCount: Int,
+        forceRefresh: Bool
+    ) -> Bool {
+        if forceRefresh || currentCount == 0 {
+            return true
+        }
+
+        guard let lastRefresh else { return true }
+        return now.timeIntervalSince(lastRefresh) >= 10
     }
 
     private func sampleMetrics(forceRefresh: Bool = false) {
@@ -596,8 +611,17 @@ public actor SystemMetricsPoller {
     private func sampleTopProcesses(
         forceRefresh: Bool = false
     ) -> [ProcessMetric] {
-        let curSnapshots = processProvider.allProcessSnapshots()
         let now = Date()
+        guard Self.shouldRefreshTopProcesses(
+            now: now,
+            lastRefresh: lastTopProcessesRefresh,
+            currentCount: currentMetrics.topProcesses.count,
+            forceRefresh: forceRefresh
+        ) else {
+            return currentMetrics.topProcesses
+        }
+
+        let curSnapshots = processProvider.allProcessSnapshots()
         let elapsed = now.timeIntervalSince(prevProcessTime)
         defer {
             prevProcessSnapshots = curSnapshots
@@ -606,12 +630,14 @@ public actor SystemMetricsPoller {
 
         guard elapsed > 0 else { return [] }
 
-        return TopProcessProvider.computeCPUPercent(
+        let top = TopProcessProvider.computeCPUPercent(
             previous: prevProcessSnapshots,
             current: curSnapshots,
             interval: elapsed,
             coreCount: max(prevCoreTicks.count, 1)
         )
+        lastTopProcessesRefresh = now
+        return top
     }
 
     private func computePerCoreCPU(

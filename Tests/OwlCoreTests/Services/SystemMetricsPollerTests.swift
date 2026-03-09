@@ -110,6 +110,46 @@ struct SystemMetricsPollerTests {
         #expect(!profile.includeTemperatures)
     }
 
+    @Test func topProcessesRefreshesWhenForced() {
+        let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
+            now: Date(timeIntervalSince1970: 100),
+            lastRefresh: Date(timeIntervalSince1970: 99),
+            currentCount: 5,
+            forceRefresh: true
+        )
+        #expect(shouldRefresh)
+    }
+
+    @Test func topProcessesRefreshesWhenEmpty() {
+        let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
+            now: Date(timeIntervalSince1970: 100),
+            lastRefresh: Date(timeIntervalSince1970: 99),
+            currentCount: 0,
+            forceRefresh: false
+        )
+        #expect(shouldRefresh)
+    }
+
+    @Test func topProcessesSkipsRefreshWithinCooldown() {
+        let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
+            now: Date(timeIntervalSince1970: 105),
+            lastRefresh: Date(timeIntervalSince1970: 100),
+            currentCount: 5,
+            forceRefresh: false
+        )
+        #expect(!shouldRefresh)
+    }
+
+    @Test func topProcessesRefreshesAfterCooldown() {
+        let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
+            now: Date(timeIntervalSince1970: 111),
+            lastRefresh: Date(timeIntervalSince1970: 100),
+            currentCount: 5,
+            forceRefresh: false
+        )
+        #expect(shouldRefresh)
+    }
+
     @Test func initialMetricsAreZero() async {
         let provider = MockMetricsProvider()
         provider.cpuTickSequence = [
