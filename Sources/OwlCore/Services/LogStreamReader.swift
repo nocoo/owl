@@ -221,11 +221,11 @@ public actor LogStreamReader {
         "DENIED",                       // P09
         "memorystatus_kill",            // P10
         "failed to act on a ping",      // P11
-        "abortGated",                   // P13
         "connection_failed",            // P12
         "Connection reset",             // P12
         "nw_endpoint_flow_failed",      // P12
         "reporting state failed error", // P12
+        "abortGated",                   // P13
         "abort",                        // P13
         "DarkWake"                      // P14
     ]

@@ -67,11 +67,6 @@ public final class ThresholdDetector: PatternDetector {
         []
     }
 
-    public func tick(at now: Date) -> [Alert] {
-        // ThresholdDetector does not produce time-based alerts
-        []
-    }
-
     // MARK: - State handlers
 
     private func handleNormal(
