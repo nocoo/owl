@@ -220,10 +220,12 @@ public actor LogStreamReader {
         "disconnect", "AUTHREQ_RESULT", // P08
         "DENIED",                       // P09
         "memorystatus_kill",            // P10
-        "abortGated",                   // P11
+        "failed to act on a ping",      // P11
+        "abortGated",                   // P13
         "connection_failed",            // P12
         "Connection reset",             // P12
         "nw_endpoint_flow_failed",      // P12
+        "reporting state failed error", // P12
         "abort",                        // P13
         "DarkWake"                      // P14
     ]

@@ -87,6 +87,12 @@ public final class RateDetector: PatternDetector {
     }
 
     public func tick() -> [Alert] {
+        tick(at: currentTime)
+    }
+
+    public func tick(at now: Date) -> [Alert] {
+        currentTime = now
+
         // Clean up stale groups (not seen in 2x window duration)
         let staleThreshold = TimeInterval(config.windowSeconds * 2)
         var keysToRemove: [String] = []

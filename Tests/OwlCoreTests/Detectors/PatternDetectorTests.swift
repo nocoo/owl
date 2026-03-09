@@ -39,6 +39,10 @@ struct PatternDetectorTests {
             tickCallCount += 1
             return tickResult
         }
+
+        func tick(at now: Date) -> [Alert] {
+            tick()
+        }
     }
 
     private func makeEntry(message: String = "test") -> LogEntry {

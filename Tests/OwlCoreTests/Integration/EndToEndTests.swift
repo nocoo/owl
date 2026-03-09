@@ -286,19 +286,8 @@ struct EndToEndTests {
         )
         _ = await pipeline.process(created)
 
-        // Advance StateDetector's internal clock by sending
-        // a released event with a bogus ID (won't pair, just
-        // updates currentTime). Message must contain acceptsFilter.
         let future = now.addingTimeInterval(1801)
-        let bogusRelease = #"Released InternalPreventSleep "bogus" 00000000 id:0xDEADBEEF"#
-        let laterEntry = TestFixtures.SleepAssertion.entry(
-            bogusRelease,
-            timestamp: future
-        )
-        _ = await pipeline.process(laterEntry)
-
-        // Now tick should detect the leaked assertion
-        let tickAlerts = await pipeline.tick()
+        let tickAlerts = await pipeline.tick(at: future)
 
         for alert in tickAlerts {
             manager.receive(alert)

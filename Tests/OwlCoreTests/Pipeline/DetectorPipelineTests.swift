@@ -131,12 +131,8 @@ struct DetectorPipelineTests {
         )
         _ = await pipeline.process(createEntry)
 
-        // Advance detector time to 2 hours later (→ critical leak)
-        detector.advanceTimeForTesting(
-            to: Date(timeIntervalSince1970: 1000 + 7200)
-        )
-
-        let tickAlerts = await pipeline.tick()
+        let future = Date(timeIntervalSince1970: 1000 + 7200)
+        let tickAlerts = await pipeline.tick(at: future)
         #expect(!tickAlerts.isEmpty)
     }
 

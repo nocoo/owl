@@ -77,6 +77,12 @@ public final class StateDetector: PatternDetector {
     }
 
     public func tick() -> [Alert] {
+        tick(at: currentTime)
+    }
+
+    public func tick(at now: Date) -> [Alert] {
+        currentTime = now
+
         var alerts: [Alert] = []
         var keysToRemove: [String] = []
 

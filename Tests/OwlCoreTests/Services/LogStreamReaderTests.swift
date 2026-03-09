@@ -199,6 +199,58 @@ struct LogStreamReaderTests {
         )
     }
 
+    @Test func readsAppHangEntriesThroughPreFilter() async throws {
+        let factory = MockProcessFactory()
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
+
+        await reader.start()
+
+        let stream = await reader.entries
+        let json = makeValidLogJSON(
+            message: TestFixtures.AppHang.hang,
+            process: "WindowServer"
+        )
+        factory.lastProcess?.writeLine(json)
+        factory.lastProcess?.closeStdout()
+
+        var entries: [LogEntry] = []
+        for await entry in stream {
+            entries.append(entry)
+        }
+
+        #expect(entries.count == 1)
+        #expect(entries.first?.eventMessage == TestFixtures.AppHang.hang)
+    }
+
+    @Test func readsNetworkFailureEntriesThroughPreFilter() async throws {
+        let factory = MockProcessFactory()
+        let reader = LogStreamReader(
+            autoRestart: false,
+            processFactory: factory
+        )
+
+        await reader.start()
+
+        let stream = await reader.entries
+        let json = makeValidLogJSON(
+            message: TestFixtures.Network.failed,
+            process: "networkd"
+        )
+        factory.lastProcess?.writeLine(json)
+        factory.lastProcess?.closeStdout()
+
+        var entries: [LogEntry] = []
+        for await entry in stream {
+            entries.append(entry)
+        }
+
+        #expect(entries.count == 1)
+        #expect(entries.first?.eventMessage == TestFixtures.Network.failed)
+    }
+
     @Test func skipsEmptyLines() async throws {
         let factory = MockProcessFactory()
         let reader = LogStreamReader(

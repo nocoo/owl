@@ -19,7 +19,16 @@ public protocol PatternDetector: AnyObject {
     /// Only called if `accepts()` returned true. Must complete in O(1) time.
     func process(_ entry: LogEntry) -> Alert?
 
+    /// Periodic maintenance using the detector's current internal clock.
+    func tick() -> [Alert]
+
     /// Periodic maintenance called by the pipeline (every 60s by default).
     /// Returns any alerts generated during maintenance (e.g. StateDetector leak detection).
-    func tick() -> [Alert]
+    func tick(at now: Date) -> [Alert]
+}
+
+public extension PatternDetector {
+    func tick(at now: Date) -> [Alert] {
+        tick()
+    }
 }

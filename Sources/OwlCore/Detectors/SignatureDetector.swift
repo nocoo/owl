@@ -123,6 +123,11 @@ public final class SignatureDetector: PatternDetector {
     }
 
     public func tick() -> [Alert] {
+        tick(at: currentTime)
+    }
+
+    public func tick(at now: Date) -> [Alert] {
+        currentTime = now
         rotateBuffersIfNeeded(at: currentTime)
 
         let staleThreshold = TimeInterval(config.windowSeconds * 2)

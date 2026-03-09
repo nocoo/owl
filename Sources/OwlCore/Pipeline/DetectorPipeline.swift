@@ -77,9 +77,15 @@ public actor DetectorPipeline {
     /// Calls `tick()` on all enabled detectors to perform periodic maintenance.
     /// Returns any time-based alerts (e.g., leaked assertion warnings).
     public func tick() -> [Alert] {
+        tick(at: Date())
+    }
+
+    /// Calls `tick(at:)` on all enabled detectors using a supplied clock value.
+    /// Useful for deterministic testing of time-based detectors.
+    public func tick(at now: Date) -> [Alert] {
         var alerts: [Alert] = []
         for detector in detectors where detector.isEnabled {
-            let tickAlerts = detector.tick()
+            let tickAlerts = detector.tick(at: now)
             alerts.append(contentsOf: tickAlerts)
         }
         return alerts
