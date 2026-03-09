@@ -110,6 +110,11 @@ struct SystemMetricsPollerTests {
         #expect(!profile.includeTemperatures)
     }
 
+    @Test func samplingIntervalsMatchProfiles() {
+        #expect(SystemMetricsPoller.interval(for: .foreground) == 2.0)
+        #expect(SystemMetricsPoller.interval(for: .background) == 10.0)
+    }
+
     @Test func topProcessesRefreshesWhenForced() {
         let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
             now: Date(timeIntervalSince1970: 100),
@@ -321,6 +326,27 @@ struct SystemMetricsPollerTests {
         await poller.pollOnce()
         metrics = await poller.currentMetrics
         #expect(metrics.cpuUsage == 100.0)
+
+        await poller.stop()
+    }
+
+    @Test func setSamplingModeRefreshNowTriggersImmediateSample() async {
+        let provider = MockMetricsProvider()
+        provider.cpuTickSequence = [
+            CPUTicks(user: 100, system: 0, idle: 100, nice: 0),
+            CPUTicks(user: 200, system: 0, idle: 200, nice: 0)
+        ]
+        let poller = SystemMetricsPoller(
+            interval: 60,
+            provider: provider
+        )
+
+        await poller.start()
+        await poller.setSamplingMode(.foreground, refreshNow: true)
+
+        let metrics = await poller.currentMetrics
+        #expect(await poller.samplingMode == .foreground)
+        #expect(metrics.cpuUsage == 50.0)
 
         await poller.stop()
     }

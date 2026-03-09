@@ -137,27 +137,50 @@ extension AppDelegate {
     }
 
     private func startMetricsLoop() {
-        restartMetricsLoop(updateIntervalNanoseconds: 10_000_000_000)
+        restartMetricsLoop(samplingMode: .background)
     }
 
     func restartMetricsLoop(
-        updateIntervalNanoseconds: UInt64
+        samplingMode: MetricsSamplingMode,
+        refreshImmediately: Bool = false
     ) {
         metricsTask?.cancel()
+        let interval = SystemMetricsPoller.interval(
+            for: samplingMode
+        )
+        let updateIntervalNanoseconds = UInt64(
+            interval * 1_000_000_000
+        )
         metricsTask = Task {
-            await metricsPoller.start()
+            await self.ensureMetricsPollerStarted()
+            await metricsPoller.setSamplingMode(samplingMode)
+
+            if refreshImmediately {
+                await metricsPoller.pollOnce()
+                let metrics = await metricsPoller.currentMetrics
+                if self.isPopoverVisible {
+                    appState.updateMetrics(metrics)
+                }
+            }
 
             while !Task.isCancelled {
                 try? await Task.sleep(
                     nanoseconds: updateIntervalNanoseconds
                 )
                 guard !Task.isCancelled else { break }
+                await metricsPoller.pollOnce()
                 let metrics = await metricsPoller.currentMetrics
                 if self.isPopoverVisible {
                     appState.updateMetrics(metrics)
                 }
             }
         }
+    }
+
+    private func ensureMetricsPollerStarted() async {
+        guard !hasStartedMetricsPoller else { return }
+        await metricsPoller.start()
+        hasStartedMetricsPoller = true
     }
 
     func stopEngine() {
@@ -174,6 +197,7 @@ extension AppDelegate {
             await reader?.stop()
             await metricsPoller.stop()
         }
+        hasStartedMetricsPoller = false
 
         stopPulseAnimation()
         recoveryTimer?.invalidate()

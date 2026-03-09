@@ -40,6 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     let metricsPoller = SystemMetricsPoller(interval: 10.0)
     var reader: LogStreamReader?
     var isPopoverVisible = false
+    var hasStartedMetricsPoller = false
 
     // Observation
     var cancellables = Set<AnyCancellable>()
@@ -538,21 +539,10 @@ extension AppDelegate {
         guard isPopoverVisible != visible else { return }
         isPopoverVisible = visible
 
-        let updateInterval: UInt64 = visible
-            ? 2_000_000_000
-            : 10_000_000_000
-        restartMetricsLoop(updateIntervalNanoseconds: updateInterval)
-
-        Task {
-            await metricsPoller.setSamplingMode(
-                visible ? .foreground : .background,
-                refreshNow: visible
-            )
-
-            guard visible else { return }
-            let metrics = await metricsPoller.currentMetrics
-            appState.updateMetrics(metrics)
-        }
+        restartMetricsLoop(
+            samplingMode: visible ? .foreground : .background,
+            refreshImmediately: visible
+        )
     }
 }
 

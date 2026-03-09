@@ -272,8 +272,6 @@ public actor SystemMetricsPoller {
     public private(set) var samplingMode: MetricsSamplingMode
 
     private let provider: MetricsProvider
-    private var interval: TimeInterval
-    private var pollTask: Task<Void, Never>?
 
     // Previous CPU sample for delta calculation
     private var prevTicks = CPUTicks(
@@ -325,7 +323,6 @@ public actor SystemMetricsPoller {
         } else {
             self.samplingMode = .foreground
         }
-        self.interval = interval
         self.provider = provider
     }
 
@@ -356,16 +353,11 @@ public actor SystemMetricsPoller {
         prevProcessSnapshots = processProvider.allProcessSnapshots()
         prevProcessTime = Date()
 
-        pollTask = Task { [weak self] in
-            await self?.pollLoop()
-        }
     }
 
     /// Stop polling.
     public func stop() {
         guard isRunning else { return }
-        pollTask?.cancel()
-        pollTask = nil
         isRunning = false
     }
 
@@ -374,7 +366,6 @@ public actor SystemMetricsPoller {
         refreshNow: Bool = false
     ) {
         samplingMode = mode
-        interval = Self.profile(for: mode).interval
 
         if refreshNow {
             sampleMetrics(forceRefresh: true)
@@ -386,16 +377,13 @@ public actor SystemMetricsPoller {
         sampleMetrics(forceRefresh: true)
     }
 
-    // MARK: - Internal
-
-    private func pollLoop() async {
-        while !Task.isCancelled {
-            let ns = UInt64(interval * 1_000_000_000)
-            try? await Task.sleep(nanoseconds: ns)
-            guard !Task.isCancelled else { break }
-            sampleMetrics()
-        }
+    public static func interval(
+        for mode: MetricsSamplingMode
+    ) -> TimeInterval {
+        profile(for: mode).interval
     }
+
+    // MARK: - Internal
 
     static func profile(
         for mode: MetricsSamplingMode
@@ -461,7 +449,8 @@ public actor SystemMetricsPoller {
         if profile.includeTemperatures {
             hidReadings = hidProvider.sensorReadings()
             smcTemperatures = Dictionary(
-                uniqueKeysWithValues: smcProvider.allTemperatures()
+                smcProvider.allTemperatures(),
+                uniquingKeysWith: { _, new in new }
             )
         }
 
@@ -618,6 +607,9 @@ public actor SystemMetricsPoller {
             currentCount: currentMetrics.topProcesses.count,
             forceRefresh: forceRefresh
         ) else {
+            // When throttled, we intentionally keep the previous ranking and
+            // baseline. The next refresh becomes a longer-window average,
+            // which is the tradeoff that avoids a full process scan every poll.
             return currentMetrics.topProcesses
         }
 
