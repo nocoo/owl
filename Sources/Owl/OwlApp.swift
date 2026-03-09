@@ -21,7 +21,7 @@ struct OwlApp {
 // MARK: - AppDelegate
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     var statusItem: NSStatusItem?
     let popover = NSPopover()
@@ -37,8 +37,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Engine components
     let pipeline = DetectorPipeline()
     let alertManager = AlertStateManager()
-    let metricsPoller = SystemMetricsPoller(interval: 2.0)
+    let metricsPoller = SystemMetricsPoller(interval: 10.0)
     var reader: LogStreamReader?
+    var isPopoverVisible = false
 
     // Observation
     var cancellables = Set<AnyCancellable>()
@@ -124,6 +125,7 @@ extension AppDelegate {
                 preferredEdge: .minY
             )
             popover.behavior = .transient
+            handlePopoverVisibilityChange(true)
 
             // Activate the app so the popover's window becomes key
             // immediately — without this, the popover appears with
@@ -338,6 +340,7 @@ extension AppDelegate {
         popover.contentViewController = hosting
         popover.contentSize = NSSize(width: 322, height: 696)
         popover.behavior = .transient
+        popover.delegate = self
     }
 
     func startObserving() {
@@ -523,6 +526,33 @@ extension AppDelegate {
             ofSize: 10, weight: .medium
         )
         button.title = title
+    }
+}
+
+extension AppDelegate {
+    func popoverDidClose(_ notification: Notification) {
+        handlePopoverVisibilityChange(false)
+    }
+
+    private func handlePopoverVisibilityChange(_ visible: Bool) {
+        guard isPopoverVisible != visible else { return }
+        isPopoverVisible = visible
+
+        let updateInterval: UInt64 = visible
+            ? 2_000_000_000
+            : 10_000_000_000
+        restartMetricsLoop(updateIntervalNanoseconds: updateInterval)
+
+        Task {
+            await metricsPoller.setSamplingMode(
+                visible ? .foreground : .background,
+                refreshNow: visible
+            )
+
+            guard visible else { return }
+            let metrics = await metricsPoller.currentMetrics
+            appState.updateMetrics(metrics)
+        }
     }
 }
 

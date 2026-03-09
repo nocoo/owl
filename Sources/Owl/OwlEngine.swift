@@ -137,15 +137,25 @@ extension AppDelegate {
     }
 
     private func startMetricsLoop() {
+        restartMetricsLoop(updateIntervalNanoseconds: 10_000_000_000)
+    }
+
+    func restartMetricsLoop(
+        updateIntervalNanoseconds: UInt64
+    ) {
+        metricsTask?.cancel()
         metricsTask = Task {
             await metricsPoller.start()
 
             while !Task.isCancelled {
                 try? await Task.sleep(
-                    nanoseconds: 2_000_000_000
+                    nanoseconds: updateIntervalNanoseconds
                 )
+                guard !Task.isCancelled else { break }
                 let metrics = await metricsPoller.currentMetrics
-                appState.updateMetrics(metrics)
+                if self.isPopoverVisible {
+                    appState.updateMetrics(metrics)
+                }
             }
         }
     }

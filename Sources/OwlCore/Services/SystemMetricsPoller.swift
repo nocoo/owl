@@ -1,5 +1,22 @@
 import Foundation
 
+public enum MetricsSamplingMode: Sendable, Equatable {
+    case background
+    case foreground
+}
+
+struct MetricsSamplingProfile: Sendable, Equatable {
+    let interval: TimeInterval
+    let includeLoadAverage: Bool
+    let includePerCoreCPU: Bool
+    let includeSwap: Bool
+    let includeDisk: Bool
+    let includeBattery: Bool
+    let includeNetwork: Bool
+    let includeTopProcesses: Bool
+    let includeTemperatures: Bool
+}
+
 /// Snapshot of system resource metrics.
 public struct SystemMetrics: Sendable, Equatable {
     /// CPU usage as a percentage (0.0 to 100.0).
@@ -252,9 +269,10 @@ public actor SystemMetricsPoller {
 
     /// Whether the poller is actively running.
     public private(set) var isRunning = false
+    public private(set) var samplingMode: MetricsSamplingMode
 
     private let provider: MetricsProvider
-    private let interval: TimeInterval
+    private var interval: TimeInterval
     private var pollTask: Task<Void, Never>?
 
     // Previous CPU sample for delta calculation
@@ -301,6 +319,11 @@ public actor SystemMetricsPoller {
         interval: TimeInterval = 1.0,
         provider: MetricsProvider = MachMetricsProvider()
     ) {
+        if interval >= 10 {
+            self.samplingMode = .background
+        } else {
+            self.samplingMode = .foreground
+        }
         self.interval = interval
         self.provider = provider
     }
@@ -345,9 +368,21 @@ public actor SystemMetricsPoller {
         isRunning = false
     }
 
+    public func setSamplingMode(
+        _ mode: MetricsSamplingMode,
+        refreshNow: Bool = false
+    ) {
+        samplingMode = mode
+        interval = Self.profile(for: mode).interval
+
+        if refreshNow {
+            sampleMetrics(forceRefresh: true)
+        }
+    }
+
     /// Force a single poll (for testing).
     public func pollOnce() {
-        sampleMetrics()
+        sampleMetrics(forceRefresh: true)
     }
 
     // MARK: - Internal
@@ -361,30 +396,87 @@ public actor SystemMetricsPoller {
         }
     }
 
-    private func sampleMetrics() {
+    static func profile(
+        for mode: MetricsSamplingMode
+    ) -> MetricsSamplingProfile {
+        switch mode {
+        case .background:
+            MetricsSamplingProfile(
+                interval: 10.0,
+                includeLoadAverage: false,
+                includePerCoreCPU: false,
+                includeSwap: false,
+                includeDisk: false,
+                includeBattery: false,
+                includeNetwork: false,
+                includeTopProcesses: false,
+                includeTemperatures: false
+            )
+        case .foreground:
+            MetricsSamplingProfile(
+                interval: 2.0,
+                includeLoadAverage: true,
+                includePerCoreCPU: true,
+                includeSwap: true,
+                includeDisk: true,
+                includeBattery: true,
+                includeNetwork: true,
+                includeTopProcesses: true,
+                includeTemperatures: true
+            )
+        }
+    }
+
+    private func sampleMetrics(forceRefresh: Bool = false) {
+        let profile = Self.profile(for: samplingMode)
         let cpuUsage = sampleCPU()
         let mem = provider.memoryInfo()
-        let perCore = samplePerCoreCPU()
-        let hidReadings = hidProvider.sensorReadings()
-        let smcTemperatures = Dictionary(
-            uniqueKeysWithValues: smcProvider.allTemperatures()
-        )
+        let perCore = profile.includePerCoreCPU
+            ? samplePerCoreCPU()
+            : currentMetrics.perCoreCPU
+        let load = profile.includeLoadAverage
+            ? perCoreProvider.loadAverage()
+            : currentMetrics.loadAverage
+        let extMem = profile.includeSwap
+            ? sampleExtendedMemory(mem: mem)
+            : currentMetrics.extendedMemory
+
+        var hidReadings: [String: Double] = [:]
+        var smcTemperatures: [String: Double] = [:]
+        if profile.includeTemperatures {
+            hidReadings = hidProvider.sensorReadings()
+            smcTemperatures = Dictionary(
+                uniqueKeysWithValues: smcProvider.allTemperatures()
+            )
+        }
+
         // Prefer HID on Apple Silicon (reliable), fall back to SMC.
-        let temp = HIDTemperatureProvider.cpuTemperature(
-            from: hidReadings
-        ) ?? smcTemperatures["CPU"]
-        let load = perCoreProvider.loadAverage()
-        let extMem = sampleExtendedMemory(mem: mem)
-        let disk = sampleDisk()
-        let battery = batteryProvider.batteryInfo()
-        let network = sampleNetwork()
-        let topProcs = sampleTopProcesses()
-        let temps = sampleTemperatures(
-            battery: battery,
-            hidReadings: hidReadings,
-            smcTemperatures: smcTemperatures,
-            cpuTemperature: temp
-        )
+        let temp = profile.includeTemperatures
+            ? HIDTemperatureProvider.cpuTemperature(
+                from: hidReadings
+            ) ?? smcTemperatures["CPU"]
+            : currentMetrics.cpuTemperature
+
+        let battery = profile.includeBattery
+            ? batteryProvider.batteryInfo()
+            : currentMetrics.battery
+        let disk = profile.includeDisk
+            ? sampleDisk()
+            : currentMetrics.disk
+        let network = profile.includeNetwork
+            ? sampleNetwork()
+            : currentMetrics.network
+        let topProcs = profile.includeTopProcesses
+            ? sampleTopProcesses(forceRefresh: forceRefresh)
+            : currentMetrics.topProcesses
+        let temps = profile.includeTemperatures
+            ? sampleTemperatures(
+                battery: battery,
+                hidReadings: hidReadings,
+                smcTemperatures: smcTemperatures,
+                cpuTemperature: temp
+            )
+            : currentMetrics.temperatures
 
         currentMetrics = SystemMetrics(
             cpuUsage: cpuUsage,
@@ -501,7 +593,9 @@ public actor SystemMetricsPoller {
         )
     }
 
-    private func sampleTopProcesses() -> [ProcessMetric] {
+    private func sampleTopProcesses(
+        forceRefresh: Bool = false
+    ) -> [ProcessMetric] {
         let curSnapshots = processProvider.allProcessSnapshots()
         let now = Date()
         let elapsed = now.timeIntervalSince(prevProcessTime)

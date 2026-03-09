@@ -80,6 +80,36 @@ struct SystemMetricsTests {
 @Suite("SystemMetricsPoller")
 struct SystemMetricsPollerTests {
 
+    @Test func foregroundProfileCollectsDetailedMetrics() {
+        let profile = SystemMetricsPoller.profile(
+            for: .foreground
+        )
+        #expect(profile.interval == 2.0)
+        #expect(profile.includeLoadAverage)
+        #expect(profile.includePerCoreCPU)
+        #expect(profile.includeSwap)
+        #expect(profile.includeDisk)
+        #expect(profile.includeBattery)
+        #expect(profile.includeNetwork)
+        #expect(profile.includeTopProcesses)
+        #expect(profile.includeTemperatures)
+    }
+
+    @Test func backgroundProfileDisablesExpensiveCollectors() {
+        let profile = SystemMetricsPoller.profile(
+            for: .background
+        )
+        #expect(profile.interval == 10.0)
+        #expect(!profile.includeLoadAverage)
+        #expect(!profile.includePerCoreCPU)
+        #expect(!profile.includeSwap)
+        #expect(!profile.includeDisk)
+        #expect(!profile.includeBattery)
+        #expect(!profile.includeNetwork)
+        #expect(!profile.includeTopProcesses)
+        #expect(!profile.includeTemperatures)
+    }
+
     @Test func initialMetricsAreZero() async {
         let provider = MockMetricsProvider()
         provider.cpuTickSequence = [
