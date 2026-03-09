@@ -37,7 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Engine components
     let pipeline = DetectorPipeline()
     let alertManager = AlertStateManager()
-    let metricsPoller = SystemMetricsPoller()
+    let metricsPoller = SystemMetricsPoller(interval: 2.0)
     var reader: LogStreamReader?
 
     // Observation

@@ -16,37 +16,32 @@ public final class HIDTemperatureProvider: Sendable {
 
     public init() {}
 
+    func sensorReadings() -> [String: Double] {
+        ReadHIDTemperatures() as? [String: Double] ?? [:]
+    }
+
     /// Read CPU die temperature (average of all die sensors).
     /// Returns Celsius value or nil if unavailable.
     public func cpuTemperature() -> Double? {
-        let sensors = dieSensors()
-        guard !sensors.isEmpty else { return nil }
-        let sum = sensors.map(\.celsius).reduce(0, +)
-        return sum / Double(sensors.count)
+        Self.cpuTemperature(from: sensorReadings())
     }
 
     /// Read the hottest die sensor temperature.
     public func cpuTemperatureMax() -> Double? {
-        dieSensors().map(\.celsius).max()
+        Self.dieSensors(from: sensorReadings()).map(\.celsius).max()
     }
 
     /// Read all available HID thermal sensors.
     /// Returns array of (label, celsius) for sensors that responded.
     public func allTemperatures() -> [(String, Double)] {
-        guard let dict = ReadHIDTemperatures() as? [String: Double] else {
-            return []
-        }
-        return dict
+        sensorReadings()
             .sorted(by: { $0.key < $1.key })
             .map { ($0.key, $0.value) }
     }
 
     /// Returns true if HID thermal sensors are available (Apple Silicon).
     public func isAvailable() -> Bool {
-        guard let dict = ReadHIDTemperatures() as? [String: Double] else {
-            return false
-        }
-        return !dict.isEmpty
+        !sensorReadings().isEmpty
     }
 
     // MARK: - Sensor name patterns
@@ -72,12 +67,10 @@ public final class HIDTemperatureProvider: Sendable {
         diePrefixes.contains(where: { name.hasPrefix($0) })
     }
 
-    /// Filter for die temperature sensors from the raw dictionary.
-    func dieSensors() -> [(name: String, celsius: Double)] {
-        guard let dict = ReadHIDTemperatures() as? [String: Double] else {
-            return []
-        }
-        return dict
+    static func dieSensors(
+        from readings: [String: Double]
+    ) -> [(name: String, celsius: Double)] {
+        readings
             .filter { entry in
                 Self.isDieSensor(entry.key)
                     && entry.value > 0 && entry.value < 120
@@ -86,15 +79,32 @@ public final class HIDTemperatureProvider: Sendable {
             .sorted(by: { $0.name < $1.name })
     }
 
+    static func cpuTemperature(
+        from readings: [String: Double]
+    ) -> Double? {
+        let sensors = dieSensors(from: readings)
+        guard !sensors.isEmpty else { return nil }
+        let sum = sensors.map(\.celsius).reduce(0, +)
+        return sum / Double(sensors.count)
+    }
+
+    /// Filter for die temperature sensors from the raw dictionary.
+    func dieSensors() -> [(name: String, celsius: Double)] {
+        Self.dieSensors(from: sensorReadings())
+    }
+
     /// Read GPU temperature (average of GPU-specific sensors).
     /// On M3/M4, GPU die temps are part of the `PMU tdie` group
     /// and not separately identifiable, so this returns nil.
     /// Use `cpuTemperature()` which includes all die sensors.
     public func gpuTemperature() -> Double? {
-        guard let dict = ReadHIDTemperatures() as? [String: Double] else {
-            return nil
-        }
-        let gpuTemps = dict
+        Self.gpuTemperature(from: sensorReadings())
+    }
+
+    static func gpuTemperature(
+        from readings: [String: Double]
+    ) -> Double? {
+        let gpuTemps = readings
             .filter { entry in
                 Self.gpuPrefixes.contains(where: { entry.key.hasPrefix($0) })
                     && entry.value > 0 && entry.value < 120

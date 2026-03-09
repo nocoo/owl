@@ -10,7 +10,11 @@ public struct BatteryProvider: Sendable {
         guard let desc = powerSourceDescription() else {
             return .unavailable
         }
-        return buildMetrics(from: desc)
+        return Self.buildMetrics(
+            description: desc,
+            batteryProperties: smartBatteryProperties(),
+            timeRemaining: readTimeRemaining()
+        )
     }
 
     private func powerSourceDescription()
@@ -27,8 +31,28 @@ public struct BatteryProvider: Sendable {
         )?.takeUnretainedValue() as? [String: Any]
     }
 
-    private func buildMetrics(
-        from desc: [String: Any]
+    private func smartBatteryProperties()
+        -> [String: Any]
+    {
+        let service = IOServiceGetMatchingService(
+            kIOMainPortDefault,
+            IOServiceMatching("AppleSmartBattery")
+        )
+        guard service != IO_OBJECT_NULL else { return [:] }
+        defer { IOObjectRelease(service) }
+
+        var props: Unmanaged<CFMutableDictionary>?
+        let result = IORegistryEntryCreateCFProperties(
+            service, &props, kCFAllocatorDefault, 0
+        )
+        guard result == kIOReturnSuccess else { return [:] }
+        return props?.takeRetainedValue() as? [String: Any] ?? [:]
+    }
+
+    static func buildMetrics(
+        description desc: [String: Any],
+        batteryProperties: [String: Any],
+        timeRemaining: Int?
     ) -> BatteryMetrics {
         let level = desc[kIOPSCurrentCapacityKey] as? Int ?? 0
         let maxCap = desc[kIOPSMaxCapacityKey] as? Int ?? 100
@@ -41,9 +65,12 @@ public struct BatteryProvider: Sendable {
         let health = computeHealth(
             maxCap: maxCap, designCap: designCap
         )
-        let cycleCount = readCycleCount()
-        let timeMinutes = readTimeRemaining()
-        let temperature = readTemperature(from: desc)
+        let cycleCount = cycleCount(
+            from: batteryProperties
+        )
+        let temperature = temperature(
+            from: batteryProperties
+        )
         let rawCondition = desc["BatteryHealthCondition"]
             as? String ?? ""
         let condition = rawCondition.isEmpty ? "Normal" : rawCondition
@@ -55,13 +82,13 @@ public struct BatteryProvider: Sendable {
             isCharging: isCharging,
             isPluggedIn: isPluggedIn,
             temperature: temperature,
-            timeRemaining: timeMinutes,
+            timeRemaining: timeRemaining,
             condition: condition,
-            wattage: readWattage()
+            wattage: wattage(from: batteryProperties)
         )
     }
 
-    private func computeHealth(
+    private static func computeHealth(
         maxCap: Int, designCap: Int?
     ) -> Double {
         if let design = designCap, design > 0 {
@@ -80,71 +107,29 @@ public struct BatteryProvider: Sendable {
         return Int(timeRem / 60)
     }
 
-    private func readTemperature(
-        from desc: [String: Any]
+    static func temperature(
+        from batteryProperties: [String: Any]
     ) -> Double? {
-        // IOPSCopyPowerSourcesInfo doesn't include Temperature on macOS.
-        // Read directly from AppleSmartBattery IORegistry entry instead.
-        let service = IOServiceGetMatchingService(
-            kIOMainPortDefault,
-            IOServiceMatching("AppleSmartBattery")
-        )
-        guard service != IO_OBJECT_NULL else { return nil }
-        defer { IOObjectRelease(service) }
-
-        guard let prop = IORegistryEntryCreateCFProperty(
-            service,
-            "Temperature" as CFString,
-            kCFAllocatorDefault,
-            0
-        ) else { return nil }
-
-        guard let raw = prop.takeRetainedValue() as? Int,
+        guard let raw = batteryProperties["Temperature"] as? Int,
               raw > 0 else { return nil }
         // Value is in centidegrees Celsius
         return Double(raw) / 100.0
     }
 
-    private func readCycleCount() -> Int {
-        let service = IOServiceGetMatchingService(
-            kIOMainPortDefault,
-            IOServiceMatching("AppleSmartBattery")
-        )
-        guard service != IO_OBJECT_NULL else { return 0 }
-        defer { IOObjectRelease(service) }
-
-        let prop = IORegistryEntryCreateCFProperty(
-            service,
-            "CycleCount" as CFString,
-            kCFAllocatorDefault,
-            0
-        )
-        return prop?.takeRetainedValue() as? Int ?? 0
+    static func cycleCount(
+        from batteryProperties: [String: Any]
+    ) -> Int {
+        batteryProperties["CycleCount"] as? Int ?? 0
     }
 
     /// Read instantaneous power in watts from AppleSmartBattery.
     /// Voltage (mV) × Amperage (mA) / 1_000_000 = Watts.
     /// Amperage is negative when discharging; we return abs value.
-    private func readWattage() -> Double? {
-        let service = IOServiceGetMatchingService(
-            kIOMainPortDefault,
-            IOServiceMatching("AppleSmartBattery")
-        )
-        guard service != IO_OBJECT_NULL else { return nil }
-        defer { IOObjectRelease(service) }
-
-        guard let vProp = IORegistryEntryCreateCFProperty(
-            service, "Voltage" as CFString,
-            kCFAllocatorDefault, 0
-        ),
-            let aProp = IORegistryEntryCreateCFProperty(
-                service, "Amperage" as CFString,
-                kCFAllocatorDefault, 0
-            )
-        else { return nil }
-
-        guard let mV = vProp.takeRetainedValue() as? Int,
-              let mA = aProp.takeRetainedValue() as? Int,
+    static func wattage(
+        from batteryProperties: [String: Any]
+    ) -> Double? {
+        guard let mV = batteryProperties["Voltage"] as? Int,
+              let mA = batteryProperties["Amperage"] as? Int,
               mV > 0
         else { return nil }
 

@@ -143,4 +143,29 @@ struct HIDTemperatureProviderTests {
         let prefixes = HIDTemperatureProvider.gpuPrefixes
         #expect(prefixes.contains("GPU MTR Temp"))
     }
+
+    @Test func cpuTemperatureFromReadingsAveragesOnlyDieSensors() {
+        let readings: [String: Double] = [
+            "pACC MTR Temp Sensor0": 52,
+            "eACC MTR Temp Sensor1": 48,
+            "GPU MTR Temp Sensor0": 70,
+            "PMU tdev1": 66,
+            "PMU tdie2": 60
+        ]
+
+        let temp = HIDTemperatureProvider.cpuTemperature(from: readings)
+        #expect(temp == 160.0 / 3.0)
+    }
+
+    @Test func gpuTemperatureFromReadingsUsesOnlyGPUSensors() {
+        let readings: [String: Double] = [
+            "pACC MTR Temp Sensor0": 52,
+            "GPU MTR Temp Sensor0": 70,
+            "GPU MTR Temp Sensor1": 74,
+            "PMU tdev1": 66
+        ]
+
+        let temp = HIDTemperatureProvider.gpuTemperature(from: readings)
+        #expect(temp == 72)
+    }
 }

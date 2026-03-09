@@ -365,16 +365,26 @@ public actor SystemMetricsPoller {
         let cpuUsage = sampleCPU()
         let mem = provider.memoryInfo()
         let perCore = samplePerCoreCPU()
-        // Prefer HID on Apple Silicon (reliable), fall back to SMC
-        let temp = hidProvider.cpuTemperature()
-            ?? smcProvider.cpuTemperature()
+        let hidReadings = hidProvider.sensorReadings()
+        let smcTemperatures = Dictionary(
+            uniqueKeysWithValues: smcProvider.allTemperatures()
+        )
+        // Prefer HID on Apple Silicon (reliable), fall back to SMC.
+        let temp = HIDTemperatureProvider.cpuTemperature(
+            from: hidReadings
+        ) ?? smcTemperatures["CPU"]
         let load = perCoreProvider.loadAverage()
         let extMem = sampleExtendedMemory(mem: mem)
         let disk = sampleDisk()
         let battery = batteryProvider.batteryInfo()
         let network = sampleNetwork()
         let topProcs = sampleTopProcesses()
-        let temps = sampleTemperatures(battery: battery)
+        let temps = sampleTemperatures(
+            battery: battery,
+            hidReadings: hidReadings,
+            smcTemperatures: smcTemperatures,
+            cpuTemperature: temp
+        )
 
         currentMetrics = SystemMetrics(
             cpuUsage: cpuUsage,
@@ -387,7 +397,7 @@ public actor SystemMetricsPoller {
             disk: disk,
             battery: battery,
             network: network,
-            topProcesses: Array(topProcs.prefix(5)),
+            topProcesses: topProcs,
             temperatures: temps
         )
     }
@@ -536,7 +546,10 @@ public actor SystemMetricsPoller {
     }
 
     private func sampleTemperatures(
-        battery: BatteryMetrics
+        battery: BatteryMetrics,
+        hidReadings: [String: Double],
+        smcTemperatures: [String: Double],
+        cpuTemperature: Double?
     ) -> [TemperatureSensor] {
         // Build the same 3 summary rows as before: CPU, GPU, SSD.
         // On Apple Silicon, HID provides reliable CPU/GPU averages;
@@ -544,20 +557,19 @@ public actor SystemMetricsPoller {
         var sensors: [TemperatureSensor] = []
 
         // CPU — prefer HID die average, fall back to SMC
-        if let cpu = hidProvider.cpuTemperature()
-            ?? smcProvider.cpuTemperature() {
+        if let cpu = cpuTemperature {
             sensors.append(TemperatureSensor(label: "CPU", celsius: cpu))
         }
 
         // GPU — prefer HID, fall back to SMC
-        let smcAll = smcProvider.allTemperatures()
-        if let gpu = hidProvider.gpuTemperature()
-            ?? smcAll.first(where: { $0.0 == "GPU" })?.1 {
+        if let gpu = HIDTemperatureProvider.gpuTemperature(
+            from: hidReadings
+        ) ?? smcTemperatures["GPU"] {
             sensors.append(TemperatureSensor(label: "GPU", celsius: gpu))
         }
 
         // SSD — SMC only (HID doesn't provide a useful SSD reading)
-        if let ssd = smcAll.first(where: { $0.0 == "SSD" })?.1 {
+        if let ssd = smcTemperatures["SSD"] {
             sensors.append(TemperatureSensor(label: "SSD", celsius: ssd))
         }
 
