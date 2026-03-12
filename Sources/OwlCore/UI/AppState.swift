@@ -60,10 +60,12 @@ public final class AppState {
 
     /// Update system metrics from SystemMetricsPoller.
     public func updateMetrics(_ newMetrics: SystemMetrics) {
-        guard metrics != newMetrics else { return }
-        metrics = newMetrics
+        // Skip assignment if unchanged (avoids SwiftUI re-render),
+        // but always append network history for sparkline continuity.
+        if metrics != newMetrics {
+            metrics = newMetrics
+        }
 
-        // Append to network history for sparkline
         networkInHistory.append(newMetrics.network.bytesInPerSec)
         networkOutHistory.append(newMetrics.network.bytesOutPerSec)
         if networkInHistory.count > maxNetworkSamples {

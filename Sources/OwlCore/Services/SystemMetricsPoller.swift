@@ -365,8 +365,10 @@ public actor SystemMetricsPoller {
         _ mode: MetricsSamplingMode,
         refreshNow: Bool = false
     ) {
-        guard samplingMode != mode else { return }
-        samplingMode = mode
+        let modeChanged = samplingMode != mode
+        if modeChanged {
+            samplingMode = mode
+        }
 
         if refreshNow {
             sampleMetrics(forceRefresh: true)

@@ -351,6 +351,31 @@ struct SystemMetricsPollerTests {
         await poller.stop()
     }
 
+    @Test func setSamplingModeRefreshNowWorksEvenWhenModeUnchanged() async {
+        let provider = MockMetricsProvider()
+        provider.cpuTickSequence = [
+            CPUTicks(user: 100, system: 0, idle: 100, nice: 0),
+            CPUTicks(user: 200, system: 0, idle: 200, nice: 0),
+            CPUTicks(user: 300, system: 0, idle: 300, nice: 0)
+        ]
+        let poller = SystemMetricsPoller(
+            interval: 2,  // starts in foreground mode
+            provider: provider
+        )
+
+        await poller.start()
+        await poller.pollOnce()  // first sample: 50%
+
+        // Same mode, but force refresh
+        await poller.setSamplingMode(.foreground, refreshNow: true)
+
+        let metrics = await poller.currentMetrics
+        #expect(await poller.samplingMode == .foreground)
+        #expect(metrics.cpuUsage == 50.0)  // second sample computed
+
+        await poller.stop()
+    }
+
     @Test func doubleStartIsNoOp() async {
         let provider = MockMetricsProvider()
         provider.cpuTickSequence = [
