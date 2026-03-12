@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.6.1
+
+### Bug Fixes
+
+- Add early-exit guards in `OwlEngine` and `SystemMetricsPoller` to eliminate redundant work when popover is already in the target state
+- Preserve `refreshNow` flag semantics and network history append behavior in `AppState.updateMetrics`
+
+### Tests
+
+- Add unit tests locking down history semantics in `AppState.updateMetrics` (network history append, refreshNow passthrough)
+- Add unit tests for `SystemMetricsPoller` early-exit guard behavior
+
 ## v1.6.0
 
 ### Performance
