@@ -88,6 +88,50 @@ struct AppStateTests {
         #expect(state.metrics.memoryTotal == 16_000_000_000)
     }
 
+    @Test @MainActor func updateMetricsAppendsNetworkHistory() {
+        let state = AppState()
+        let metrics = SystemMetrics(
+            cpuUsage: 10,
+            memoryTotal: 16_000_000_000,
+            memoryUsed: 8_000_000_000,
+            network: NetworkMetrics(
+                bytesInPerSec: 1000,
+                bytesOutPerSec: 500
+            )
+        )
+
+        state.updateMetrics(metrics)
+        #expect(state.networkInHistory == [1000])
+        #expect(state.networkOutHistory == [500])
+
+        state.updateMetrics(metrics)
+        #expect(state.networkInHistory == [1000, 1000])
+        #expect(state.networkOutHistory == [500, 500])
+    }
+
+    @Test @MainActor func updateMetricsAppendsHistoryEvenWhenMetricsUnchanged() {
+        let state = AppState()
+        let metrics = SystemMetrics(
+            cpuUsage: 10,
+            memoryTotal: 16_000_000_000,
+            memoryUsed: 8_000_000_000,
+            network: NetworkMetrics(
+                bytesInPerSec: 0,  // idle network
+                bytesOutPerSec: 0
+            )
+        )
+
+        // Simulate multiple idle samples
+        for _ in 0..<5 {
+            state.updateMetrics(metrics)
+        }
+
+        // History should still grow (sparkline needs flat line points)
+        #expect(state.networkInHistory.count == 5)
+        #expect(state.networkOutHistory.count == 5)
+        #expect(state.networkInHistory.allSatisfy { $0 == 0 })
+    }
+
     // MARK: - Helpers
 
     private func makeAlert(
