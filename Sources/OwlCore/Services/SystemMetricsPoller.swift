@@ -365,6 +365,7 @@ public actor SystemMetricsPoller {
         _ mode: MetricsSamplingMode,
         refreshNow: Bool = false
     ) {
+        guard samplingMode != mode else { return }
         samplingMode = mode
 
         if refreshNow {

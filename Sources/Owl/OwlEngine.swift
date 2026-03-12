@@ -152,7 +152,8 @@ extension AppDelegate {
             interval * 1_000_000_000
         )
         metricsTask = Task {
-            await self.ensureMetricsPollerStarted()
+            // start() is idempotent - safe to call multiple times
+            await metricsPoller.start()
             await metricsPoller.setSamplingMode(samplingMode)
 
             if refreshImmediately {
@@ -177,12 +178,6 @@ extension AppDelegate {
         }
     }
 
-    private func ensureMetricsPollerStarted() async {
-        guard !hasStartedMetricsPoller else { return }
-        await metricsPoller.start()
-        hasStartedMetricsPoller = true
-    }
-
     func stopEngine() {
         engineTask?.cancel()
         tickTask?.cancel()
@@ -197,7 +192,6 @@ extension AppDelegate {
             await reader?.stop()
             await metricsPoller.stop()
         }
-        hasStartedMetricsPoller = false
 
         stopPulseAnimation()
         recoveryTimer?.invalidate()

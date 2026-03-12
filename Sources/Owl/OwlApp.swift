@@ -40,7 +40,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     let metricsPoller = SystemMetricsPoller(interval: 10.0)
     var reader: LogStreamReader?
     var isPopoverVisible = false
-    var hasStartedMetricsPoller = false
 
     // Observation
     var cancellables = Set<AnyCancellable>()

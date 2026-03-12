@@ -60,6 +60,7 @@ public final class AppState {
 
     /// Update system metrics from SystemMetricsPoller.
     public func updateMetrics(_ newMetrics: SystemMetrics) {
+        guard metrics != newMetrics else { return }
         metrics = newMetrics
 
         // Append to network history for sparkline
