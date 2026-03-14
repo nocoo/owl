@@ -60,6 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             setupStatusItem()
             setupPopover()
             setupSettingsWiring()
+            setupNotifications()
             startObserving()
             applyInitialDetectorStates()
             startEngine()
@@ -257,6 +258,16 @@ extension AppDelegate {
 
     func bootstrapLocalization() {
         L10n.bootstrap(preference: appSettings.language)
+    }
+
+    func setupNotifications() {
+        OwlNotifications.requestAuthorization()
+
+        let settings = self.appSettings
+        alertManager.onAlertActivated = { alert in
+            guard settings.notificationsEnabled else { return }
+            OwlNotifications.post(for: alert)
+        }
     }
 
     func applyAppearance(_ appearance: AppAppearance) {

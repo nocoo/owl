@@ -15,6 +15,7 @@ public final class AppSettings {
         static let launchAtLogin = "owl.launchAtLogin"
         static let language = "owl.language"
         static let appearance = "owl.appearance"
+        static let notificationsEnabled = "owl.notificationsEnabled"
         static func detectorEnabled(_ id: String) -> String {
             "owl.detector.\(id).enabled"
         }
@@ -58,6 +59,17 @@ public final class AppSettings {
         set { defaults.set(newValue.rawValue, forKey: Keys.appearance) }
     }
 
+    /// Whether system notification banners are enabled. Defaults to `true`.
+    public var notificationsEnabled: Bool {
+        get {
+            guard defaults.object(forKey: Keys.notificationsEnabled) != nil else {
+                return true // default: notifications on
+            }
+            return defaults.bool(forKey: Keys.notificationsEnabled)
+        }
+        set { defaults.set(newValue, forKey: Keys.notificationsEnabled) }
+    }
+
     // MARK: - Detector Toggle
 
     /// Returns whether a detector is enabled. Defaults to `true` if never set.
@@ -93,6 +105,7 @@ public final class AppSettings {
         defaults.removeObject(forKey: Keys.launchAtLogin)
         defaults.removeObject(forKey: Keys.language)
         defaults.removeObject(forKey: Keys.appearance)
+        defaults.removeObject(forKey: Keys.notificationsEnabled)
         for id in detectorIDs {
             defaults.removeObject(
                 forKey: Keys.detectorEnabled(id)

@@ -25,6 +25,11 @@ public final class AlertStateManager {
     /// Recently expired alerts for the history view.
     public private(set) var alertHistory: [Alert] = []
 
+    /// Called when an alert is newly activated (promoted from pending) or
+    /// upgraded to a higher severity. Same-severity TTL refreshes do NOT
+    /// trigger this callback.
+    public var onAlertActivated: ((Alert) -> Void)?
+
     /// The highest severity among all active alerts.
     public var currentSeverity: Severity {
         activeAlerts.map(\.severity).max() ?? .normal
@@ -64,6 +69,7 @@ public final class AlertStateManager {
             if alert.severity > existing.severity {
                 // Upgrade: replace with higher severity
                 activeAlerts[existingIndex] = alert
+                onAlertActivated?(alert)
             } else if alert.severity == existing.severity {
                 // Refresh: keep severity, update timestamp/TTL
                 activeAlerts[existingIndex] = alert
@@ -115,9 +121,11 @@ public final class AlertStateManager {
                 ) {
                     if alert.severity > activeAlerts[existingIndex].severity {
                         activeAlerts[existingIndex] = alert
+                        onAlertActivated?(alert)
                     }
                 } else {
                     activeAlerts.append(alert)
+                    onAlertActivated?(alert)
                 }
                 indicesToRemove.append(index)
             }
