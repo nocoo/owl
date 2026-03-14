@@ -230,6 +230,10 @@ public enum L10nKey: Sendable {
     case detectorCrashSignalDesc
     case detectorAppHang
     case detectorAppHangDesc
+    case detectorSustainedCPU
+    case detectorSustainedCPUDesc
+    case detectorThermalState
+    case detectorThermalStateDesc
 
     // Pattern alert strings (title / description / suggestion)
     case alertThermalTitle
@@ -277,6 +281,12 @@ public enum L10nKey: Sendable {
     case alertAppHangTitle
     case alertAppHangDesc(String, String, String)
     case alertAppHangSuggestion
+    case alertSustainedCPUTitle
+    case alertSustainedCPUDesc(String)
+    case alertSustainedCPUSuggestion
+    case alertThermalStateTitle
+    case alertThermalStateDesc(String)
+    case alertThermalStateSuggestion
 
     // Recovery / global
     case alertRecoveredSuffix
@@ -551,6 +561,14 @@ public enum L10n {
             return "App Hang"
         case .detectorAppHangDesc:
             return "Application unresponsive"
+        case .detectorSustainedCPU:
+            return "Sustained High CPU"
+        case .detectorSustainedCPUDesc:
+            return "CPU above 80% for 60s+"
+        case .detectorThermalState:
+            return "Thermal Pressure"
+        case .detectorThermalStateDesc:
+            return "System thermal state elevated"
 
         // Pattern alerts
         case .alertThermalTitle:
@@ -645,6 +663,18 @@ public enum L10n {
             return "PID \(key) failed WindowServer heartbeat (\(count) times/\(window)s)"
         case .alertAppHangSuggestion:
             return "Check the process in Activity Monitor, try force-quitting"
+        case .alertSustainedCPUTitle:
+            return "Sustained High CPU Usage"
+        case .alertSustainedCPUDesc(let val):
+            return "CPU usage at \(val)% for over 60 seconds"
+        case .alertSustainedCPUSuggestion:
+            return "Open Activity Monitor to find CPU-intensive processes, close unnecessary apps"
+        case .alertThermalStateTitle:
+            return "System Thermal Pressure"
+        case .alertThermalStateDesc(let state):
+            return "Thermal state changed to \(state)"
+        case .alertThermalStateSuggestion:
+            return "Reduce workload, ensure proper ventilation, and close CPU-heavy applications"
 
         // Recovery / global
         case .alertRecoveredSuffix: return "Recovered"
@@ -853,6 +883,10 @@ public enum L10n {
             return "SEGFAULT、SIGBUS 等"
         case .detectorAppHang: return "应用无响应"
         case .detectorAppHangDesc: return "应用程序未响应"
+        case .detectorSustainedCPU: return "持续高 CPU"
+        case .detectorSustainedCPUDesc: return "CPU 超过 80% 持续 60 秒以上"
+        case .detectorThermalState: return "温度压力"
+        case .detectorThermalStateDesc: return "系统温度状态升高"
 
         // Pattern alerts
         case .alertThermalTitle: return "CPU 散热节流中"
@@ -938,6 +972,16 @@ public enum L10n {
             return "PID \(key) 未响应 WindowServer 的心跳检测（\(count) 次/\(window)s）"
         case .alertAppHangSuggestion:
             return "在 Activity Monitor 中查看该进程是否正常，可尝试强制退出"
+        case .alertSustainedCPUTitle: return "CPU 持续高负载"
+        case .alertSustainedCPUDesc(let val):
+            return "CPU 使用率 \(val)% 已持续超过 60 秒"
+        case .alertSustainedCPUSuggestion:
+            return "打开 Activity Monitor 查找占用 CPU 的进程，关闭不必要的应用"
+        case .alertThermalStateTitle: return "系统温度压力"
+        case .alertThermalStateDesc(let state):
+            return "温度状态变为 \(state)"
+        case .alertThermalStateSuggestion:
+            return "减少工作负载，确保通风良好，关闭占用 CPU 较高的应用"
 
         // Recovery / global
         case .alertRecoveredSuffix: return "已恢复"

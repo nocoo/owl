@@ -52,7 +52,7 @@ public struct DetectorInfo: Sendable, Equatable, Identifiable {
     }
 }
 
-/// Provides display metadata for all 14 detectors (15 instances).
+/// Provides display metadata for all 16 detectors (17 instances).
 public enum DetectorCatalog {
 
     /// All detector info entries in display order (matches popover section order).
@@ -63,6 +63,18 @@ public enum DetectorCatalog {
                 id: "thermal_throttling",
                 displayName: L10n.tr(.detectorThermalThrottling),
                 description: L10n.tr(.detectorThermalThrottlingDesc),
+                category: .hardware
+            ),
+            DetectorInfo(
+                id: "sustained_high_cpu",
+                displayName: L10n.tr(.detectorSustainedCPU),
+                description: L10n.tr(.detectorSustainedCPUDesc),
+                category: .hardware
+            ),
+            DetectorInfo(
+                id: "thermal_state",
+                displayName: L10n.tr(.detectorThermalState),
+                description: L10n.tr(.detectorThermalStateDesc),
                 category: .hardware
             ),
             DetectorInfo(
