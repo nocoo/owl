@@ -9,3 +9,8 @@
 - `pti_total_user/system` **already includes** live-thread times. `pti_threads_user/system` is a **subset** of `pti_total_*`, NOT additional time. Summing all four double-counts.
 - Three AI agents (Claude, Codex, Gemini) all incorrectly advised summing all four fields. Experimental verification was essential.
 - Verified against `ps` (which reports ~99% for a pure CPU spin loop) — our corrected algorithm matches. macOS `top` reports lower (~69%) due to its own sampling methodology.
+
+### 2026-03-15: UNUserNotificationCenter crashes without bundle identifier
+- `UNUserNotificationCenter.current()` throws `NSInternalInconsistencyException` ("bundleProxyForCurrentProcess is nil") when called from a binary without a valid `Bundle.main.bundleIdentifier`.
+- SPM `swift build` debug binaries don't have a proper bundle proxy. Only `.app` bundles (Xcode archive or `swift-bundler`) have one.
+- Fix: guard all `UNUserNotificationCenter` calls with `Bundle.main.bundleIdentifier != nil` check. Notifications silently degrade in dev builds.
