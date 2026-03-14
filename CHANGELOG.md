@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.6.2
+
+### Performance
+
+- Replace `String.contains` with UTF-8 byte-level substring search in `passesPreFilter`, eliminating Unicode normalization overhead (~5-15× faster for pure-ASCII keywords). Addresses high CPU usage that caused macOS to generate `cpu_resource` diagnostics and hide the menu bar icon.
+
+### UI
+
+- Hide status label text in Normal state — menu bar shows only the bird icon, making alert states (Info/Warning/Critical) more visually prominent
+
+### Maintenance
+
+- Change bundle identifier from `com.nocoo.owl` to `ai.hexly.owl.01`
+
+### Tests
+
+- Add 21 unit tests for UTF-8 pre-filter covering all 20 keywords, NDJSON embedding, case sensitivity, substring matching, and keyword position
+
 ## v1.6.1
 
 ### Bug Fixes

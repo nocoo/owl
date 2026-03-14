@@ -9,7 +9,7 @@
     <string>Owl</string>
 
     <key>CFBundleIdentifier</key>
-    <string>com.nocoo.owl</string>
+    <string>ai.hexly.owl.01</string>
 
     <key>CFBundleName</key>
     <string>Owl</string>
@@ -21,7 +21,7 @@
     <string>APPL</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>1.6.1</string>
+    <string>1.6.2</string>
 
     <key>CFBundleVersion</key>
     <string>6</string>
