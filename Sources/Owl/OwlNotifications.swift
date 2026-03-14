@@ -5,8 +5,16 @@ import OwlCore
 /// Manages macOS system notification banners for Owl alerts.
 enum OwlNotifications {
 
+    /// Whether the notification subsystem is available.
+    /// `UNUserNotificationCenter` requires a valid bundle identifier;
+    /// SPM debug builds run without one, so we guard against that.
+    private static var isAvailable: Bool {
+        Bundle.main.bundleIdentifier != nil
+    }
+
     /// Request notification authorization from the user.
     static func requestAuthorization() {
+        guard isAvailable else { return }
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(
             options: [.alert, .sound]
@@ -18,6 +26,8 @@ enum OwlNotifications {
     /// Post a system notification for an alert.
     @MainActor
     static func post(for alert: Alert) {
+        guard isAvailable else { return }
+
         let content = UNMutableNotificationContent()
         content.title = alert.title
         content.body = alert.description
