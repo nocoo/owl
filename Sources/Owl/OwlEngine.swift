@@ -151,6 +151,7 @@ extension AppDelegate {
         let updateIntervalNanoseconds = UInt64(
             interval * 1_000_000_000
         )
+        let pipeline = self.pipeline
         metricsTask = Task {
             // start() is idempotent - safe to call multiple times
             await metricsPoller.start()
@@ -159,6 +160,9 @@ extension AppDelegate {
             if refreshImmediately {
                 await metricsPoller.pollOnce()
                 let metrics = await metricsPoller.currentMetrics
+                // Feed metrics to detection pipeline (always, regardless of popover)
+                let alerts = await pipeline.processMetrics(metrics)
+                self.deliverAlerts(alerts)
                 if self.isPopoverVisible {
                     appState.updateMetrics(metrics)
                 }
@@ -171,6 +175,9 @@ extension AppDelegate {
                 guard !Task.isCancelled else { break }
                 await metricsPoller.pollOnce()
                 let metrics = await metricsPoller.currentMetrics
+                // Feed metrics to detection pipeline (always, regardless of popover)
+                let alerts = await pipeline.processMetrics(metrics)
+                self.deliverAlerts(alerts)
                 if self.isPopoverVisible {
                     appState.updateMetrics(metrics)
                 }
