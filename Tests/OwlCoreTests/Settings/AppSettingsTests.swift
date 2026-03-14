@@ -126,4 +126,26 @@ struct AppSettingsTests {
         // Never-set detectors still default to true
         #expect(settings.isDetectorEnabled("dark_wake"))
     }
+
+    // MARK: - Notifications
+
+    @Test func notificationsEnabledDefaultsToTrue() {
+        let settings = makeSettings()
+        #expect(settings.notificationsEnabled)
+    }
+
+    @Test func setNotificationsEnabled() {
+        let settings = makeSettings()
+        settings.notificationsEnabled = false
+        #expect(!settings.notificationsEnabled)
+        settings.notificationsEnabled = true
+        #expect(settings.notificationsEnabled)
+    }
+
+    @Test func resetAllResetsNotifications() {
+        let settings = makeSettings()
+        settings.notificationsEnabled = false
+        settings.resetAll(detectorIDs: [])
+        #expect(settings.notificationsEnabled)
+    }
 }

@@ -305,4 +305,94 @@ struct AlertStateManagerTests {
         #expect(manager.activeAlerts.count == 3)
         #expect(manager.currentSeverity == .critical)
     }
+
+    // MARK: - onAlertActivated Callback
+
+    @Test("calls onAlertActivated when pending alert is promoted")
+    func callbackOnPromote() {
+        let manager = AlertStateManager(debounceInterval: 5)
+        var activatedAlerts: [Alert] = []
+        manager.onAlertActivated = { activatedAlerts.append($0) }
+
+        let alert = makeAlert(
+            timestamp: Date(timeIntervalSince1970: 1000)
+        )
+        manager.receive(alert)
+        #expect(activatedAlerts.isEmpty)
+
+        // Promote
+        manager.performMaintenance(at: Date(timeIntervalSince1970: 1006))
+        #expect(activatedAlerts.count == 1)
+        #expect(activatedAlerts[0].detectorID == "test_detector")
+    }
+
+    @Test("calls onAlertActivated on severity upgrade")
+    func callbackOnSeverityUpgrade() {
+        let manager = AlertStateManager(debounceInterval: 0)
+        var activatedAlerts: [Alert] = []
+        manager.onAlertActivated = { activatedAlerts.append($0) }
+
+        let warning = makeAlert(
+            severity: .warning,
+            timestamp: Date(timeIntervalSince1970: 1000)
+        )
+        manager.receive(warning)
+        manager.performMaintenance(at: Date(timeIntervalSince1970: 1001))
+        #expect(activatedAlerts.count == 1)
+
+        // Upgrade severity
+        let critical = makeAlert(
+            severity: .critical,
+            timestamp: Date(timeIntervalSince1970: 1010)
+        )
+        manager.receive(critical)
+        #expect(activatedAlerts.count == 2)
+        #expect(activatedAlerts[1].severity == .critical)
+    }
+
+    @Test("does not call onAlertActivated on same-severity TTL refresh")
+    func noCallbackOnTTLRefresh() {
+        let manager = AlertStateManager(debounceInterval: 0)
+        var activatedAlerts: [Alert] = []
+        manager.onAlertActivated = { activatedAlerts.append($0) }
+
+        let alert1 = makeAlert(
+            severity: .warning,
+            timestamp: Date(timeIntervalSince1970: 1000)
+        )
+        manager.receive(alert1)
+        manager.performMaintenance(at: Date(timeIntervalSince1970: 1001))
+        #expect(activatedAlerts.count == 1)
+
+        // Same severity → TTL refresh, should NOT trigger callback
+        let alert2 = makeAlert(
+            severity: .warning,
+            timestamp: Date(timeIntervalSince1970: 1050)
+        )
+        manager.receive(alert2)
+        #expect(activatedAlerts.count == 1, "Same-severity refresh must not trigger callback")
+    }
+
+    @Test("does not call onAlertActivated on lower severity")
+    func noCallbackOnLowerSeverity() {
+        let manager = AlertStateManager(debounceInterval: 0)
+        var activatedAlerts: [Alert] = []
+        manager.onAlertActivated = { activatedAlerts.append($0) }
+
+        let critical = makeAlert(
+            severity: .critical,
+            timestamp: Date(timeIntervalSince1970: 1000)
+        )
+        manager.receive(critical)
+        manager.performMaintenance(at: Date(timeIntervalSince1970: 1001))
+        #expect(activatedAlerts.count == 1)
+
+        // Lower severity → ignored
+        let warning = makeAlert(
+            severity: .warning,
+            timestamp: Date(timeIntervalSince1970: 1010)
+        )
+        manager.receive(warning)
+        #expect(activatedAlerts.count == 1, "Lower severity must not trigger callback")
+    }
 }
