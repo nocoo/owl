@@ -52,7 +52,7 @@ public struct DetectorInfo: Sendable, Equatable, Identifiable {
     }
 }
 
-/// Provides display metadata for all 16 detectors (17 instances).
+/// Provides display metadata for all 19 detectors (20 instances).
 public enum DetectorCatalog {
 
     /// All detector info entries in display order (matches popover section order).
@@ -89,6 +89,12 @@ public enum DetectorCatalog {
                 description: L10n.tr(.detectorAPFSFlushDelayDesc),
                 category: .hardware
             ),
+            DetectorInfo(
+                id: "disk_usage",
+                displayName: L10n.tr(.detectorDiskUsage),
+                description: L10n.tr(.detectorDiskUsageDesc),
+                category: .hardware
+            ),
             // Memory
             DetectorInfo(
                 id: "jetsam_kill",
@@ -100,6 +106,18 @@ public enum DetectorCatalog {
                 id: "jetsam_kill_escalation",
                 displayName: L10n.tr(.detectorJetsamEscalation),
                 description: L10n.tr(.detectorJetsamEscalationDesc),
+                category: .memory
+            ),
+            DetectorInfo(
+                id: "memory_pressure",
+                displayName: L10n.tr(.detectorMemoryPressure),
+                description: L10n.tr(.detectorMemoryPressureDesc),
+                category: .memory
+            ),
+            DetectorInfo(
+                id: "swap_usage",
+                displayName: L10n.tr(.detectorSwapUsage),
+                description: L10n.tr(.detectorSwapUsageDesc),
                 category: .memory
             ),
             // Power

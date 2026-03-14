@@ -288,6 +288,29 @@ public enum L10nKey: Sendable {
     case alertThermalStateDesc(String)
     case alertThermalStateSuggestion
 
+    // P17-P19 alert strings
+    case alertMemoryPressureTitle
+    case alertMemoryPressureDesc(String)
+    case alertMemoryPressureSuggestion
+    case alertSwapUsageTitle
+    case alertSwapUsageDesc(String)
+    case alertSwapUsageSuggestion
+    case alertDiskUsageTitle
+    case alertDiskUsageDesc(String)
+    case alertDiskUsageSuggestion
+
+    // P17-P19 detector catalog
+    case detectorMemoryPressure
+    case detectorMemoryPressureDesc
+    case detectorSwapUsage
+    case detectorSwapUsageDesc
+    case detectorDiskUsage
+    case detectorDiskUsageDesc
+
+    // Notifications
+    case notificationsEnabled
+    case notificationsEnabledDesc
+
     // Recovery / global
     case alertRecoveredSuffix
     case alertRecoveredDesc
@@ -676,6 +699,46 @@ public enum L10n {
         case .alertThermalStateSuggestion:
             return "Reduce workload, ensure proper ventilation, and close CPU-heavy applications"
 
+        // P17-P19 alerts
+        case .alertMemoryPressureTitle:
+            return "High Memory Pressure"
+        case .alertMemoryPressureDesc(let val):
+            return "Memory usage at \(val)% — system under pressure"
+        case .alertMemoryPressureSuggestion:
+            return "Close unused apps or tabs to free memory"
+        case .alertSwapUsageTitle:
+            return "High Swap Usage"
+        case .alertSwapUsageDesc(let val):
+            return "Swap usage at \(val) GB — may cause slowdowns"
+        case .alertSwapUsageSuggestion:
+            return "Close memory-heavy apps and consider restarting"
+        case .alertDiskUsageTitle:
+            return "Disk Space Low"
+        case .alertDiskUsageDesc(let val):
+            return "Disk usage at \(val)% — running low on space"
+        case .alertDiskUsageSuggestion:
+            return "Delete unused files, empty Trash, or move data to external storage"
+
+        // P17-P19 detector catalog
+        case .detectorMemoryPressure:
+            return "Memory Pressure"
+        case .detectorMemoryPressureDesc:
+            return "Sustained high memory usage"
+        case .detectorSwapUsage:
+            return "Swap Usage"
+        case .detectorSwapUsageDesc:
+            return "Excessive swap file usage"
+        case .detectorDiskUsage:
+            return "Disk Usage"
+        case .detectorDiskUsageDesc:
+            return "Root volume running low"
+
+        // Notifications
+        case .notificationsEnabled:
+            return "System Notifications"
+        case .notificationsEnabledDesc:
+            return "Show macOS notification banners for alerts"
+
         // Recovery / global
         case .alertRecoveredSuffix: return "Recovered"
         case .alertRecoveredDesc: return "System has returned to normal"
@@ -982,6 +1045,35 @@ public enum L10n {
             return "温度状态变为 \(state)"
         case .alertThermalStateSuggestion:
             return "减少工作负载，确保通风良好，关闭占用 CPU 较高的应用"
+
+        // P17-P19 alerts
+        case .alertMemoryPressureTitle: return "内存压力过高"
+        case .alertMemoryPressureDesc(let val):
+            return "内存使用率 \(val)%，系统处于高压力状态"
+        case .alertMemoryPressureSuggestion:
+            return "关闭不需要的应用或标签页以释放内存"
+        case .alertSwapUsageTitle: return "交换空间使用过高"
+        case .alertSwapUsageDesc(let val):
+            return "交换空间使用 \(val) GB，可能导致系统变慢"
+        case .alertSwapUsageSuggestion:
+            return "关闭占用内存大的应用，考虑重启系统"
+        case .alertDiskUsageTitle: return "磁盘空间不足"
+        case .alertDiskUsageDesc(let val):
+            return "磁盘使用率 \(val)%，剩余空间不足"
+        case .alertDiskUsageSuggestion:
+            return "删除不需要的文件、清空废纸篓，或将数据移至外部存储"
+
+        // P17-P19 detector catalog
+        case .detectorMemoryPressure: return "内存压力"
+        case .detectorMemoryPressureDesc: return "持续的高内存使用率"
+        case .detectorSwapUsage: return "交换空间"
+        case .detectorSwapUsageDesc: return "交换文件使用过多"
+        case .detectorDiskUsage: return "磁盘使用率"
+        case .detectorDiskUsageDesc: return "根卷剩余空间不足"
+
+        // Notifications
+        case .notificationsEnabled: return "系统通知"
+        case .notificationsEnabledDesc: return "在告警触发时显示 macOS 通知横幅"
 
         // Recovery / global
         case .alertRecoveredSuffix: return "已恢复"
