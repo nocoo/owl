@@ -5,8 +5,8 @@ import Foundation
 @Suite("DetectorCatalog")
 struct DetectorCatalogTests {
 
-    @Test func catalogContains17Entries() {
-        #expect(DetectorCatalog.all.count == 17)
+    @Test func catalogContains20Entries() {
+        #expect(DetectorCatalog.all.count == 20)
     }
 
     @Test func allIDsMatchesCatalogCount() {
