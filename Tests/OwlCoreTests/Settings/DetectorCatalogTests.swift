@@ -5,8 +5,8 @@ import Foundation
 @Suite("DetectorCatalog")
 struct DetectorCatalogTests {
 
-    @Test func catalogContains15Entries() {
-        #expect(DetectorCatalog.all.count == 15)
+    @Test func catalogContains17Entries() {
+        #expect(DetectorCatalog.all.count == 17)
     }
 
     @Test func allIDsMatchesCatalogCount() {
@@ -21,12 +21,15 @@ struct DetectorCatalogTests {
         #expect(Set(ids).count == ids.count)
     }
 
-    @Test func catalogMatchesPatternCatalog() {
+    @Test func catalogMatchesPatternAndMetricsCatalogs() {
         let patternIDs = Set(
             PatternCatalog.makeAll().map(\.id)
         )
+        let metricsIDs = Set(
+            MetricsCatalog.makeAll().map(\.id)
+        )
         let catalogIDs = Set(DetectorCatalog.allIDs)
-        #expect(patternIDs == catalogIDs)
+        #expect(patternIDs.union(metricsIDs) == catalogIDs)
     }
 
     @Test func lookupByID() {

@@ -20,7 +20,7 @@ struct DetectorPipelineTests {
     func initializesWithCatalog() async {
         let pipeline = DetectorPipeline()
         let count = await pipeline.detectorCount
-        #expect(count == 15)
+        #expect(count == 17)
     }
 
     @Test("initializes with custom detectors")
@@ -151,9 +151,11 @@ struct DetectorPipelineTests {
     func returnsAllDetectorIDs() async {
         let pipeline = DetectorPipeline()
         let ids = await pipeline.detectorIDs
-        #expect(ids.count == 15)
+        #expect(ids.count == 17)
         #expect(ids.contains("thermal_throttling"))
         #expect(ids.contains("jetsam_kill_escalation"))
+        #expect(ids.contains("sustained_high_cpu"))
+        #expect(ids.contains("thermal_state"))
     }
 
     // MARK: - Start Time Filtering
