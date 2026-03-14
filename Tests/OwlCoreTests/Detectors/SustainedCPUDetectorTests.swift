@@ -143,7 +143,7 @@ struct SustainedCPUDetectorTests {
 
     @Test("escalates to critical when thermal state is critical during warning")
     func criticalEscalation() {
-        var thermal: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var thermal: ProcessInfo.ThermalState = .nominal
         let thermalProvider: @Sendable () -> ProcessInfo.ThermalState = { thermal }
         let detector = makeDetector(duration: 10, thermalState: thermalProvider)
         let t0 = Date(timeIntervalSince1970: 1000)
@@ -173,7 +173,7 @@ struct SustainedCPUDetectorTests {
 
     @Test("downgrades from critical to warning when thermal recovers")
     func criticalDowngrade() {
-        var thermal: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var thermal: ProcessInfo.ThermalState = .nominal
         let thermalProvider: @Sendable () -> ProcessInfo.ThermalState = { thermal }
         let detector = makeDetector(duration: 10, thermalState: thermalProvider)
         let t0 = Date(timeIntervalSince1970: 1000)
@@ -247,7 +247,7 @@ struct SustainedCPUDetectorTests {
 
     @Test("emits recovery alert when CPU drops from critical state")
     func recoveryFromCritical() {
-        var thermal: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var thermal: ProcessInfo.ThermalState = .nominal
         let thermalProvider: @Sendable () -> ProcessInfo.ThermalState = { thermal }
         let detector = makeDetector(duration: 10, thermalState: thermalProvider)
         let t0 = Date(timeIntervalSince1970: 1000)

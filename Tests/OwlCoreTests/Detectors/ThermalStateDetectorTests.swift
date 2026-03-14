@@ -33,7 +33,7 @@ struct ThermalStateDetectorTests {
 
     @Test("fair thermal state triggers warning")
     func fairWarning() {
-        var state: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var state: ProcessInfo.ThermalState = .nominal
         let provider: @Sendable () -> ProcessInfo.ThermalState = { state }
         let detector = makeDetector(thermalState: provider)
 
@@ -50,7 +50,7 @@ struct ThermalStateDetectorTests {
 
     @Test("serious thermal state triggers warning")
     func seriousWarning() {
-        var state: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var state: ProcessInfo.ThermalState = .nominal
         let provider: @Sendable () -> ProcessInfo.ThermalState = { state }
         let detector = makeDetector(thermalState: provider)
 
@@ -66,7 +66,7 @@ struct ThermalStateDetectorTests {
 
     @Test("critical thermal state triggers critical alert")
     func criticalAlert() {
-        var state: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var state: ProcessInfo.ThermalState = .nominal
         let provider: @Sendable () -> ProcessInfo.ThermalState = { state }
         let detector = makeDetector(thermalState: provider)
 
@@ -82,7 +82,7 @@ struct ThermalStateDetectorTests {
 
     @Test("recovery to nominal emits info alert")
     func recoveryToNominal() {
-        var state: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var state: ProcessInfo.ThermalState = .nominal
         let provider: @Sendable () -> ProcessInfo.ThermalState = { state }
         let detector = makeDetector(thermalState: provider)
 
@@ -103,7 +103,7 @@ struct ThermalStateDetectorTests {
 
     @Test("same state does not re-emit alert")
     func sameStateNoReemit() {
-        var state: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var state: ProcessInfo.ThermalState = .nominal
         let provider: @Sendable () -> ProcessInfo.ThermalState = { state }
         let detector = makeDetector(thermalState: provider)
 
@@ -122,7 +122,7 @@ struct ThermalStateDetectorTests {
 
     @Test("escalation from fair to critical emits critical alert")
     func escalation() {
-        var state: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var state: ProcessInfo.ThermalState = .nominal
         let provider: @Sendable () -> ProcessInfo.ThermalState = { state }
         let detector = makeDetector(thermalState: provider)
 
@@ -141,7 +141,7 @@ struct ThermalStateDetectorTests {
 
     @Test("disabled detector produces no alerts")
     func disabledNoAlert() {
-        var state: ProcessInfo.ThermalState = .nominal
+        nonisolated(unsafe) var state: ProcessInfo.ThermalState = .nominal
         let provider: @Sendable () -> ProcessInfo.ThermalState = { state }
         let detector = makeDetector(thermalState: provider)
         detector.isEnabled = false
