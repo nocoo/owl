@@ -68,7 +68,7 @@ public enum StatusItemMapper {
                 shouldPulse: false,
                 showRecoveryFlash: isRecovering,
                 dotColor: nil,
-                statusLabel: L10n.tr(.severityNormal)
+                statusLabel: ""
             )
         case .info:
             return StatusItemConfig(

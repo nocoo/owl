@@ -96,7 +96,7 @@ extension AppDelegate {
         )
         button.image?.isTemplate = true
         button.imagePosition = .imageLeading
-        setStatusTitle(" \(L10n.tr(.severityNormal))", on: button)
+        setStatusTitle("", on: button)
 
         button.action = #selector(handleClick(_:))
         button.target = self
@@ -392,7 +392,9 @@ extension AppDelegate {
         button.contentTintColor = nil
 
         button.image = image
-        setStatusTitle(" \(iconConfig.statusLabel)", on: button)
+        let titleText = iconConfig.statusLabel.isEmpty
+            ? "" : " \(iconConfig.statusLabel)"
+        setStatusTitle(titleText, on: button)
 
         stopPulseAnimation()
         if iconConfig.shouldPulse {
