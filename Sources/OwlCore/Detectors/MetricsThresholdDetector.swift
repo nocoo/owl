@@ -24,7 +24,7 @@ public struct MetricsThresholdConfig: Sendable {
     public let titleKey: L10nKey
 
     /// Description L10n key factory (receives formatted value string).
-    public let descriptionKey: (String) -> L10nKey
+    public let descriptionKey: @Sendable (String) -> L10nKey
 
     /// Suggestion L10n key.
     public let suggestionKey: L10nKey
@@ -39,7 +39,7 @@ public struct MetricsThresholdConfig: Sendable {
         recoveryThreshold: Double,
         sustainedDuration: TimeInterval,
         titleKey: L10nKey,
-        descriptionKey: @escaping (String) -> L10nKey,
+        descriptionKey: @escaping @Sendable (String) -> L10nKey,
         suggestionKey: L10nKey,
         formatValue: @escaping @Sendable (Double) -> String = {
             String(format: "%.1f", $0)
