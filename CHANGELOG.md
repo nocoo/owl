@@ -1,5 +1,34 @@
 # Changelog
 
+## v1.7.0
+
+### Features
+
+- Add `MetricsDetector` protocol for periodic system metrics analysis alongside log-based pattern detection
+- Add P15 Sustained High CPU detector — warns when CPU usage exceeds 80% for 60+ seconds, escalates to critical when combined with thermal pressure
+- Add P16 Thermal State detector — alerts on `ProcessInfo.ThermalState` transitions to `.fair`/`.serious`/`.critical`
+- Add generic `MetricsThresholdDetector` with sustained duration tracking, hysteresis recovery, and configurable warning/critical thresholds
+- Add P17 Memory Pressure detector — warns at >85%, critical at >95%, recovery ≤80% (30s sustained)
+- Add P18 Swap Usage detector — warns at >4 GB, critical at >8 GB, recovery ≤3 GB (30s sustained)
+- Add P19 Disk Usage detector — warns at >85%, critical at >95%, recovery ≤80% (60s sustained)
+- Add macOS system notification banners (`UNUserNotification`) when alerts are activated or upgraded in severity
+- Add `notificationsEnabled` setting (default: on) to control notification banners
+- Enable swap and disk metrics sampling in background mode for always-on detector coverage
+
+### Bug Fixes
+
+- Guard `UNUserNotificationCenter` calls against missing bundle identifier to prevent crash in SPM debug builds
+
+### Tests
+
+- Add 10 tests for `SustainedCPUDetector` state machine (normal/elevated/warning/critical/recovery)
+- Add 8 tests for `ThermalStateDetector` state transitions
+- Add 13 tests for `MetricsThresholdDetector` (state transitions, hysteresis, direct-to-critical, disabled)
+- Add 3 smoke tests for P17/P18/P19 pattern factories (ID, initial state, metric extraction)
+- Add 4 tests for `AlertStateManager.onAlertActivated` callback (promote, upgrade, no-fire on refresh/downgrade)
+- Add 3 tests for `AppSettings.notificationsEnabled` (default, toggle, reset)
+- Update pipeline and catalog test counts from 17 to 20 detectors
+
 ## v1.6.2
 
 ### Performance
