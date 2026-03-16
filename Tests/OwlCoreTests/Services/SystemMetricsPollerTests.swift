@@ -119,17 +119,30 @@ struct SystemMetricsPollerTests {
         let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
             now: Date(timeIntervalSince1970: 100),
             lastRefresh: Date(timeIntervalSince1970: 99),
-            currentCount: 5,
+            currentCPUCount: 5,
+            currentMemoryCount: 5,
             forceRefresh: true
         )
         #expect(shouldRefresh)
     }
 
-    @Test func topProcessesRefreshesWhenEmpty() {
+    @Test func topProcessesRefreshesWhenCPUEmpty() {
         let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
             now: Date(timeIntervalSince1970: 100),
             lastRefresh: Date(timeIntervalSince1970: 99),
-            currentCount: 0,
+            currentCPUCount: 0,
+            currentMemoryCount: 5,
+            forceRefresh: false
+        )
+        #expect(shouldRefresh)
+    }
+
+    @Test func topProcessesRefreshesWhenMemoryEmpty() {
+        let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
+            now: Date(timeIntervalSince1970: 100),
+            lastRefresh: Date(timeIntervalSince1970: 99),
+            currentCPUCount: 5,
+            currentMemoryCount: 0,
             forceRefresh: false
         )
         #expect(shouldRefresh)
@@ -139,7 +152,8 @@ struct SystemMetricsPollerTests {
         let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
             now: Date(timeIntervalSince1970: 105),
             lastRefresh: Date(timeIntervalSince1970: 100),
-            currentCount: 5,
+            currentCPUCount: 5,
+            currentMemoryCount: 5,
             forceRefresh: false
         )
         #expect(!shouldRefresh)
@@ -149,7 +163,8 @@ struct SystemMetricsPollerTests {
         let shouldRefresh = SystemMetricsPoller.shouldRefreshTopProcesses(
             now: Date(timeIntervalSince1970: 111),
             lastRefresh: Date(timeIntervalSince1970: 100),
-            currentCount: 5,
+            currentCPUCount: 5,
+            currentMemoryCount: 5,
             forceRefresh: false
         )
         #expect(shouldRefresh)

@@ -427,10 +427,14 @@ public actor SystemMetricsPoller {
     static func shouldRefreshTopProcesses(
         now: Date,
         lastRefresh: Date?,
-        currentCount: Int,
+        currentCPUCount: Int,
+        currentMemoryCount: Int,
         forceRefresh: Bool
     ) -> Bool {
-        if forceRefresh || currentCount == 0 {
+        if forceRefresh
+            || currentCPUCount == 0
+            || currentMemoryCount == 0
+        {
             return true
         }
 
@@ -614,7 +618,9 @@ public actor SystemMetricsPoller {
         guard Self.shouldRefreshTopProcesses(
             now: now,
             lastRefresh: lastTopProcessesRefresh,
-            currentCount: currentMetrics.topProcesses.count,
+            currentCPUCount: currentMetrics.topProcesses.count,
+            currentMemoryCount: currentMetrics
+                .topMemoryProcesses.count,
             forceRefresh: forceRefresh
         ) else {
             // When throttled, we intentionally keep the previous ranking and
