@@ -1,5 +1,33 @@
 # Changelog
 
+## v1.8.0
+
+### Features
+
+- Add top memory processes section to popover — shows top 3 processes by RSS with color-coded mini bars and dynamic scaling
+- Increase popover default height from 696 to 760 for better content fit
+
+### Bug Fixes
+
+- Fix process name resolution ordering — resolve names before truncating to count so exited processes don't reduce result count
+- Fix top-process refresh throttle — check both CPU and memory list counts so an empty CPU list doesn't bypass the 10-second cooldown
+- Fix `computeCPUPercent` to walk the full delta list (consistent with `computeTopMemory`) instead of over-fetching by a fixed margin
+- Fix dynamic MiniBar scaling — use the largest process as 100% baseline instead of a hardcoded 4 GB cap
+
+### Refactoring
+
+- Extract shared `formatMemory` static method for UI and clipboard, eliminating duplicate formatting logic
+
+### Documentation
+
+- Clarify RSS (`pti_resident_size`) limitation — `phys_footprint` requires root/taskgated entitlement for other processes
+
+### Tests
+
+- Rewrite `computeTopMemorySortsByMemoryDescending` with deterministic input using real PIDs (`getpid`/`getppid`)
+- Add `computeTopMemorySkipsUnresolvablePids` test for name-resolution skip path
+- Split `topProcessesRefreshesWhenEmpty` into separate CPU-empty and memory-empty test cases
+
 ## v1.7.0
 
 ### Features
