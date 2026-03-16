@@ -52,6 +52,9 @@ public struct SystemMetrics: Sendable, Equatable {
     /// Top processes by CPU.
     public let topProcesses: [ProcessMetric]
 
+    /// Top processes by resident memory.
+    public let topMemoryProcesses: [ProcessMemoryMetric]
+
     /// Temperature sensors (CPU, GPU, SSD, Battery…).
     public let temperatures: [TemperatureSensor]
 
@@ -73,6 +76,7 @@ public struct SystemMetrics: Sendable, Equatable {
         battery: BatteryMetrics = .unavailable,
         network: NetworkMetrics = .zero,
         topProcesses: [ProcessMetric] = [],
+        topMemoryProcesses: [ProcessMemoryMetric] = [],
         temperatures: [TemperatureSensor] = []
     ) {
         self.cpuUsage = cpuUsage
@@ -86,6 +90,7 @@ public struct SystemMetrics: Sendable, Equatable {
         self.battery = battery
         self.network = network
         self.topProcesses = topProcesses
+        self.topMemoryProcesses = topMemoryProcesses
         self.temperatures = temperatures
     }
 
@@ -473,9 +478,10 @@ public actor SystemMetricsPoller {
         let network = profile.includeNetwork
             ? sampleNetwork()
             : currentMetrics.network
-        let topProcs = profile.includeTopProcesses
+        let (topProcs, topMemProcs) = profile.includeTopProcesses
             ? sampleTopProcesses(forceRefresh: forceRefresh)
-            : currentMetrics.topProcesses
+            : (currentMetrics.topProcesses,
+               currentMetrics.topMemoryProcesses)
         let temps = profile.includeTemperatures
             ? sampleTemperatures(
                 battery: battery,
@@ -497,6 +503,7 @@ public actor SystemMetricsPoller {
             battery: battery,
             network: network,
             topProcesses: topProcs,
+            topMemoryProcesses: topMemProcs,
             temperatures: temps
         )
     }
@@ -602,7 +609,7 @@ public actor SystemMetricsPoller {
 
     private func sampleTopProcesses(
         forceRefresh: Bool = false
-    ) -> [ProcessMetric] {
+    ) -> ([ProcessMetric], [ProcessMemoryMetric]) {
         let now = Date()
         guard Self.shouldRefreshTopProcesses(
             now: now,
@@ -613,7 +620,8 @@ public actor SystemMetricsPoller {
             // When throttled, we intentionally keep the previous ranking and
             // baseline. The next refresh becomes a longer-window average,
             // which is the tradeoff that avoids a full process scan every poll.
-            return currentMetrics.topProcesses
+            return (currentMetrics.topProcesses,
+                    currentMetrics.topMemoryProcesses)
         }
 
         let curSnapshots = processProvider.allProcessSnapshots()
@@ -623,7 +631,7 @@ public actor SystemMetricsPoller {
             prevProcessTime = now
         }
 
-        guard elapsed > 0 else { return [] }
+        guard elapsed > 0 else { return ([], []) }
 
         let top = TopProcessProvider.computeCPUPercent(
             previous: prevProcessSnapshots,
@@ -631,8 +639,11 @@ public actor SystemMetricsPoller {
             interval: elapsed,
             coreCount: max(prevCoreTicks.count, 1)
         )
+        let topMem = TopProcessProvider.computeTopMemory(
+            snapshots: curSnapshots
+        )
         lastTopProcessesRefresh = now
-        return top
+        return (top, topMem)
     }
 
     private func computePerCoreCPU(

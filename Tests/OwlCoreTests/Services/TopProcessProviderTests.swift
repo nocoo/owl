@@ -243,4 +243,98 @@ struct TopProcessProviderTests {
         let snapshots = provider.allProcessSnapshots()
         #expect(snapshots.count > 50)
     }
+
+    // MARK: - Memory bytes in snapshot
+
+    @Test func snapshotIncludesMemoryBytes() {
+        let provider = TopProcessProvider()
+        let snapshots = provider.allProcessSnapshots()
+        // At least some processes should have non-zero RSS
+        let withMemory = snapshots.filter { $0.memoryBytes > 0 }
+        #expect(withMemory.count > 10)
+    }
+
+    // MARK: - computeTopMemory
+
+    @Test func computeTopMemoryReturnsEmptyForEmptyInput() {
+        let result = TopProcessProvider.computeTopMemory(
+            snapshots: [],
+            count: 5
+        )
+        #expect(result.isEmpty)
+    }
+
+    @Test func computeTopMemoryFiltersZeroMemory() {
+        let snapshots = [
+            ProcessSnapshot(pid: 1, cpuTimeNs: 0, memoryBytes: 0),
+            ProcessSnapshot(pid: 2, cpuTimeNs: 0, memoryBytes: 0),
+        ]
+        let result = TopProcessProvider.computeTopMemory(
+            snapshots: snapshots,
+            count: 5
+        )
+        #expect(result.isEmpty)
+    }
+
+    @Test func computeTopMemorySortsByMemoryDescending() {
+        let snapshots = [
+            ProcessSnapshot(
+                pid: 1, cpuTimeNs: 0,
+                memoryBytes: 100_000_000
+            ),
+            ProcessSnapshot(
+                pid: 2, cpuTimeNs: 0,
+                memoryBytes: 500_000_000
+            ),
+            ProcessSnapshot(
+                pid: 3, cpuTimeNs: 0,
+                memoryBytes: 200_000_000
+            ),
+        ]
+        // computeTopMemory calls proc_name which won't resolve
+        // fake PIDs, so test with live data instead.
+        // Here we test the pure sorting logic indirectly
+        // via live snapshots.
+        let provider = TopProcessProvider()
+        let liveSnapshots = provider.allProcessSnapshots()
+        let result = TopProcessProvider.computeTopMemory(
+            snapshots: liveSnapshots,
+            count: 3
+        )
+        #expect(result.count == 3)
+        // Verify descending order
+        if result.count >= 2 {
+            #expect(
+                result[0].memoryBytes >= result[1].memoryBytes
+            )
+        }
+        if result.count >= 3 {
+            #expect(
+                result[1].memoryBytes >= result[2].memoryBytes
+            )
+        }
+    }
+
+    @Test func computeTopMemoryRespectsCountLimit() {
+        let provider = TopProcessProvider()
+        let liveSnapshots = provider.allProcessSnapshots()
+        let result = TopProcessProvider.computeTopMemory(
+            snapshots: liveSnapshots,
+            count: 2
+        )
+        #expect(result.count <= 2)
+    }
+
+    @Test func computeTopMemoryReturnsNonZeroBytes() {
+        let provider = TopProcessProvider()
+        let liveSnapshots = provider.allProcessSnapshots()
+        let result = TopProcessProvider.computeTopMemory(
+            snapshots: liveSnapshots,
+            count: 5
+        )
+        for proc in result {
+            #expect(proc.memoryBytes > 0)
+            #expect(!proc.name.isEmpty)
+        }
+    }
 }

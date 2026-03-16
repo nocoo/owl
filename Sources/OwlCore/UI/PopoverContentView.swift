@@ -81,6 +81,11 @@ public struct PopoverContentView: View {
                     ) {
                         ProcessesSection(metrics: appState.metrics)
                     }
+                    CopyableSection(
+                        clipboardText: MemoryProcessesSection.clipboardText(appState.metrics)
+                    ) {
+                        MemoryProcessesSection(metrics: appState.metrics)
+                    }
                 }
                 .padding(.horizontal, OwlLayout.popoverPaddingH)
                 .padding(.vertical, OwlLayout.popoverPaddingV)

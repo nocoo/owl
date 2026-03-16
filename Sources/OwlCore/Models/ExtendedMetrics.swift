@@ -245,6 +245,22 @@ public struct ProcessMetric: Sendable, Equatable, Identifiable {
     }
 }
 
+/// A single process entry for top memory processes display.
+public struct ProcessMemoryMetric: Sendable, Equatable, Identifiable {
+    public let id: Int32 // pid
+    public let name: String
+    /// Resident set size in bytes.
+    public let memoryBytes: UInt64
+
+    public init(
+        id: Int32, name: String, memoryBytes: UInt64
+    ) {
+        self.id = id
+        self.name = name
+        self.memoryBytes = memoryBytes
+    }
+}
+
 /// A named temperature sensor reading.
 public struct TemperatureSensor: Sendable, Equatable, Identifiable {
     public let id: String // label used as ID

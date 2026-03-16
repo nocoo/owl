@@ -65,6 +65,7 @@ public enum L10nKey: Sendable {
     case sectionTemperature
     case sectionNetwork
     case sectionTopProcesses
+    case sectionTopMemory
 
     // CPU
     case cpuTotal
@@ -385,6 +386,7 @@ public enum L10n {
         case .sectionTemperature: return "Temperature"
         case .sectionNetwork: return "Network"
         case .sectionTopProcesses: return "Top Processes"
+        case .sectionTopMemory: return "Top Memory"
 
         // CPU
         case .cpuTotal: return "Total"
@@ -767,6 +769,7 @@ public enum L10n {
         case .sectionTemperature: return "温度"
         case .sectionNetwork: return "网络"
         case .sectionTopProcesses: return "活跃进程"
+        case .sectionTopMemory: return "内存占用"
 
         // CPU
         case .cpuTotal: return "总计"

@@ -1,14 +1,21 @@
 import Darwin
 import Foundation
 
-/// Raw per-PID CPU time snapshot (lightweight, no name resolution).
+/// Raw per-PID CPU time + memory snapshot (lightweight, no name resolution).
 public struct ProcessSnapshot: Sendable {
     public let pid: pid_t
     public let cpuTimeNs: UInt64
+    /// Resident set size in bytes (from pti_resident_size).
+    public let memoryBytes: UInt64
 
-    public init(pid: pid_t, cpuTimeNs: UInt64) {
+    public init(
+        pid: pid_t,
+        cpuTimeNs: UInt64,
+        memoryBytes: UInt64 = 0
+    ) {
         self.pid = pid
         self.cpuTimeNs = cpuTimeNs
+        self.memoryBytes = memoryBytes
     }
 }
 
@@ -79,7 +86,9 @@ public struct TopProcessProvider: Sendable {
             )
 
             snapshots.append(ProcessSnapshot(
-                pid: pid, cpuTimeNs: cpuTimeNs
+                pid: pid,
+                cpuTimeNs: cpuTimeNs,
+                memoryBytes: UInt64(taskInfo.pti_resident_size)
             ))
         }
 
@@ -164,6 +173,32 @@ public struct TopProcessProvider: Sendable {
                 id: entry.pid,
                 name: name,
                 cpuPercent: entry.percent
+            )
+        }
+    }
+
+    /// Returns the top N processes by resident memory from a
+    /// single snapshot. No delta needed — memory is an instant
+    /// metric, not cumulative.
+    public static func computeTopMemory(
+        snapshots: [ProcessSnapshot],
+        count: Int = 5
+    ) -> [ProcessMemoryMetric] {
+        // Filter out kernel (pid 0) and tiny processes
+        let sorted = snapshots
+            .filter { $0.pid > 0 && $0.memoryBytes > 0 }
+            .sorted { $0.memoryBytes > $1.memoryBytes }
+
+        return Array(sorted.prefix(count)).compactMap { snap in
+            guard let name = resolveProcessName(
+                pid: snap.pid
+            ) else {
+                return nil
+            }
+            return ProcessMemoryMetric(
+                id: snap.pid,
+                name: name,
+                memoryBytes: snap.memoryBytes
             )
         }
     }
