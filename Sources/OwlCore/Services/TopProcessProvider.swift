@@ -149,7 +149,9 @@ public struct TopProcessProvider: Sendable {
     }
 
     /// Computes CPU percent from two full snapshots, then
-    /// resolves names for only the top N results.
+    /// resolves names for only the top results.
+    /// Over-fetches from computeDelta so that name-resolution
+    /// failures don't reduce the final count below `count`.
     public static func computeCPUPercent(
         previous: [ProcessSnapshot],
         current: [ProcessSnapshot],
@@ -157,26 +159,32 @@ public struct TopProcessProvider: Sendable {
         coreCount: Int,
         count: Int = 5
     ) -> [ProcessMetric] {
+        // Fetch extra candidates so exited-process losses
+        // don't reduce the result below the requested count.
         let topDeltas = computeDelta(
             previous: previous,
             current: current,
             interval: interval,
             coreCount: coreCount,
-            count: count
+            count: count + 5
         )
 
-        return topDeltas.compactMap { entry in
+        var results: [ProcessMetric] = []
+        results.reserveCapacity(count)
+        for entry in topDeltas {
+            guard results.count < count else { break }
             guard let name = resolveProcessName(
                 pid: entry.pid
             ) else {
-                return nil
+                continue
             }
-            return ProcessMetric(
+            results.append(ProcessMetric(
                 id: entry.pid,
                 name: name,
                 cpuPercent: entry.percent
-            )
+            ))
         }
+        return results
     }
 
     /// Returns the top N processes by resident memory from a
@@ -191,17 +199,24 @@ public struct TopProcessProvider: Sendable {
             .filter { $0.pid > 0 && $0.memoryBytes > 0 }
             .sorted { $0.memoryBytes > $1.memoryBytes }
 
-        return Array(sorted.prefix(count)).compactMap { snap in
+        // Walk sorted list, resolve names, collect up to
+        // `count` entries. Skips exited processes without
+        // reducing the result count.
+        var results: [ProcessMemoryMetric] = []
+        results.reserveCapacity(count)
+        for snap in sorted {
+            guard results.count < count else { break }
             guard let name = resolveProcessName(
                 pid: snap.pid
             ) else {
-                return nil
+                continue
             }
-            return ProcessMemoryMetric(
+            results.append(ProcessMemoryMetric(
                 id: snap.pid,
                 name: name,
                 memoryBytes: snap.memoryBytes
-            )
+            ))
         }
+        return results
     }
 }
