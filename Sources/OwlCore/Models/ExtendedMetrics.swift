@@ -246,10 +246,15 @@ public struct ProcessMetric: Sendable, Equatable, Identifiable {
 }
 
 /// A single process entry for top memory processes display.
+///
+/// Uses `pti_resident_size` (RSS) because `phys_footprint` requires
+/// root / taskgated entitlement for other processes.  RSS includes
+/// shared pages so values will be higher than Activity Monitor's
+/// "Memory" column which uses `phys_footprint`.
 public struct ProcessMemoryMetric: Sendable, Equatable, Identifiable {
     public let id: Int32 // pid
     public let name: String
-    /// Resident set size in bytes.
+    /// Resident set size in bytes (includes shared pages).
     public let memoryBytes: UInt64
 
     public init(

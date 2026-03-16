@@ -6,6 +6,8 @@ public struct ProcessSnapshot: Sendable {
     public let pid: pid_t
     public let cpuTimeNs: UInt64
     /// Resident set size in bytes (from pti_resident_size).
+    /// phys_footprint would be more accurate but requires root
+    /// privileges for other processes (proc_pid_rusage returns EPERM).
     public let memoryBytes: UInt64
 
     public init(
