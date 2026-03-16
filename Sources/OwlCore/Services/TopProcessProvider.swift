@@ -149,9 +149,9 @@ public struct TopProcessProvider: Sendable {
     }
 
     /// Computes CPU percent from two full snapshots, then
-    /// resolves names for only the top results.
-    /// Over-fetches from computeDelta so that name-resolution
-    /// failures don't reduce the final count below `count`.
+    /// resolves names for the top results. Walks the full
+    /// sorted delta list until `count` names are resolved,
+    /// so exited processes don't reduce the result count.
     public static func computeCPUPercent(
         previous: [ProcessSnapshot],
         current: [ProcessSnapshot],
@@ -159,19 +159,17 @@ public struct TopProcessProvider: Sendable {
         coreCount: Int,
         count: Int = 5
     ) -> [ProcessMetric] {
-        // Fetch extra candidates so exited-process losses
-        // don't reduce the result below the requested count.
-        let topDeltas = computeDelta(
+        let allDeltas = computeDelta(
             previous: previous,
             current: current,
             interval: interval,
             coreCount: coreCount,
-            count: count + 5
+            count: .max
         )
 
         var results: [ProcessMetric] = []
         results.reserveCapacity(count)
-        for entry in topDeltas {
+        for entry in allDeltas {
             guard results.count < count else { break }
             guard let name = resolveProcessName(
                 pid: entry.pid
