@@ -345,11 +345,11 @@ extension AppDelegate {
         // Set preferred size upfront so NSPopover positions
         // correctly on first open without a layout-driven jump.
         hosting.preferredContentSize = NSSize(
-            width: 322, height: 696
+            width: 322, height: 760
         )
 
         popover.contentViewController = hosting
-        popover.contentSize = NSSize(width: 322, height: 696)
+        popover.contentSize = NSSize(width: 322, height: 760)
         popover.behavior = .transient
         popover.delegate = self
     }
