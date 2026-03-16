@@ -13,6 +13,9 @@ struct MemoryProcessesSection: View {
             )
 
             let procs = metrics.topMemoryProcesses
+            // Use the largest process as the bar scale so
+            // all bars are relative and visually distinct.
+            let maxBytes = procs.first?.memoryBytes ?? 1
 
             if procs.isEmpty {
                 Text(L10n.tr(.noData))
@@ -21,18 +24,19 @@ struct MemoryProcessesSection: View {
                     .frame(height: OwlLayout.metricRowHeight)
             } else {
                 ForEach(procs.prefix(3)) { proc in
-                    processRow(proc)
+                    processRow(proc, maxBytes: maxBytes)
                 }
             }
         }
     }
 
     private func processRow(
-        _ proc: ProcessMemoryMetric
+        _ proc: ProcessMemoryMetric,
+        maxBytes: UInt64
     ) -> some View {
         let mb = Double(proc.memoryBytes) / 1_048_576
-        // Scale bar relative to 4 GB (reasonable visual max)
-        let barPercent = min(mb / 4096.0, 1.0) * 100.0
+        let barPercent = Double(proc.memoryBytes)
+            / Double(max(maxBytes, 1)) * 100.0
         return HStack(spacing: 6) {
             Text(truncatedName(proc.name))
                 .font(OwlFont.processName)
