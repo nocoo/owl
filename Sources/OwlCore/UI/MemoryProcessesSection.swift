@@ -47,7 +47,7 @@ struct MemoryProcessesSection: View {
                 max: 100,
                 color: memoryColor(mb)
             )
-            Text(formatMemory(proc.memoryBytes))
+            Text(Self.formatMemory(proc.memoryBytes))
                 .font(OwlFont.processValue)
                 .foregroundStyle(.secondary)
                 .frame(
@@ -65,19 +65,22 @@ struct MemoryProcessesSection: View {
         return name
     }
 
-    private func memoryColor(_ mb: Double) -> Color {
-        if mb >= 2048 { return OwlPalette.red }
-        if mb >= 512 { return OwlPalette.amber }
-        return OwlPalette.purple
-    }
+    // MARK: - Formatting
 
-    private func formatMemory(_ bytes: UInt64) -> String {
+    /// Human-readable memory string: "1.2 GB" or "345 MB".
+    static func formatMemory(_ bytes: UInt64) -> String {
         let gb = Double(bytes) / 1_073_741_824
         if gb >= 1 {
             return String(format: "%.1f GB", gb)
         }
         let mb = Double(bytes) / 1_048_576
         return String(format: "%.0f MB", mb)
+    }
+
+    private func memoryColor(_ mb: Double) -> Color {
+        if mb >= 2048 { return OwlPalette.red }
+        if mb >= 512 { return OwlPalette.amber }
+        return OwlPalette.purple
     }
 
     // MARK: - Clipboard
@@ -90,18 +93,9 @@ struct MemoryProcessesSection: View {
         }
         var lines: [String] = ["[Top Memory]"]
         for (i, proc) in procs.prefix(3).enumerated() {
-            let mb = Double(proc.memoryBytes) / 1_048_576
-            let text: String
-            if mb >= 1024 {
-                text = String(
-                    format: "%.1f GB", mb / 1024
-                )
-            } else {
-                text = String(format: "%.0f MB", mb)
-            }
             lines.append(
                 "\(i + 1). \(proc.name)"
-                + " \(text)"
+                + " \(formatMemory(proc.memoryBytes))"
                 + " (pid \(proc.id))"
             )
         }
