@@ -277,42 +277,53 @@ struct TopProcessProviderTests {
     }
 
     @Test func computeTopMemorySortsByMemoryDescending() {
+        // Use the current process PID so proc_name resolves
+        // successfully, and parent PID as a second resolvable PID.
+        let selfPid = ProcessInfo.processInfo.processIdentifier
+        let parentPid = getppid()
         let snapshots = [
             ProcessSnapshot(
-                pid: 1, cpuTimeNs: 0,
+                pid: selfPid, cpuTimeNs: 0,
                 memoryBytes: 100_000_000
             ),
             ProcessSnapshot(
-                pid: 2, cpuTimeNs: 0,
+                pid: parentPid, cpuTimeNs: 0,
                 memoryBytes: 500_000_000
             ),
+        ]
+        let result = TopProcessProvider.computeTopMemory(
+            snapshots: snapshots,
+            count: 5
+        )
+        #expect(result.count == 2)
+        // Largest memory first
+        #expect(result[0].memoryBytes == 500_000_000)
+        #expect(result[0].id == parentPid)
+        #expect(result[1].memoryBytes == 100_000_000)
+        #expect(result[1].id == selfPid)
+    }
+
+    @Test func computeTopMemorySkipsUnresolvablePids() {
+        // PID 99999 almost certainly doesn't exist, so
+        // proc_name will fail and it should be skipped.
+        let selfPid = ProcessInfo.processInfo.processIdentifier
+        let snapshots = [
             ProcessSnapshot(
-                pid: 3, cpuTimeNs: 0,
-                memoryBytes: 200_000_000
+                pid: 99999, cpuTimeNs: 0,
+                memoryBytes: 999_000_000
+            ),
+            ProcessSnapshot(
+                pid: selfPid, cpuTimeNs: 0,
+                memoryBytes: 100_000_000
             ),
         ]
-        // computeTopMemory calls proc_name which won't resolve
-        // fake PIDs, so test with live data instead.
-        // Here we test the pure sorting logic indirectly
-        // via live snapshots.
-        let provider = TopProcessProvider()
-        let liveSnapshots = provider.allProcessSnapshots()
         let result = TopProcessProvider.computeTopMemory(
-            snapshots: liveSnapshots,
-            count: 3
+            snapshots: snapshots,
+            count: 5
         )
-        #expect(result.count == 3)
-        // Verify descending order
-        if result.count >= 2 {
-            #expect(
-                result[0].memoryBytes >= result[1].memoryBytes
-            )
-        }
-        if result.count >= 3 {
-            #expect(
-                result[1].memoryBytes >= result[2].memoryBytes
-            )
-        }
+        // The fake PID should be skipped; only self remains
+        #expect(result.count == 1)
+        #expect(result[0].id == selfPid)
     }
 
     @Test func computeTopMemoryRespectsCountLimit() {
