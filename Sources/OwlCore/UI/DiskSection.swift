@@ -46,8 +46,8 @@ struct DiskSection: View {
     // MARK: - Clipboard
 
     /// Format current disk metrics as plain text for clipboard.
-    static func clipboardText(_ m: SystemMetrics) -> String {
-        let disk = m.disk
+    static func clipboardText(_ metrics: SystemMetrics) -> String {
+        let disk = metrics.disk
         var lines: [String] = []
         lines.append(
             "[Disk] Usage: \(String(format: "%.1f%%", disk.usedPercent))"

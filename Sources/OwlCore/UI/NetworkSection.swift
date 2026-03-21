@@ -62,8 +62,8 @@ struct NetworkSection: View {
     // MARK: - Clipboard
 
     /// Format current network metrics as plain text for clipboard.
-    static func clipboardText(_ m: SystemMetrics) -> String {
-        let net = m.network
+    static func clipboardText(_ metrics: SystemMetrics) -> String {
+        let net = metrics.network
         var lines: [String] = []
         lines.append(
             "[Network] Down: \(formatThroughput(net.bytesInPerSec))"

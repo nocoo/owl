@@ -49,15 +49,15 @@ public struct ProcessRanking: Sendable, Equatable, Identifiable {
 
     /// CPU time formatted as "Xh Ym" or "Ym Zs".
     public var cpuTimeFormatted: String {
-        let h = cpuSeconds / 3600
-        let m = (cpuSeconds % 3600) / 60
-        let s = cpuSeconds % 60
-        if h > 0 {
-            return "\(h)h \(m)m"
-        } else if m > 0 {
-            return "\(m)m \(s)s"
+        let hours = cpuSeconds / 3600
+        let minutes = (cpuSeconds % 3600) / 60
+        let seconds = cpuSeconds % 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else if minutes > 0 {
+            return "\(minutes)m \(seconds)s"
         } else {
-            return "\(s)s"
+            return "\(seconds)s"
         }
     }
 

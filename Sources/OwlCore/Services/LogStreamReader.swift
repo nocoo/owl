@@ -270,11 +270,11 @@ public actor LogStreamReader {
         guard nLen > 0, hLen >= nLen else { return false }
         let limit = hLen - nLen
         for i in 0...limit {
-            var j = 0
-            while j < nLen, haystack[i + j] == needle[j] {
-                j += 1
+            var offset = 0
+            while offset < nLen, haystack[i + offset] == needle[offset] {
+                offset += 1
             }
-            if j == nLen { return true }
+            if offset == nLen { return true }
         }
         return false
     }

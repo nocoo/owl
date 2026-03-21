@@ -119,17 +119,17 @@ struct CPUSection: View {
     // MARK: - Clipboard
 
     /// Format current CPU metrics as plain text for clipboard.
-    static func clipboardText(_ m: SystemMetrics) -> String {
+    static func clipboardText(_ metrics: SystemMetrics) -> String {
         var lines: [String] = []
         lines.append(
-            "[CPU] Total: \(String(format: "%.1f%%", m.cpuUsage))"
+            "[CPU] Total: \(String(format: "%.1f%%", metrics.cpuUsage))"
         )
 
-        if !m.perCoreCPU.isEmpty {
-            let load = m.loadAverage
+        if !metrics.perCoreCPU.isEmpty {
+            let load = metrics.loadAverage
             let pCount = load.performanceCores
             let eCount = load.efficiencyCores
-            let sorted = m.perCoreCPU.sorted { $0.id < $1.id }
+            let sorted = metrics.perCoreCPU.sorted { $0.id < $1.id }
 
             if pCount > 0 {
                 let pCores = sorted.prefix(pCount)
@@ -155,7 +155,7 @@ struct CPUSection: View {
             }
         }
 
-        let la = m.loadAverage
+        let la = metrics.loadAverage
         lines.append(
             "Load: \(String(format: "%.2f / %.2f / %.2f", la.one, la.five, la.fifteen))"
         )

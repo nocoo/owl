@@ -95,8 +95,8 @@ struct MemorySection: View {
     // MARK: - Clipboard
 
     /// Format current memory metrics as plain text for clipboard.
-    static func clipboardText(_ m: SystemMetrics) -> String {
-        let mem = m.extendedMemory
+    static func clipboardText(_ metrics: SystemMetrics) -> String {
+        let mem = metrics.extendedMemory
         var lines: [String] = []
         lines.append(
             "[Memory] Used: \(String(format: "%.1f%%", mem.usedPercent))"

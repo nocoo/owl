@@ -139,11 +139,11 @@ public actor DetectorPipeline {
     /// Checks whether a detector is enabled.
     /// Returns `nil` if the detector ID is not found.
     public func isEnabled(detectorID: String) -> Bool? {
-        if let d = detectors.first(where: { $0.id == detectorID }) {
-            return d.isEnabled
+        if let detector = detectors.first(where: { $0.id == detectorID }) {
+            return detector.isEnabled
         }
-        if let d = metricsDetectors.first(where: { $0.id == detectorID }) {
-            return d.isEnabled
+        if let detector = metricsDetectors.first(where: { $0.id == detectorID }) {
+            return detector.isEnabled
         }
         return nil
     }

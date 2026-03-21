@@ -57,8 +57,8 @@ struct PowerSection: View {
     }
 
     private func wattageValue(_ batt: BatteryMetrics) -> String {
-        guard let w = batt.wattage else { return "" }
-        return String(format: "%.1fW", w)
+        guard let watts = batt.wattage else { return "" }
+        return String(format: "%.1fW", watts)
     }
 
     private func conditionText(_ batt: BatteryMetrics) -> String {
@@ -72,8 +72,8 @@ struct PowerSection: View {
     // MARK: - Clipboard
 
     /// Format current power/battery metrics as plain text for clipboard.
-    static func clipboardText(_ m: SystemMetrics) -> String {
-        let batt = m.battery
+    static func clipboardText(_ metrics: SystemMetrics) -> String {
+        let batt = metrics.battery
         var lines: [String] = []
         lines.append(
             "[Power] Level: \(String(format: "%.0f%%", batt.level))"
@@ -85,8 +85,8 @@ struct PowerSection: View {
 
         var detail = "State: \(state) | Cycles: \(batt.cycleCount)"
         detail += " | Condition: \(batt.condition)"
-        if let w = batt.wattage {
-            detail += " | \(String(format: "%.1fW", w))"
+        if let watts = batt.wattage {
+            detail += " | \(String(format: "%.1fW", watts))"
         }
         lines.append(detail)
         return lines.joined(separator: "\n")

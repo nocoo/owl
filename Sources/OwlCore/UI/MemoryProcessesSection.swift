@@ -90,8 +90,8 @@ struct MemoryProcessesSection: View {
     // MARK: - Clipboard
 
     /// Format current top memory processes as plain text for clipboard.
-    static func clipboardText(_ m: SystemMetrics) -> String {
-        let procs = m.topMemoryProcesses
+    static func clipboardText(_ metrics: SystemMetrics) -> String {
+        let procs = metrics.topMemoryProcesses
         guard !procs.isEmpty else {
             return "[Top Memory] No data"
         }

@@ -65,8 +65,8 @@ struct ProcessesSection: View {
     // MARK: - Clipboard
 
     /// Format current top processes as plain text for clipboard.
-    static func clipboardText(_ m: SystemMetrics) -> String {
-        let procs = m.topProcesses
+    static func clipboardText(_ metrics: SystemMetrics) -> String {
+        let procs = metrics.topProcesses
         guard !procs.isEmpty else {
             return "[Top Processes] No data"
         }

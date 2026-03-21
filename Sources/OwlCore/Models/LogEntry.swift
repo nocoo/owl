@@ -257,15 +257,15 @@ public struct LogEntry: Sendable {
         var pos = start
         for _ in 0..<4 {
             guard pos < end else { return nil }
-            let c = json[pos]
+            let ch = json[pos]
             value <<= 4
-            switch c {
+            switch ch {
             case "0"..."9":
-                value += UInt16(c.asciiValue! - 0x30)
+                value += UInt16(ch.asciiValue! - 0x30)
             case "a"..."f":
-                value += UInt16(c.asciiValue! - 0x61 + 10)
+                value += UInt16(ch.asciiValue! - 0x61 + 10)
             case "A"..."F":
-                value += UInt16(c.asciiValue! - 0x41 + 10)
+                value += UInt16(ch.asciiValue! - 0x41 + 10)
             default:
                 return nil
             }

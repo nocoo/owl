@@ -439,7 +439,7 @@ public enum L10n {
 
         // Alerts
         case .activeAlerts: return "Active Alerts"
-        case .totalCount(let n): return "\(n) total"
+        case .totalCount(let count): return "\(count) total"
         case .systemRunningNormally:
             return "System Running Normally"
         case .noAnomaliesDetected:
@@ -447,8 +447,8 @@ public enum L10n {
         case .recentEvents: return "Recent Events"
         case .copied: return "Copied"
         case .justNow: return "just now"
-        case .minutesAgo(let m): return "\(m)m ago"
-        case .hoursAgo(let h): return "\(h)h ago"
+        case .minutesAgo(let min): return "\(min)m ago"
+        case .hoursAgo(let hr): return "\(hr)h ago"
 
         // Alerts tab
         case .noAlerts: return "No Alerts"
@@ -490,7 +490,7 @@ public enum L10n {
 
         // Process tab
         case .systemUptime: return "System Uptime"
-        case .bootedAt(let t): return "Booted \(t)"
+        case .bootedAt(let time): return "Booted \(time)"
         case .collectingProcessData:
             return "Collecting process data…"
         case .tableRank: return "#"
@@ -507,8 +507,8 @@ public enum L10n {
         case .contextQuit: return "Quit Owl"
 
         // Clipboard
-        case .clipboardSuggestion(let s):
-            return "Suggestion: \(s)"
+        case .clipboardSuggestion(let suggestion):
+            return "Suggestion: \(suggestion)"
         case .clipboardDetector(let id, let ts):
             return "Detector: \(id) | \(ts)"
 
@@ -822,14 +822,14 @@ public enum L10n {
 
         // Alerts
         case .activeAlerts: return "活跃告警"
-        case .totalCount(let n): return "共 \(n) 条"
+        case .totalCount(let count): return "共 \(count) 条"
         case .systemRunningNormally: return "系统运行正常"
         case .noAnomaliesDetected: return "未检测到异常"
         case .recentEvents: return "近期事件"
         case .copied: return "已复制"
         case .justNow: return "刚刚"
-        case .minutesAgo(let m): return "\(m) 分钟前"
-        case .hoursAgo(let h): return "\(h) 小时前"
+        case .minutesAgo(let min): return "\(min) 分钟前"
+        case .hoursAgo(let hr): return "\(hr) 小时前"
 
         // Alerts tab
         case .noAlerts: return "没有告警"
@@ -870,7 +870,7 @@ public enum L10n {
 
         // Process tab
         case .systemUptime: return "系统运行时间"
-        case .bootedAt(let t): return "启动于 \(t)"
+        case .bootedAt(let time): return "启动于 \(time)"
         case .collectingProcessData: return "正在收集进程数据…"
         case .tableRank: return "#"
         case .tableProcess: return "进程"
@@ -886,7 +886,7 @@ public enum L10n {
         case .contextQuit: return "退出 Owl"
 
         // Clipboard
-        case .clipboardSuggestion(let s): return "建议: \(s)"
+        case .clipboardSuggestion(let suggestion): return "建议: \(suggestion)"
         case .clipboardDetector(let id, let ts):
             return "检测器: \(id) | \(ts)"
 
