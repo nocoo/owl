@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== Pre-commit: L1 (Unit Tests) + L2 (SwiftLint) ==="
+echo "=== Pre-commit: L1 (Unit Tests + Coverage) + L2 (SwiftLint) ==="
 
 # L2: SwiftLint
 echo "▶ Running SwiftLint..."
@@ -12,9 +12,13 @@ else
     echo "⚠ SwiftLint not installed, skipping (brew install swiftlint)"
 fi
 
-# L1: Unit Tests
+# L1: Unit Tests with coverage
 echo "▶ Running Unit Tests..."
-swift test --filter "^(?!.*Integration).*$" 2>&1
+swift test --enable-code-coverage --filter "^(?!.*Integration).*$" 2>&1
 echo "✓ Unit Tests passed"
+
+# L1: Coverage gate (≥90% for non-UI code)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+"$SCRIPT_DIR/check-coverage.sh" 90
 
 echo "=== Pre-commit checks passed ==="
