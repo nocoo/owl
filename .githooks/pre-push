@@ -1,1 +1,1 @@
-../../scripts/pre-push.sh
+../scripts/pre-push.sh
