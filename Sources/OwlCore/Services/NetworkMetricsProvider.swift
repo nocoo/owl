@@ -48,10 +48,28 @@ public struct NetworkMetricsProvider: Sendable {
         defer { freeifaddrs(first) }
 
         // Find IPv4 address for the active interface
+        if let result = findIPv4Address(
+            in: first, matching: defaultIface
+        ) { return result }
+
+        // Fallback: find any en0 IPv4
+        if let result = findIPv4Address(
+            in: first, matching: "en0"
+        ) { return result }
+
+        return (defaultIface, "")
+    }
+
+    /// Search the ifaddrs linked list for the first IPv4 address
+    /// matching the given interface name.
+    private func findIPv4Address(
+        in first: UnsafeMutablePointer<ifaddrs>,
+        matching interfaceName: String
+    ) -> (name: String, ip: String)? {
         var current: UnsafeMutablePointer<ifaddrs>? = first
         while let ifa = current {
             let name = String(cString: ifa.pointee.ifa_name)
-            if name == defaultIface,
+            if name == interfaceName,
                 let addr = ifa.pointee.ifa_addr,
                 addr.pointee.sa_family == UInt8(AF_INET) {
                 var hostname = [CChar](
@@ -73,35 +91,7 @@ public struct NetworkMetricsProvider: Sendable {
             }
             current = ifa.pointee.ifa_next
         }
-
-        // Fallback: find any en0 IPv4
-        current = first
-        while let ifa = current {
-            let name = String(cString: ifa.pointee.ifa_name)
-            if name == "en0",
-                let addr = ifa.pointee.ifa_addr,
-                addr.pointee.sa_family == UInt8(AF_INET) {
-                var hostname = [CChar](
-                    repeating: 0,
-                    count: Int(NI_MAXHOST)
-                )
-                let result = getnameinfo(
-                    addr,
-                    socklen_t(addr.pointee.sa_len),
-                    &hostname,
-                    socklen_t(hostname.count),
-                    nil,
-                    0,
-                    NI_NUMERICHOST
-                )
-                if result == 0 {
-                    return ("en0", String(cString: hostname))
-                }
-            }
-            current = ifa.pointee.ifa_next
-        }
-
-        return (defaultIface, "")
+        return nil
     }
 
     private func getDefaultInterface() -> String {

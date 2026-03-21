@@ -46,8 +46,11 @@ public struct LoadAverage: Sendable, Equatable {
     public let efficiencyCores: Int
 
     public init(
-        one: Double, five: Double, fifteen: Double,
-        performanceCores: Int = 0, efficiencyCores: Int = 0
+        one: Double,
+        five: Double,
+        fifteen: Double,
+        performanceCores: Int = 0,
+        efficiencyCores: Int = 0
     ) {
         self.one = one
         self.five = five

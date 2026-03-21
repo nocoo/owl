@@ -185,8 +185,10 @@ public struct LogEntry: Sendable {
                 if char == "u" {
                     // \uXXXX Unicode escape
                     let hexStart = json.index(after: index)
-                    guard let scalar = parseHex4(
-                        from: json, at: hexStart
+                    guard let advanced = handleUnicodeEscape(
+                        from: json,
+                        hexStart: hexStart,
+                        result: &result
                     ) else {
                         // Malformed — keep literal
                         result.append(char)
@@ -194,41 +196,7 @@ public struct LogEntry: Sendable {
                         index = json.index(after: index)
                         continue
                     }
-                    index = json.index(hexStart, offsetBy: 4)
-
-                    // Check for surrogate pair
-                    if scalar >= 0xD800, scalar <= 0xDBFF,
-                       index < end,
-                       json[index] == "\\",
-                       json.index(after: index) < end,
-                       json[json.index(after: index)] == "u" {
-                        let lowHexStart = json.index(
-                            index, offsetBy: 2
-                        )
-                        if let lowSurrogate = parseHex4(
-                            from: json, at: lowHexStart
-                        ), lowSurrogate >= 0xDC00,
-                           lowSurrogate <= 0xDFFF {
-                            let codePoint = 0x10000
-                                + (Int(scalar - 0xD800) << 10)
-                                + Int(lowSurrogate - 0xDC00)
-                            if let us = Unicode.Scalar(codePoint) {
-                                result.append(Character(us))
-                            }
-                            index = json.index(
-                                lowHexStart, offsetBy: 4
-                            )
-                        } else {
-                            // Lone high surrogate
-                            if let us = Unicode.Scalar(scalar) {
-                                result.append(Character(us))
-                            }
-                        }
-                    } else {
-                        if let us = Unicode.Scalar(scalar) {
-                            result.append(Character(us))
-                        }
-                    }
+                    index = advanced
                     escaped = false
                     continue
                 }
@@ -248,6 +216,53 @@ public struct LogEntry: Sendable {
         return nil // unterminated string
     }
 
+    /// Handle a `\uXXXX` Unicode escape (and possible surrogate pair).
+    /// Returns the index past the consumed hex digits, or nil on failure.
+    private static func handleUnicodeEscape(
+        from json: String,
+        hexStart: String.Index,
+        result: inout [Character]
+    ) -> String.Index? {
+        guard let scalar = parseHex4(
+            from: json, at: hexStart
+        ) else { return nil }
+
+        var index = json.index(hexStart, offsetBy: 4)
+        let end = json.endIndex
+
+        // Check for surrogate pair
+        if scalar >= 0xD800, scalar <= 0xDBFF,
+           index < end,
+           json[index] == "\\",
+           json.index(after: index) < end,
+           json[json.index(after: index)] == "u" {
+            let lowHexStart = json.index(index, offsetBy: 2)
+            if let lowSurrogate = parseHex4(
+                from: json, at: lowHexStart
+            ), lowSurrogate >= 0xDC00,
+               lowSurrogate <= 0xDFFF {
+                let codePoint = 0x10000
+                    + (Int(scalar - 0xD800) << 10)
+                    + Int(lowSurrogate - 0xDC00)
+                if let us = Unicode.Scalar(codePoint) {
+                    result.append(Character(us))
+                }
+                index = json.index(lowHexStart, offsetBy: 4)
+            } else {
+                // Lone high surrogate
+                if let us = Unicode.Scalar(scalar) {
+                    result.append(Character(us))
+                }
+            }
+        } else {
+            if let us = Unicode.Scalar(scalar) {
+                result.append(Character(us))
+            }
+        }
+
+        return index
+    }
+
     /// Parse 4 hex digits at the given position into a UInt16.
     private static func parseHex4(
         from json: String, at start: String.Index
@@ -261,11 +276,14 @@ public struct LogEntry: Sendable {
             value <<= 4
             switch ch {
             case "0"..."9":
-                value += UInt16(ch.asciiValue! - 0x30)
+                guard let ascii = ch.asciiValue else { return nil }
+                value += UInt16(ascii - 0x30)
             case "a"..."f":
-                value += UInt16(ch.asciiValue! - 0x61 + 10)
+                guard let ascii = ch.asciiValue else { return nil }
+                value += UInt16(ascii - 0x61 + 10)
             case "A"..."F":
-                value += UInt16(ch.asciiValue! - 0x41 + 10)
+                guard let ascii = ch.asciiValue else { return nil }
+                value += UInt16(ascii - 0x41 + 10)
             default:
                 return nil
             }

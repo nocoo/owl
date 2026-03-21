@@ -108,18 +108,18 @@ struct DecodeTemperatureTests {
 
     // MARK: flt format (IEEE 754 float, little-endian)
 
-    @Test func fltDecode40Degrees() {
+    @Test func fltDecode40Degrees() throws {
         // 40.0 as Float = 0x42200000
         // Little-endian bytes: 0x00, 0x00, 0x20, 0x42
         let buf = makeBuffer([0x00, 0x00, 0x20, 0x42])
         let temp = SMCTemperatureProvider.decodeTemperature(
             bytes: buf, dataType: flt, dataSize: 4
         )
-        #expect(temp != nil)
-        #expect(abs(temp! - 40.0) < 0.001)
+        let unwrapped = try #require(temp)
+        #expect(abs(unwrapped - 40.0) < 0.001)
     }
 
-    @Test func fltDecode85Degrees() {
+    @Test func fltDecode85Degrees() throws {
         // 85.0 as Float
         let bits = Float(85.0).bitPattern
         let b0 = UInt8(bits & 0xFF)
@@ -130,8 +130,8 @@ struct DecodeTemperatureTests {
         let temp = SMCTemperatureProvider.decodeTemperature(
             bytes: buf, dataType: flt, dataSize: 4
         )
-        #expect(temp != nil)
-        #expect(abs(temp! - 85.0) < 0.001)
+        let unwrapped = try #require(temp)
+        #expect(abs(unwrapped - 85.0) < 0.001)
     }
 
     @Test func fltInsufficientDataSize() {

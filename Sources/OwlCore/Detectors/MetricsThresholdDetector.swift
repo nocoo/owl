@@ -127,44 +127,85 @@ public final class MetricsThresholdDetector: MetricsDetector {
 
         switch currentState {
         case .normal:
-            if aboveWarning {
-                currentState = .elevated(since: now)
-            }
-            return []
-
+            return tickFromNormal(
+                aboveWarning: aboveWarning, now: now
+            )
         case .elevated(let since):
-            if !aboveWarning || recovered {
-                currentState = .normal
-                return []
-            }
-            if now.timeIntervalSince(since) >= config.sustainedDuration {
-                if aboveCritical {
-                    currentState = .critical(since: now)
-                    return [makeAlert(severity: .critical, timestamp: now)]
-                }
-                currentState = .warning(since: now)
-                return [makeAlert(severity: .warning, timestamp: now)]
-            }
-            return []
-
+            return tickFromElevated(
+                since: since,
+                recovered: recovered,
+                aboveWarning: aboveWarning,
+                aboveCritical: aboveCritical,
+                now: now
+            )
         case .warning:
-            if recovered {
-                currentState = .normal
-                return [makeRecoveryAlert(timestamp: now)]
-            }
+            return tickFromWarning(
+                recovered: recovered,
+                aboveCritical: aboveCritical,
+                now: now
+            )
+        case .critical:
+            return tickFromCritical(
+                recovered: recovered, now: now
+            )
+        }
+    }
+
+    private func tickFromNormal(
+        aboveWarning: Bool, now: Date
+    ) -> [Alert] {
+        if aboveWarning {
+            currentState = .elevated(since: now)
+        }
+        return []
+    }
+
+    private func tickFromElevated(
+        since: Date,
+        recovered: Bool,
+        aboveWarning: Bool,
+        aboveCritical: Bool,
+        now: Date
+    ) -> [Alert] {
+        if !aboveWarning || recovered {
+            currentState = .normal
+            return []
+        }
+        if now.timeIntervalSince(since) >= config.sustainedDuration {
             if aboveCritical {
                 currentState = .critical(since: now)
                 return [makeAlert(severity: .critical, timestamp: now)]
             }
-            return []
-
-        case .critical:
-            if recovered {
-                currentState = .normal
-                return [makeRecoveryAlert(timestamp: now)]
-            }
-            return []
+            currentState = .warning(since: now)
+            return [makeAlert(severity: .warning, timestamp: now)]
         }
+        return []
+    }
+
+    private func tickFromWarning(
+        recovered: Bool,
+        aboveCritical: Bool,
+        now: Date
+    ) -> [Alert] {
+        if recovered {
+            currentState = .normal
+            return [makeRecoveryAlert(timestamp: now)]
+        }
+        if aboveCritical {
+            currentState = .critical(since: now)
+            return [makeAlert(severity: .critical, timestamp: now)]
+        }
+        return []
+    }
+
+    private func tickFromCritical(
+        recovered: Bool, now: Date
+    ) -> [Alert] {
+        if recovered {
+            currentState = .normal
+            return [makeRecoveryAlert(timestamp: now)]
+        }
+        return []
     }
 
     // MARK: - Helpers

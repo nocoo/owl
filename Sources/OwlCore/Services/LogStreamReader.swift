@@ -241,8 +241,9 @@ public actor LogStreamReader {
     /// normalization overhead (~5-15× faster for pure-ASCII keywords).
     static func passesPreFilter(_ line: String) -> Bool {
         let matched: Bool? = line.utf8.withContiguousStorageIfAvailable { buf in
-            for needle in preFilterKeywordsUTF8 {
-                if bufferContains(buf, needle) { return true }
+            for needle in preFilterKeywordsUTF8
+                where bufferContains(buf, needle) {
+                return true
             }
             return false
         }
@@ -250,8 +251,9 @@ public actor LogStreamReader {
         if let matched { return matched }
         let bytes = Array(line.utf8)
         return bytes.withUnsafeBufferPointer { buf in
-            for needle in preFilterKeywordsUTF8 {
-                if bufferContains(buf, needle) { return true }
+            for needle in preFilterKeywordsUTF8
+                where bufferContains(buf, needle) {
+                return true
             }
             return false
         }

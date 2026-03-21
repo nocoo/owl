@@ -59,6 +59,7 @@ final class MockProcessFactory: @unchecked Sendable, LogProcessFactory {
 // MARK: - Tests
 
 @Suite("LogStreamReader")
+// swiftlint:disable:next type_body_length
 struct LogStreamReaderTests {
 
     // MARK: - Helpers

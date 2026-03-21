@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 import Foundation
 
 // MARK: - Language
@@ -320,8 +321,9 @@ public enum L10nKey: Sendable {
 
 // MARK: - L10n Translation Engine
 
-/// Centralized localization engine. Uses a pure-Swift string table
-/// (no .strings files) for compile-time safety and runtime switching.
+// Centralized localization engine. Uses a pure-Swift string table
+// (no .strings files) for compile-time safety and runtime switching.
+// swiftlint:disable:next type_body_length
 public enum L10n {
 
     /// Current resolved language. Observe via `NotificationCenter`

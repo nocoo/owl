@@ -93,47 +93,86 @@ public final class SustainedCPUDetector: MetricsDetector {
 
         switch currentState {
         case .normal:
-            if cpuHigh {
-                currentState = .elevated(since: now)
-            }
-            return []
-
+            return tickFromNormal(cpuHigh: cpuHigh, now: now)
         case .elevated(let since):
-            if !cpuHigh {
-                currentState = .normal
-                return []
-            }
-            if now.timeIntervalSince(since) >= config.duration {
-                currentState = .warning(since: now)
-                return [makeAlert(severity: .warning, timestamp: now)]
-            }
-            return []
-
+            return tickFromElevated(
+                since: since, cpuHigh: cpuHigh, now: now
+            )
         case .warning(let since):
-            if !cpuHigh {
-                currentState = .normal
-                return [makeRecoveryAlert(timestamp: now)]
-            }
-            if thermalState == .critical {
-                currentState = .critical(since: now)
-                return [makeAlert(severity: .critical, timestamp: now)]
-            }
-            // Re-emit warning periodically? No — AlertStateManager handles dedup.
-            _ = since
-            return []
-
+            return tickFromWarning(
+                since: since,
+                cpuHigh: cpuHigh,
+                thermalState: thermalState,
+                now: now
+            )
         case .critical(let since):
-            if !cpuHigh {
-                currentState = .normal
-                return [makeRecoveryAlert(timestamp: now)]
-            }
-            if thermalState != .critical {
-                // Downgrade to warning
-                currentState = .warning(since: since)
-                return [makeAlert(severity: .warning, timestamp: now)]
-            }
+            return tickFromCritical(
+                since: since,
+                cpuHigh: cpuHigh,
+                thermalState: thermalState,
+                now: now
+            )
+        }
+    }
+
+    private func tickFromNormal(
+        cpuHigh: Bool, now: Date
+    ) -> [Alert] {
+        if cpuHigh {
+            currentState = .elevated(since: now)
+        }
+        return []
+    }
+
+    private func tickFromElevated(
+        since: Date, cpuHigh: Bool, now: Date
+    ) -> [Alert] {
+        if !cpuHigh {
+            currentState = .normal
             return []
         }
+        if now.timeIntervalSince(since) >= config.duration {
+            currentState = .warning(since: now)
+            return [makeAlert(severity: .warning, timestamp: now)]
+        }
+        return []
+    }
+
+    private func tickFromWarning(
+        since: Date,
+        cpuHigh: Bool,
+        thermalState: ProcessInfo.ThermalState,
+        now: Date
+    ) -> [Alert] {
+        if !cpuHigh {
+            currentState = .normal
+            return [makeRecoveryAlert(timestamp: now)]
+        }
+        if thermalState == .critical {
+            currentState = .critical(since: now)
+            return [makeAlert(severity: .critical, timestamp: now)]
+        }
+        // Re-emit warning periodically? No — AlertStateManager handles dedup.
+        _ = since
+        return []
+    }
+
+    private func tickFromCritical(
+        since: Date,
+        cpuHigh: Bool,
+        thermalState: ProcessInfo.ThermalState,
+        now: Date
+    ) -> [Alert] {
+        if !cpuHigh {
+            currentState = .normal
+            return [makeRecoveryAlert(timestamp: now)]
+        }
+        if thermalState != .critical {
+            // Downgrade to warning
+            currentState = .warning(since: since)
+            return [makeAlert(severity: .warning, timestamp: now)]
+        }
+        return []
     }
 
     // MARK: - Helpers

@@ -60,53 +60,79 @@ public enum StatusItemMapper {
 
         switch severity {
         case .normal:
-            return StatusItemConfig(
-                symbolName: "bird",
-                accessibilityLabel: "Owl — \(L10n.tr(.severityNormal))",
-                isFilled: false,
-                colorName: isRecovering ? .green : .default,
-                shouldPulse: false,
-                showRecoveryFlash: isRecovering,
-                dotColor: nil,
-                statusLabel: ""
-            )
+            return normalConfig(isRecovering: isRecovering)
         case .info:
-            return StatusItemConfig(
-                symbolName: "bird",
-                accessibilityLabel: "Owl — \(L10n.tr(.severityInfo))",
-                isFilled: false,
-                colorName: isRecovering ? .green : .blue,
-                shouldPulse: false,
-                showRecoveryFlash: isRecovering,
-                dotColor: .blue,
-                statusLabel: alertCount > 0
-                    ? "\(L10n.tr(.severityInfo)) (\(alertCount))" : L10n.tr(.severityInfo)
+            return infoConfig(
+                isRecovering: isRecovering, alertCount: alertCount
             )
         case .warning:
-            return StatusItemConfig(
-                symbolName: "bird.fill",
-                accessibilityLabel: "Owl — \(L10n.tr(.severityWarning))",
-                isFilled: true,
-                colorName: .yellow,
-                shouldPulse: false,
-                showRecoveryFlash: false,
-                dotColor: .yellow,
-                statusLabel: alertCount > 0
-                    ? "\(L10n.tr(.severityWarning)) (\(alertCount))" : L10n.tr(.severityWarning)
-            )
+            return warningConfig(alertCount: alertCount)
         case .critical:
-            return StatusItemConfig(
-                symbolName: "bird.fill",
-                accessibilityLabel: "Owl — \(L10n.tr(.severityCritical))",
-                isFilled: true,
-                colorName: .red,
-                shouldPulse: true,
-                showRecoveryFlash: false,
-                dotColor: .red,
-                statusLabel: alertCount > 0
-                    ? "\(L10n.tr(.severityCritical)) (\(alertCount))" : L10n.tr(.severityCritical)
-            )
+            return criticalConfig(alertCount: alertCount)
         }
+    }
+
+    private static func normalConfig(
+        isRecovering: Bool
+    ) -> StatusItemConfig {
+        StatusItemConfig(
+            symbolName: "bird",
+            accessibilityLabel: "Owl — \(L10n.tr(.severityNormal))",
+            isFilled: false,
+            colorName: isRecovering ? .green : .default,
+            shouldPulse: false,
+            showRecoveryFlash: isRecovering,
+            dotColor: nil,
+            statusLabel: ""
+        )
+    }
+
+    private static func infoConfig(
+        isRecovering: Bool, alertCount: Int
+    ) -> StatusItemConfig {
+        StatusItemConfig(
+            symbolName: "bird",
+            accessibilityLabel: "Owl — \(L10n.tr(.severityInfo))",
+            isFilled: false,
+            colorName: isRecovering ? .green : .blue,
+            shouldPulse: false,
+            showRecoveryFlash: isRecovering,
+            dotColor: .blue,
+            statusLabel: alertCount > 0
+                ? "\(L10n.tr(.severityInfo)) (\(alertCount))" : L10n.tr(.severityInfo)
+        )
+    }
+
+    private static func warningConfig(
+        alertCount: Int
+    ) -> StatusItemConfig {
+        StatusItemConfig(
+            symbolName: "bird.fill",
+            accessibilityLabel: "Owl — \(L10n.tr(.severityWarning))",
+            isFilled: true,
+            colorName: .yellow,
+            shouldPulse: false,
+            showRecoveryFlash: false,
+            dotColor: .yellow,
+            statusLabel: alertCount > 0
+                ? "\(L10n.tr(.severityWarning)) (\(alertCount))" : L10n.tr(.severityWarning)
+        )
+    }
+
+    private static func criticalConfig(
+        alertCount: Int
+    ) -> StatusItemConfig {
+        StatusItemConfig(
+            symbolName: "bird.fill",
+            accessibilityLabel: "Owl — \(L10n.tr(.severityCritical))",
+            isFilled: true,
+            colorName: .red,
+            shouldPulse: true,
+            showRecoveryFlash: false,
+            dotColor: .red,
+            statusLabel: alertCount > 0
+                ? "\(L10n.tr(.severityCritical)) (\(alertCount))" : L10n.tr(.severityCritical)
+        )
     }
 
     /// Determines if the severity transition represents a recovery

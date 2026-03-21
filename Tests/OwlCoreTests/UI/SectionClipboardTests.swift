@@ -3,6 +3,7 @@ import Testing
 
 /// Tests for clipboard text generation in all metric sections.
 @Suite("Section clipboardText")
+// swiftlint:disable:next type_body_length
 struct SectionClipboardTests {
 
     // MARK: - Helpers

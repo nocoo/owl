@@ -3,6 +3,7 @@ import Testing
 @testable import OwlCore
 
 @Suite("RateDetector")
+// swiftlint:disable:next type_body_length
 struct RateDetectorTests {
 
     // MARK: - Helpers
