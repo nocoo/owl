@@ -114,8 +114,14 @@ public struct ExtendedMemoryInfo: Sendable, Equatable {
     }
 
     public static let zero = ExtendedMemoryInfo(
-        total: 0, used: 0, cached: 0, available: 0,
-        swapTotal: 0, swapUsed: 0, pageins: 0, pageouts: 0
+        total: 0,
+        used: 0,
+        cached: 0,
+        available: 0,
+        swapTotal: 0,
+        swapUsed: 0,
+        pageins: 0,
+        pageouts: 0
     )
 }
 
@@ -227,8 +233,10 @@ public struct NetworkMetrics: Sendable, Equatable {
     }
 
     public static let zero = NetworkMetrics(
-        bytesInPerSec: 0, bytesOutPerSec: 0,
-        activeInterface: "", localIP: ""
+        bytesInPerSec: 0,
+        bytesOutPerSec: 0,
+        activeInterface: "",
+        localIP: ""
     )
 }
 

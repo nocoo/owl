@@ -24,7 +24,7 @@ struct ThermalStateDetectorTests {
 
     @Test("no alert when thermal state stays nominal")
     func nominalNoAlert() {
-        let detector = makeDetector(thermalState: { .nominal })
+        let detector = makeDetector { .nominal }
         let alert = detector.process(makeMetrics())
         #expect(alert == nil)
     }
@@ -157,7 +157,7 @@ struct ThermalStateDetectorTests {
 
     @Test("tick returns empty (no time-based logic)")
     func tickReturnsEmpty() {
-        let detector = makeDetector(thermalState: { .nominal })
+        let detector = makeDetector { .nominal }
         let alerts = detector.tick(at: Date())
         #expect(alerts.isEmpty)
     }

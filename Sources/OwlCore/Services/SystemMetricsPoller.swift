@@ -433,8 +433,7 @@ public actor SystemMetricsPoller {
     ) -> Bool {
         if forceRefresh
             || currentCPUCount == 0
-            || currentMemoryCount == 0
-        {
+            || currentMemoryCount == 0 {
             return true
         }
 
@@ -461,9 +460,8 @@ public actor SystemMetricsPoller {
         if profile.includeTemperatures {
             hidReadings = hidProvider.sensorReadings()
             smcTemperatures = Dictionary(
-                smcProvider.allTemperatures(),
-                uniquingKeysWith: { _, new in new }
-            )
+                smcProvider.allTemperatures()
+            )                { _, new in new }
         }
 
         // Prefer HID on Apple Silicon (reliable), fall back to SMC.

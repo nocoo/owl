@@ -32,8 +32,7 @@ public struct BatteryProvider: Sendable {
     }
 
     private func smartBatteryProperties()
-        -> [String: Any]
-    {
+        -> [String: Any] {
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault,
             IOServiceMatching("AppleSmartBattery")

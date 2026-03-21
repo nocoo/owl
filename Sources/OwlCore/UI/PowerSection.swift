@@ -8,7 +8,8 @@ struct PowerSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                L10n.tr(.sectionPower), symbol: "bolt.fill",
+                L10n.tr(.sectionPower),
+                symbol: "bolt.fill",
                 color: OwlSectionColor.power
             )
 
@@ -80,9 +81,7 @@ struct PowerSection: View {
         )
 
         var state: String
-        if batt.isCharging { state = "Charging" }
-        else if batt.isPluggedIn { state = "Plugged In" }
-        else { state = "Battery" }
+        if batt.isCharging { state = "Charging" } else if batt.isPluggedIn { state = "Plugged In" } else { state = "Battery" }
 
         var detail = "State: \(state) | Cycles: \(batt.cycleCount)"
         detail += " | Condition: \(batt.condition)"

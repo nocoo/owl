@@ -7,7 +7,8 @@ struct CPUSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                L10n.tr(.sectionCPU), symbol: "cpu",
+                L10n.tr(.sectionCPU),
+                symbol: "cpu",
                 color: OwlSectionColor.cpu
             )
 

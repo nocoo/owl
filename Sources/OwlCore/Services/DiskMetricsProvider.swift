@@ -40,15 +40,16 @@ public struct DiskMetricsProvider: Sendable {
 
             var props: Unmanaged<CFMutableDictionary>?
             let kr = IORegistryEntryCreateCFProperties(
-                drive, &props,
-                kCFAllocatorDefault, 0
+                drive,
+                &props,
+                kCFAllocatorDefault,
+                0
             )
             if kr == KERN_SUCCESS,
                 let dict = props?.takeRetainedValue()
                     as? [String: Any],
                 let stats = dict["Statistics"]
-                    as? [String: Any]
-            {
+                    as? [String: Any] {
                 if let rb = stats["Bytes (Read)"] as? UInt64 {
                     totalRead += rb
                 }

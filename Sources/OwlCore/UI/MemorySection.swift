@@ -7,7 +7,8 @@ struct MemorySection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                L10n.tr(.sectionMemory), symbol: "memorychip",
+                L10n.tr(.sectionMemory),
+                symbol: "memorychip",
                 color: OwlSectionColor.memory
             )
 

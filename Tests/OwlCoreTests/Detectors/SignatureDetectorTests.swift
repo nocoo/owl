@@ -122,11 +122,10 @@ struct SignatureDetectorTests {
         let detector = SignatureDetector(config: makeConfig(
             warningDistinct: 2,
             criticalDistinct: 10,
-            cooldownInterval: 0,
-            normalizer: { target in
+            cooldownInterval: 0
+        )            { target in
                 target.replacingOccurrences(of: #"/private/var/folders/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/"#, with: "/private/var/folders/<ID>/<ID>/", options: .regularExpression)
-            }
-        ))
+            })
         let t0 = Date(timeIntervalSince1970: 4_000)
 
         _ = detector.process(makeEntry(

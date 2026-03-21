@@ -12,8 +12,11 @@ struct SectionClipboardTests {
         cpuUsage: Double = 45.2,
         perCoreCPU: [CoreCPUUsage] = [],
         loadAverage: LoadAverage = LoadAverage(
-            one: 3.42, five: 2.81, fifteen: 2.65,
-            performanceCores: 0, efficiencyCores: 0
+            one: 3.42,
+            five: 2.81,
+            fifteen: 2.65,
+            performanceCores: 0,
+            efficiencyCores: 0
         ),
         extendedMemory: ExtendedMemoryInfo = .zero,
         disk: DiskMetrics = .zero,
@@ -65,8 +68,11 @@ struct SectionClipboardTests {
             CoreCPUUsage(id: $0, usage: Double($0 * 10 + 10))
         }
         let la = LoadAverage(
-            one: 1.0, five: 1.0, fifteen: 1.0,
-            performanceCores: 6, efficiencyCores: 0
+            one: 1.0,
+            five: 1.0,
+            fifteen: 1.0,
+            performanceCores: 6,
+            efficiencyCores: 0
         )
         let m = Self.sampleMetrics(
             perCoreCPU: cores, loadAverage: la
@@ -85,8 +91,11 @@ struct SectionClipboardTests {
             CoreCPUUsage(id: $0, usage: 20)
         }
         let la = LoadAverage(
-            one: 1.0, five: 1.0, fifteen: 1.0,
-            performanceCores: 4, efficiencyCores: 4
+            one: 1.0,
+            five: 1.0,
+            fifteen: 1.0,
+            performanceCores: 4,
+            efficiencyCores: 4
         )
         let m = Self.sampleMetrics(
             perCoreCPU: pCores + eCores, loadAverage: la
@@ -103,8 +112,11 @@ struct SectionClipboardTests {
             CoreCPUUsage(id: 1, usage: 40),
         ]
         let la = LoadAverage(
-            one: 1.0, five: 1.0, fifteen: 1.0,
-            performanceCores: 0, efficiencyCores: 0
+            one: 1.0,
+            five: 1.0,
+            fifteen: 1.0,
+            performanceCores: 0,
+            efficiencyCores: 0
         )
         let m = Self.sampleMetrics(
             perCoreCPU: cores, loadAverage: la
@@ -136,8 +148,10 @@ struct SectionClipboardTests {
         let mem = ExtendedMemoryInfo(
             total: 17_179_869_184,
             used: 12_884_901_888,
-            cached: 0, available: 0,
-            swapTotal: 0, swapUsed: 0
+            cached: 0,
+            available: 0,
+            swapTotal: 0,
+            swapUsed: 0
         )
         let m = Self.sampleMetrics(extendedMemory: mem)
         let text = MemorySection.clipboardText(m)
@@ -149,7 +163,8 @@ struct SectionClipboardTests {
         let mem = ExtendedMemoryInfo(
             total: 17_179_869_184,
             used: 12_884_901_888,
-            cached: 0, available: 0,
+            cached: 0,
+            available: 0,
             swapTotal: 2_147_483_648,
             swapUsed: 536_870_912
         )
@@ -162,8 +177,10 @@ struct SectionClipboardTests {
         let mem = ExtendedMemoryInfo(
             total: 17_179_869_184,
             used: 12_884_901_888,
-            cached: 0, available: 0,
-            swapTotal: 0, swapUsed: 0
+            cached: 0,
+            available: 0,
+            swapTotal: 0,
+            swapUsed: 0
         )
         let m = Self.sampleMetrics(extendedMemory: mem)
         let text = MemorySection.clipboardText(m)
@@ -174,9 +191,12 @@ struct SectionClipboardTests {
         let mem = ExtendedMemoryInfo(
             total: 17_179_869_184,
             used: 12_884_901_888,
-            cached: 0, available: 0,
-            swapTotal: 0, swapUsed: 0,
-            pageins: 1_500_000, pageouts: 345_000
+            cached: 0,
+            available: 0,
+            swapTotal: 0,
+            swapUsed: 0,
+            pageins: 1_500_000,
+            pageouts: 345_000
         )
         let m = Self.sampleMetrics(extendedMemory: mem)
         let text = MemorySection.clipboardText(m)
@@ -218,10 +238,15 @@ struct SectionClipboardTests {
 
     @Test func powerClipboardTextContainsHeader() {
         let batt = BatteryMetrics(
-            level: 85, health: 92, cycleCount: 123,
-            isCharging: true, isPluggedIn: true,
-            temperature: 35, timeRemaining: 120,
-            condition: "Normal", wattage: 45.5
+            level: 85,
+            health: 92,
+            cycleCount: 123,
+            isCharging: true,
+            isPluggedIn: true,
+            temperature: 35,
+            timeRemaining: 120,
+            condition: "Normal",
+            wattage: 45.5
         )
         let m = Self.sampleMetrics(battery: batt)
         let text = PowerSection.clipboardText(m)
@@ -230,9 +255,13 @@ struct SectionClipboardTests {
 
     @Test func powerClipboardTextShowsLevelAndHealth() {
         let batt = BatteryMetrics(
-            level: 85, health: 92, cycleCount: 123,
-            isCharging: false, isPluggedIn: false,
-            temperature: nil, timeRemaining: nil,
+            level: 85,
+            health: 92,
+            cycleCount: 123,
+            isCharging: false,
+            isPluggedIn: false,
+            temperature: nil,
+            timeRemaining: nil,
             condition: "Normal"
         )
         let m = Self.sampleMetrics(battery: batt)
@@ -243,9 +272,13 @@ struct SectionClipboardTests {
 
     @Test func powerClipboardTextShowsChargingState() {
         let batt = BatteryMetrics(
-            level: 50, health: 90, cycleCount: 100,
-            isCharging: true, isPluggedIn: true,
-            temperature: nil, timeRemaining: nil,
+            level: 50,
+            health: 90,
+            cycleCount: 100,
+            isCharging: true,
+            isPluggedIn: true,
+            temperature: nil,
+            timeRemaining: nil,
             condition: "Normal"
         )
         let m = Self.sampleMetrics(battery: batt)
@@ -255,9 +288,13 @@ struct SectionClipboardTests {
 
     @Test func powerClipboardTextShowsPluggedState() {
         let batt = BatteryMetrics(
-            level: 100, health: 95, cycleCount: 50,
-            isCharging: false, isPluggedIn: true,
-            temperature: nil, timeRemaining: nil,
+            level: 100,
+            health: 95,
+            cycleCount: 50,
+            isCharging: false,
+            isPluggedIn: true,
+            temperature: nil,
+            timeRemaining: nil,
             condition: "Normal"
         )
         let m = Self.sampleMetrics(battery: batt)
@@ -267,9 +304,13 @@ struct SectionClipboardTests {
 
     @Test func powerClipboardTextShowsBatteryState() {
         let batt = BatteryMetrics(
-            level: 60, health: 88, cycleCount: 200,
-            isCharging: false, isPluggedIn: false,
-            temperature: nil, timeRemaining: nil,
+            level: 60,
+            health: 88,
+            cycleCount: 200,
+            isCharging: false,
+            isPluggedIn: false,
+            temperature: nil,
+            timeRemaining: nil,
             condition: "Normal"
         )
         let m = Self.sampleMetrics(battery: batt)
@@ -279,10 +320,15 @@ struct SectionClipboardTests {
 
     @Test func powerClipboardTextShowsWattage() {
         let batt = BatteryMetrics(
-            level: 50, health: 90, cycleCount: 100,
-            isCharging: true, isPluggedIn: true,
-            temperature: nil, timeRemaining: nil,
-            condition: "Normal", wattage: 45.5
+            level: 50,
+            health: 90,
+            cycleCount: 100,
+            isCharging: true,
+            isPluggedIn: true,
+            temperature: nil,
+            timeRemaining: nil,
+            condition: "Normal",
+            wattage: 45.5
         )
         let m = Self.sampleMetrics(battery: batt)
         let text = PowerSection.clipboardText(m)
@@ -291,10 +337,15 @@ struct SectionClipboardTests {
 
     @Test func powerClipboardTextOmitsWattageWhenNil() {
         let batt = BatteryMetrics(
-            level: 50, health: 90, cycleCount: 100,
-            isCharging: false, isPluggedIn: false,
-            temperature: nil, timeRemaining: nil,
-            condition: "Normal", wattage: nil
+            level: 50,
+            health: 90,
+            cycleCount: 100,
+            isCharging: false,
+            isPluggedIn: false,
+            temperature: nil,
+            timeRemaining: nil,
+            condition: "Normal",
+            wattage: nil
         )
         let m = Self.sampleMetrics(battery: batt)
         let text = PowerSection.clipboardText(m)
@@ -414,7 +465,8 @@ struct SectionClipboardTests {
     @Test func processesClipboardTextLimitsToThree() {
         let procs = (0..<5).map {
             ProcessMetric(
-                id: Int32($0), name: "P\($0)",
+                id: Int32($0),
+                name: "P\($0)",
                 cpuPercent: Double(50 - $0 * 10)
             )
         }

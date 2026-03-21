@@ -10,7 +10,8 @@ struct NetworkSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                L10n.tr(.sectionNetwork), symbol: "network",
+                L10n.tr(.sectionNetwork),
+                symbol: "network",
                 color: OwlSectionColor.network
             )
 

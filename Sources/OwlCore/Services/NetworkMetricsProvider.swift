@@ -53,17 +53,19 @@ public struct NetworkMetricsProvider: Sendable {
             let name = String(cString: ifa.pointee.ifa_name)
             if name == defaultIface,
                 let addr = ifa.pointee.ifa_addr,
-                addr.pointee.sa_family == UInt8(AF_INET)
-            {
+                addr.pointee.sa_family == UInt8(AF_INET) {
                 var hostname = [CChar](
-                    repeating: 0, count: Int(NI_MAXHOST)
+                    repeating: 0,
+                    count: Int(NI_MAXHOST)
                 )
                 let result = getnameinfo(
                     addr,
                     socklen_t(addr.pointee.sa_len),
                     &hostname,
                     socklen_t(hostname.count),
-                    nil, 0, NI_NUMERICHOST
+                    nil,
+                    0,
+                    NI_NUMERICHOST
                 )
                 if result == 0 {
                     return (name, String(cString: hostname))
@@ -78,17 +80,19 @@ public struct NetworkMetricsProvider: Sendable {
             let name = String(cString: ifa.pointee.ifa_name)
             if name == "en0",
                 let addr = ifa.pointee.ifa_addr,
-                addr.pointee.sa_family == UInt8(AF_INET)
-            {
+                addr.pointee.sa_family == UInt8(AF_INET) {
                 var hostname = [CChar](
-                    repeating: 0, count: Int(NI_MAXHOST)
+                    repeating: 0,
+                    count: Int(NI_MAXHOST)
                 )
                 let result = getnameinfo(
                     addr,
                     socklen_t(addr.pointee.sa_len),
                     &hostname,
                     socklen_t(hostname.count),
-                    nil, 0, NI_NUMERICHOST
+                    nil,
+                    0,
+                    NI_NUMERICHOST
                 )
                 if result == 0 {
                     return ("en0", String(cString: hostname))
@@ -118,8 +122,7 @@ public struct NetworkMetricsProvider: Sendable {
                 flags & IFF_UP != 0,
                 flags & IFF_RUNNING != 0,
                 let addr = ifa.pointee.ifa_addr,
-                addr.pointee.sa_family == UInt8(AF_INET)
-            {
+                addr.pointee.sa_family == UInt8(AF_INET) {
                 return name
             }
             current = ifa.pointee.ifa_next
@@ -134,8 +137,7 @@ public struct NetworkMetricsProvider: Sendable {
                 flags & IFF_UP != 0,
                 flags & IFF_RUNNING != 0,
                 let addr = ifa.pointee.ifa_addr,
-                addr.pointee.sa_family == UInt8(AF_INET)
-            {
+                addr.pointee.sa_family == UInt8(AF_INET) {
                 return name
             }
             current = ifa.pointee.ifa_next

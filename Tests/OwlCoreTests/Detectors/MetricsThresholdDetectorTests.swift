@@ -21,9 +21,8 @@ struct MetricsThresholdDetectorTests {
             sustainedDuration: sustainedDuration,
             titleKey: .alertMemoryPressureTitle,
             descriptionKey: { .alertMemoryPressureDesc($0) },
-            suggestionKey: .alertMemoryPressureSuggestion,
-            formatValue: { String(format: "%.0f", $0) }
-        )
+            suggestionKey: .alertMemoryPressureSuggestion
+        )            { String(format: "%.0f", $0) }
     }
 
     private func makeDetector(
@@ -320,9 +319,8 @@ struct MetricsThresholdDetectorTests {
     @Test("works with custom extractor (disk usage)")
     func customExtractor() {
         let detector = MetricsThresholdDetector(
-            config: makeConfig(sustainedDuration: 10),
-            extractor: { $0.disk.usedPercent }
-        )
+            config: makeConfig(sustainedDuration: 10)
+        )            { $0.disk.usedPercent }
         let t0 = Date(timeIntervalSince1970: 1000)
 
         let metrics = SystemMetrics(

@@ -283,11 +283,13 @@ struct TopProcessProviderTests {
         let parentPid = getppid()
         let snapshots = [
             ProcessSnapshot(
-                pid: selfPid, cpuTimeNs: 0,
+                pid: selfPid,
+                cpuTimeNs: 0,
                 memoryBytes: 100_000_000
             ),
             ProcessSnapshot(
-                pid: parentPid, cpuTimeNs: 0,
+                pid: parentPid,
+                cpuTimeNs: 0,
                 memoryBytes: 500_000_000
             ),
         ]
@@ -309,11 +311,13 @@ struct TopProcessProviderTests {
         let selfPid = ProcessInfo.processInfo.processIdentifier
         let snapshots = [
             ProcessSnapshot(
-                pid: 99999, cpuTimeNs: 0,
+                pid: 99999,
+                cpuTimeNs: 0,
                 memoryBytes: 999_000_000
             ),
             ProcessSnapshot(
-                pid: selfPid, cpuTimeNs: 0,
+                pid: selfPid,
+                cpuTimeNs: 0,
                 memoryBytes: 100_000_000
             ),
         ]

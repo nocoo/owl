@@ -35,7 +35,7 @@ public final class HIDTemperatureProvider: Sendable {
     /// Returns array of (label, celsius) for sensors that responded.
     public func allTemperatures() -> [(String, Double)] {
         sensorReadings()
-            .sorted(by: { $0.key < $1.key })
+            .sorted { $0.key < $1.key }
             .map { ($0.key, $0.value) }
     }
 
@@ -64,7 +64,7 @@ public final class HIDTemperatureProvider: Sendable {
 
     /// Check if a sensor name matches any die temperature pattern.
     static func isDieSensor(_ name: String) -> Bool {
-        diePrefixes.contains(where: { name.hasPrefix($0) })
+        diePrefixes.contains { name.hasPrefix($0) }
     }
 
     static func dieSensors(
@@ -76,7 +76,7 @@ public final class HIDTemperatureProvider: Sendable {
                     && entry.value > 0 && entry.value < 120
             }
             .map { (name: $0.key, celsius: $0.value) }
-            .sorted(by: { $0.name < $1.name })
+            .sorted { $0.name < $1.name }
     }
 
     static func cpuTemperature(
@@ -106,7 +106,7 @@ public final class HIDTemperatureProvider: Sendable {
     ) -> Double? {
         let gpuTemps = readings
             .filter { entry in
-                Self.gpuPrefixes.contains(where: { entry.key.hasPrefix($0) })
+                Self.gpuPrefixes.contains { entry.key.hasPrefix($0) }
                     && entry.value > 0 && entry.value < 120
             }
             .map(\.value)

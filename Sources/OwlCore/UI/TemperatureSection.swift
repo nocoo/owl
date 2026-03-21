@@ -13,13 +13,16 @@ struct TemperatureSection: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                L10n.tr(.sectionTemperature), symbol: "thermometer.medium",
+                L10n.tr(.sectionTemperature),
+                symbol: "thermometer.medium",
                 color: OwlSectionColor.temperature
             )
 
             // Pairs of sensors, 2 per row
             let pairs = stride(
-                from: 0, to: sensors.count, by: 2
+                from: 0,
+                to: sensors.count,
+                by: 2
             ).map { i in
                 let end = min(i + 2, sensors.count)
                 return Array(sensors[i..<end])

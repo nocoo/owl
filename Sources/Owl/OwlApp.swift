@@ -463,7 +463,8 @@ extension AppDelegate {
             let birdX = (rect.width - birdSize.width) / 2
             let birdY = (rect.height - birdSize.height) / 2
             let birdRect = NSRect(
-                x: birdX, y: birdY,
+                x: birdX,
+                y: birdY,
                 width: birdSize.width,
                 height: birdSize.height
             )
@@ -490,13 +491,16 @@ extension AppDelegate {
             let dotX = rect.width - dotSize - 0.5
             let dotY: CGFloat = 0.5
             let dotRect = NSRect(
-                x: dotX, y: dotY,
-                width: dotSize, height: dotSize
+                x: dotX,
+                y: dotY,
+                width: dotSize,
+                height: dotSize
             )
 
             // White outline for contrast
             let outlineRect = dotRect.insetBy(
-                dx: -1, dy: -1
+                dx: -1,
+                dy: -1
             )
             NSColor.white.setFill()
             NSBezierPath(

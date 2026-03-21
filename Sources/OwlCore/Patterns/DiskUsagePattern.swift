@@ -22,10 +22,8 @@ public enum DiskUsagePattern {
                 sustainedDuration: 60,
                 titleKey: .alertDiskUsageTitle,
                 descriptionKey: { .alertDiskUsageDesc($0) },
-                suggestionKey: .alertDiskUsageSuggestion,
-                formatValue: { String(format: "%.0f", $0) }
-            ),
-            extractor: { $0.disk.usedPercent }
-        )
+                suggestionKey: .alertDiskUsageSuggestion
+            )                { String(format: "%.0f", $0) }
+        )            { $0.disk.usedPercent }
     }
 }

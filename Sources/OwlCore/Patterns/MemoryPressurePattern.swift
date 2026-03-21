@@ -22,10 +22,8 @@ public enum MemoryPressurePattern {
                 sustainedDuration: 30,
                 titleKey: .alertMemoryPressureTitle,
                 descriptionKey: { .alertMemoryPressureDesc($0) },
-                suggestionKey: .alertMemoryPressureSuggestion,
-                formatValue: { String(format: "%.0f", $0) }
-            ),
-            extractor: { $0.memoryPressure }
-        )
+                suggestionKey: .alertMemoryPressureSuggestion
+            )                { String(format: "%.0f", $0) }
+        )            { $0.memoryPressure }
     }
 }

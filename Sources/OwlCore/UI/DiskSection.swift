@@ -8,7 +8,8 @@ struct DiskSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionHeader(
-                L10n.tr(.sectionDisk), symbol: "internaldrive",
+                L10n.tr(.sectionDisk),
+                symbol: "internaldrive",
                 color: OwlSectionColor.disk
             )
 

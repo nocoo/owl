@@ -31,9 +31,8 @@ public enum SandboxPattern {
             titleKey: .alertSandboxTitle,
             descriptionTemplateKey: .alertSandboxDesc("{key}", "{window}", "{count}"),
             suggestionKey: .alertSandboxSuggestion,
-            acceptsFilter: "deny(1)",
-            normalizer: { target in normalizeTarget(target) }
-        ))
+            acceptsFilter: "deny(1)"
+        )            { target in normalizeTarget(target) })
     }
 
     static func normalizeTarget(_ target: String) -> String {
