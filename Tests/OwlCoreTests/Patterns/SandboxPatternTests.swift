@@ -229,20 +229,29 @@ struct SandboxPatternTests {
         let detector = SandboxPattern.makeDetector()
         let t0 = Date(timeIntervalSince1970: 6000)
 
+        let readMsg = "Sandbox: Google Chrome(85321) deny(1) file-read-data"
+            + " /private/var/folders/aa/bb/0/"
+            + "3E53F4E2-7E3D-4A1D-9BF8-3A7855D8D9A2/cache/file-123"
         _ = detector.process(TestFixtures.Sandbox.entry(
-            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /private/var/folders/aa/bb/0/3E53F4E2-7E3D-4A1D-9BF8-3A7855D8D9A2/cache/file-123"#,
+            readMsg,
             timestamp: t0
         ))
 
+        let dupMsg = "Sandbox: Google Chrome(85321) deny(1) file-read-data"
+            + " /private/var/folders/cc/dd/9/"
+            + "9D44B0B2-40CE-4500-A2D6-B1D21ABF2F38/cache/file-456"
         let duplicateAfterNormalization = detector.process(TestFixtures.Sandbox.entry(
-            #"Sandbox: Google Chrome(85321) deny(1) file-read-data /private/var/folders/cc/dd/9/9D44B0B2-40CE-4500-A2D6-B1D21ABF2F38/cache/file-456"#,
+            dupMsg,
             timestamp: t0.addingTimeInterval(1)
         ))
 
         #expect(duplicateAfterNormalization == nil)
 
+        let writeMsg = "Sandbox: Google Chrome(85321) deny(1) file-write-data"
+            + " /private/var/folders/ee/ff/7/"
+            + "9D44B0B2-40CE-4500-A2D6-B1D21ABF2F38/cache/file-789"
         let distinctOperation = detector.process(TestFixtures.Sandbox.entry(
-            #"Sandbox: Google Chrome(85321) deny(1) file-write-data /private/var/folders/ee/ff/7/9D44B0B2-40CE-4500-A2D6-B1D21ABF2F38/cache/file-789"#,
+            writeMsg,
             timestamp: t0.addingTimeInterval(2)
         ))
 

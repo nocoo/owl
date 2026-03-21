@@ -29,7 +29,7 @@ struct StatusItemMapperTests {
 
     @Test func normalShowsNormalLabel() {
         let config = StatusItemMapper.config(for: .normal)
-        #expect(config.statusLabel == "")
+        #expect(config.statusLabel.isEmpty)
     }
 
     // MARK: - Info State
@@ -204,7 +204,7 @@ struct StatusItemMapperTests {
         let config = StatusItemMapper.config(
             for: .normal, alertCount: 5
         )
-        #expect(config.statusLabel == "")
+        #expect(config.statusLabel.isEmpty)
     }
 
     @Test func alertCountZeroOmitsParentheses() {

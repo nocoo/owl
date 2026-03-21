@@ -56,7 +56,7 @@ struct ProcessStatsProviderTests {
 
     @Test func extractProcessNameEmptyReturnsEmpty() {
         #expect(
-            ProcessStatsProvider.extractProcessName(from: "") == ""
+            ProcessStatsProvider.extractProcessName(from: "").isEmpty
         )
     }
 

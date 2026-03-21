@@ -81,7 +81,13 @@ struct PowerSection: View {
         )
 
         var state: String
-        if batt.isCharging { state = "Charging" } else if batt.isPluggedIn { state = "Plugged In" } else { state = "Battery" }
+        if batt.isCharging {
+            state = "Charging"
+        } else if batt.isPluggedIn {
+            state = "Plugged In"
+        } else {
+            state = "Battery"
+        }
 
         var detail = "State: \(state) | Cycles: \(batt.cycleCount)"
         detail += " | Condition: \(batt.condition)"

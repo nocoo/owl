@@ -55,7 +55,9 @@ struct SignatureDetectorTests {
     }
 
     @Test func warningAlertAtDistinctThreshold() {
-        let detector = SignatureDetector(config: makeConfig(warningDistinct: 3, criticalDistinct: 10, cooldownInterval: 0))
+        let detector = SignatureDetector(config: makeConfig(
+            warningDistinct: 3, criticalDistinct: 10, cooldownInterval: 0
+        ))
         let t0 = Date(timeIntervalSince1970: 1_000)
 
         let messages = [
@@ -78,7 +80,9 @@ struct SignatureDetectorTests {
     }
 
     @Test func duplicateSignatureDoesNotInflateDistinctCount() {
-        let detector = SignatureDetector(config: makeConfig(warningDistinct: 2, criticalDistinct: 10, cooldownInterval: 0))
+        let detector = SignatureDetector(config: makeConfig(
+            warningDistinct: 2, criticalDistinct: 10, cooldownInterval: 0
+        ))
         let t0 = Date(timeIntervalSince1970: 2_000)
 
         _ = detector.process(makeEntry(message: "service=app op=read target=/tmp/a", timestamp: t0))
@@ -123,9 +127,13 @@ struct SignatureDetectorTests {
             warningDistinct: 2,
             criticalDistinct: 10,
             cooldownInterval: 0
-        )            { target in
-                target.replacingOccurrences(of: #"/private/var/folders/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/"#, with: "/private/var/folders/<ID>/<ID>/", options: .regularExpression)
-            })
+        ) { target in
+            target.replacingOccurrences(
+                of: #"/private/var/folders/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/"#,
+                with: "/private/var/folders/<ID>/<ID>/",
+                options: .regularExpression
+            )
+        })
         let t0 = Date(timeIntervalSince1970: 4_000)
 
         _ = detector.process(makeEntry(
@@ -157,7 +165,10 @@ struct SignatureDetectorTests {
         let t0 = Date(timeIntervalSince1970: 5_000)
 
         _ = detector.process(makeEntry(message: "service=app op=read target=/tmp/a", timestamp: t0))
-        _ = detector.process(makeEntry(message: "service=app op=read target=/tmp/b", timestamp: t0.addingTimeInterval(4)))
+        _ = detector.process(makeEntry(
+            message: "service=app op=read target=/tmp/b",
+            timestamp: t0.addingTimeInterval(4)
+        ))
 
         let afterOneRotation = detector.process(makeEntry(
             message: "service=app op=read target=/tmp/c",
@@ -194,8 +205,14 @@ struct SignatureDetectorTests {
         let t0 = Date(timeIntervalSince1970: 7_000)
 
         _ = detector.process(makeEntry(message: "service=app1 op=read target=/tmp/a", timestamp: t0))
-        _ = detector.process(makeEntry(message: "service=app2 op=read target=/tmp/a", timestamp: t0.addingTimeInterval(1)))
-        _ = detector.process(makeEntry(message: "service=app3 op=read target=/tmp/a", timestamp: t0.addingTimeInterval(2)))
+        _ = detector.process(makeEntry(
+            message: "service=app2 op=read target=/tmp/a",
+            timestamp: t0.addingTimeInterval(1)
+        ))
+        _ = detector.process(makeEntry(
+            message: "service=app3 op=read target=/tmp/a",
+            timestamp: t0.addingTimeInterval(2)
+        ))
 
         #expect(detector.groupCount == 2)
     }

@@ -201,10 +201,8 @@ enum TestFixtures {
 
     enum DarkWake {
         static let wake = "DarkWake from Normal Sleep [CDNPB] due to EC.LidOpen/Lid Open: Using AC"
-        // swiftlint:disable:next line_length
         static let deepIdle = "DarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake wifibt SMC.OutboxNotEmpty"
         // Internal kernel power management status log (NOT a real DarkWake event)
-        // swiftlint:disable:next line_length
         static let pmrdNoise = "PMRD: DarkWake: sleepASAP 1, clamshell closed 0, idleSleepEnabled 1"
         // IODisplayPortFamily GPU crossbar status log (NOT a real DarkWake event)
         static let gpuNoise = "checkPMforDarkWake: enter dark wake state"
