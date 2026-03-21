@@ -25,10 +25,10 @@ public enum SwapUsagePattern {
                 sustainedDuration: 30,
                 titleKey: .alertSwapUsageTitle,
                 descriptionKey: { .alertSwapUsageDesc($0) },
-                suggestionKey: .alertSwapUsageSuggestion
-            )                {
-                    String(format: "%.1f", $0 / gb)
-                }
-        )            { Double($0.extendedMemory.swapUsed) }
+                suggestionKey: .alertSwapUsageSuggestion,
+                // swiftlint:disable:next trailing_closure
+                formatValue: { String(format: "%.1f", $0 / gb) }
+            )
+        ) { Double($0.extendedMemory.swapUsed) }
     }
 }

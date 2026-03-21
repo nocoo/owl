@@ -22,8 +22,10 @@ public enum DiskUsagePattern {
                 sustainedDuration: 60,
                 titleKey: .alertDiskUsageTitle,
                 descriptionKey: { .alertDiskUsageDesc($0) },
-                suggestionKey: .alertDiskUsageSuggestion
-            )                { String(format: "%.0f", $0) }
-        )            { $0.disk.usedPercent }
+                suggestionKey: .alertDiskUsageSuggestion,
+                // swiftlint:disable:next trailing_closure
+                formatValue: { String(format: "%.0f", $0) }
+            )
+        ) { $0.disk.usedPercent }
     }
 }

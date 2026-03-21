@@ -22,8 +22,10 @@ public enum MemoryPressurePattern {
                 sustainedDuration: 30,
                 titleKey: .alertMemoryPressureTitle,
                 descriptionKey: { .alertMemoryPressureDesc($0) },
-                suggestionKey: .alertMemoryPressureSuggestion
-            )                { String(format: "%.0f", $0) }
-        )            { $0.memoryPressure }
+                suggestionKey: .alertMemoryPressureSuggestion,
+                // swiftlint:disable:next trailing_closure
+                formatValue: { String(format: "%.0f", $0) }
+            )
+        ) { $0.memoryPressure }
     }
 }

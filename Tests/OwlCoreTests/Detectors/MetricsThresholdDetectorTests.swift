@@ -21,8 +21,10 @@ struct MetricsThresholdDetectorTests {
             sustainedDuration: sustainedDuration,
             titleKey: .alertMemoryPressureTitle,
             descriptionKey: { .alertMemoryPressureDesc($0) },
-            suggestionKey: .alertMemoryPressureSuggestion
-        )            { String(format: "%.0f", $0) }
+            suggestionKey: .alertMemoryPressureSuggestion,
+            // swiftlint:disable:next trailing_closure
+            formatValue: { String(format: "%.0f", $0) }
+        )
     }
 
     private func makeDetector(
@@ -320,7 +322,7 @@ struct MetricsThresholdDetectorTests {
     func customExtractor() {
         let detector = MetricsThresholdDetector(
             config: makeConfig(sustainedDuration: 10)
-        )            { $0.disk.usedPercent }
+        ) { $0.disk.usedPercent }
         let t0 = Date(timeIntervalSince1970: 1000)
 
         let metrics = SystemMetrics(
