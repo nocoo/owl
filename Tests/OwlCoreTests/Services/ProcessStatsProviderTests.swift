@@ -158,63 +158,63 @@ struct ProcessStatsProviderTests {
     // MARK: - ProcessRanking formatting
 
     @Test func cpuTimeFormattedHoursAndMinutes() {
-        let r = ProcessRanking(
+        let ranking = ProcessRanking(
             id: "test",
             cpuSeconds: 3661,
             memoryMB: 100,
             instanceCount: 1
         )
-        #expect(r.cpuTimeFormatted == "1h 1m")
+        #expect(ranking.cpuTimeFormatted == "1h 1m")
     }
 
     @Test func cpuTimeFormattedMinutesAndSeconds() {
-        let r = ProcessRanking(
+        let ranking = ProcessRanking(
             id: "test",
             cpuSeconds: 125,
             memoryMB: 100,
             instanceCount: 1
         )
-        #expect(r.cpuTimeFormatted == "2m 5s")
+        #expect(ranking.cpuTimeFormatted == "2m 5s")
     }
 
     @Test func cpuTimeFormattedSecondsOnly() {
-        let r = ProcessRanking(
+        let ranking = ProcessRanking(
             id: "test",
             cpuSeconds: 45,
             memoryMB: 100,
             instanceCount: 1
         )
-        #expect(r.cpuTimeFormatted == "45s")
+        #expect(ranking.cpuTimeFormatted == "45s")
     }
 
     @Test func memoryFormattedMB() {
-        let r = ProcessRanking(
+        let ranking = ProcessRanking(
             id: "test",
             cpuSeconds: 0,
             memoryMB: 512,
             instanceCount: 1
         )
-        #expect(r.memoryFormatted == "512 MB")
+        #expect(ranking.memoryFormatted == "512 MB")
     }
 
     @Test func memoryFormattedGB() {
-        let r = ProcessRanking(
+        let ranking = ProcessRanking(
             id: "test",
             cpuSeconds: 0,
             memoryMB: 2048,
             instanceCount: 1
         )
-        #expect(r.memoryFormatted == "2.0 GB")
+        #expect(ranking.memoryFormatted == "2.0 GB")
     }
 
     @Test func memoryFormattedGBFractional() {
-        let r = ProcessRanking(
+        let ranking = ProcessRanking(
             id: "test",
             cpuSeconds: 0,
             memoryMB: 1536,
             instanceCount: 1
         )
-        #expect(r.memoryFormatted == "1.5 GB")
+        #expect(ranking.memoryFormatted == "1.5 GB")
     }
 
     // MARK: - ProcessStats uptime
@@ -243,28 +243,28 @@ struct ProcessStatsProviderTests {
     // MARK: - ProcessRanking identity
 
     @Test func processRankingIsIdentifiable() {
-        let r = ProcessRanking(
+        let ranking = ProcessRanking(
             id: "foo",
             cpuSeconds: 10,
             memoryMB: 50,
             instanceCount: 1
         )
-        #expect(r.id == "foo")
+        #expect(ranking.id == "foo")
     }
 
     @Test func processRankingEquatable() {
-        let a = ProcessRanking(
+        let first = ProcessRanking(
             id: "foo",
             cpuSeconds: 10,
             memoryMB: 50,
             instanceCount: 1
         )
-        let b = ProcessRanking(
+        let second = ProcessRanking(
             id: "foo",
             cpuSeconds: 10,
             memoryMB: 50,
             instanceCount: 1
         )
-        #expect(a == b)
+        #expect(first == second)
     }
 }

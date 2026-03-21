@@ -25,9 +25,9 @@ struct HIDTemperatureProviderTests {
         #if arch(arm64)
         let temp = provider.cpuTemperature()
         #expect(temp != nil)
-        if let t = temp {
-            #expect(t > 10, "CPU temp \(t)°C is implausibly low")
-            #expect(t < 120, "CPU temp \(t)°C is implausibly high")
+        if let temp = temp {
+            #expect(temp > 10, "CPU temp \(temp)°C is implausibly low")
+            #expect(temp < 120, "CPU temp \(temp)°C is implausibly high")
         }
         #else
         #expect(provider.cpuTemperature() == nil)
@@ -99,9 +99,9 @@ struct HIDTemperatureProviderTests {
 
         // No reading should be wildly different (±30°C) from the first
         if let first = readings.first {
-            for (i, r) in readings.enumerated() {
-                #expect(abs(r - first) < 30,
-                        "Reading[\(i)] = \(r) deviates too much from first = \(first)")
+            for (i, reading) in readings.enumerated() {
+                #expect(abs(reading - first) < 30,
+                        "Reading[\(i)] = \(reading) deviates too much from first = \(first)")
             }
         }
         #endif

@@ -43,20 +43,20 @@ struct SectionClipboardTests {
     // MARK: - CPU
 
     @Test func cpuClipboardTextContainsHeader() {
-        let m = Self.sampleMetrics()
-        let text = CPUSection.clipboardText(m)
+        let metrics = Self.sampleMetrics()
+        let text = CPUSection.clipboardText(metrics)
         #expect(text.hasPrefix("[CPU]"))
     }
 
     @Test func cpuClipboardTextShowsTotalPercentage() {
-        let m = Self.sampleMetrics(cpuUsage: 72.5)
-        let text = CPUSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(cpuUsage: 72.5)
+        let text = CPUSection.clipboardText(metrics)
         #expect(text.contains("72.5%"))
     }
 
     @Test func cpuClipboardTextShowsLoadAverage() {
-        let m = Self.sampleMetrics()
-        let text = CPUSection.clipboardText(m)
+        let metrics = Self.sampleMetrics()
+        let text = CPUSection.clipboardText(metrics)
         #expect(text.contains("Load:"))
         #expect(text.contains("3.42"))
         #expect(text.contains("2.81"))
@@ -74,10 +74,10 @@ struct SectionClipboardTests {
             performanceCores: 6,
             efficiencyCores: 0
         )
-        let m = Self.sampleMetrics(
+        let metrics = Self.sampleMetrics(
             perCoreCPU: cores, loadAverage: la
         )
-        let text = CPUSection.clipboardText(m)
+        let text = CPUSection.clipboardText(metrics)
         #expect(text.contains("P-Cores ×6"))
         #expect(text.contains("P00"))
         #expect(text.contains("P05"))
@@ -97,10 +97,10 @@ struct SectionClipboardTests {
             performanceCores: 4,
             efficiencyCores: 4
         )
-        let m = Self.sampleMetrics(
+        let metrics = Self.sampleMetrics(
             perCoreCPU: pCores + eCores, loadAverage: la
         )
-        let text = CPUSection.clipboardText(m)
+        let text = CPUSection.clipboardText(metrics)
         #expect(text.contains("P-Cores ×4"))
         #expect(text.contains("E-Cores ×4"))
         #expect(text.contains("E04"))
@@ -118,10 +118,10 @@ struct SectionClipboardTests {
             performanceCores: 0,
             efficiencyCores: 0
         )
-        let m = Self.sampleMetrics(
+        let metrics = Self.sampleMetrics(
             perCoreCPU: cores, loadAverage: la
         )
-        let text = CPUSection.clipboardText(m)
+        let text = CPUSection.clipboardText(metrics)
         #expect(text.contains("Cores:"))
         #expect(text.contains("C00"))
     }
@@ -139,8 +139,8 @@ struct SectionClipboardTests {
             pageins: 1_500_000,
             pageouts: 345_000
         )
-        let m = Self.sampleMetrics(extendedMemory: mem)
-        let text = MemorySection.clipboardText(m)
+        let metrics = Self.sampleMetrics(extendedMemory: mem)
+        let text = MemorySection.clipboardText(metrics)
         #expect(text.hasPrefix("[Memory]"))
     }
 
@@ -153,8 +153,8 @@ struct SectionClipboardTests {
             swapTotal: 0,
             swapUsed: 0
         )
-        let m = Self.sampleMetrics(extendedMemory: mem)
-        let text = MemorySection.clipboardText(m)
+        let metrics = Self.sampleMetrics(extendedMemory: mem)
+        let text = MemorySection.clipboardText(metrics)
         #expect(text.contains("Used:"))
         #expect(text.contains("75.0%"))
     }
@@ -168,8 +168,8 @@ struct SectionClipboardTests {
             swapTotal: 2_147_483_648,
             swapUsed: 536_870_912
         )
-        let m = Self.sampleMetrics(extendedMemory: mem)
-        let text = MemorySection.clipboardText(m)
+        let metrics = Self.sampleMetrics(extendedMemory: mem)
+        let text = MemorySection.clipboardText(metrics)
         #expect(text.contains("Swap:"))
     }
 
@@ -182,8 +182,8 @@ struct SectionClipboardTests {
             swapTotal: 0,
             swapUsed: 0
         )
-        let m = Self.sampleMetrics(extendedMemory: mem)
-        let text = MemorySection.clipboardText(m)
+        let metrics = Self.sampleMetrics(extendedMemory: mem)
+        let text = MemorySection.clipboardText(metrics)
         #expect(!text.contains("Swap:"))
     }
 
@@ -198,8 +198,8 @@ struct SectionClipboardTests {
             pageins: 1_500_000,
             pageouts: 345_000
         )
-        let m = Self.sampleMetrics(extendedMemory: mem)
-        let text = MemorySection.clipboardText(m)
+        let metrics = Self.sampleMetrics(extendedMemory: mem)
+        let text = MemorySection.clipboardText(metrics)
         #expect(text.contains("PageIn: 1.5M"))
         #expect(text.contains("PageOut: 345.0K"))
     }
@@ -213,8 +213,8 @@ struct SectionClipboardTests {
             readBytesPerSec: 52_428_800,
             writeBytesPerSec: 10_485_760
         )
-        let m = Self.sampleMetrics(disk: disk)
-        let text = DiskSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(disk: disk)
+        let text = DiskSection.clipboardText(metrics)
         #expect(text.hasPrefix("[Disk]"))
     }
 
@@ -225,8 +225,8 @@ struct SectionClipboardTests {
             readBytesPerSec: 52_428_800,
             writeBytesPerSec: 10_485_760
         )
-        let m = Self.sampleMetrics(disk: disk)
-        let text = DiskSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(disk: disk)
+        let text = DiskSection.clipboardText(metrics)
         #expect(text.contains("Usage:"))
         #expect(text.contains("70.0%"))
         #expect(text.contains("Read:"))
@@ -248,8 +248,8 @@ struct SectionClipboardTests {
             condition: "Normal",
             wattage: 45.5
         )
-        let m = Self.sampleMetrics(battery: batt)
-        let text = PowerSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(battery: batt)
+        let text = PowerSection.clipboardText(metrics)
         #expect(text.hasPrefix("[Power]"))
     }
 
@@ -264,8 +264,8 @@ struct SectionClipboardTests {
             timeRemaining: nil,
             condition: "Normal"
         )
-        let m = Self.sampleMetrics(battery: batt)
-        let text = PowerSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(battery: batt)
+        let text = PowerSection.clipboardText(metrics)
         #expect(text.contains("Level: 85%"))
         #expect(text.contains("Health: 92%"))
     }
@@ -281,8 +281,8 @@ struct SectionClipboardTests {
             timeRemaining: nil,
             condition: "Normal"
         )
-        let m = Self.sampleMetrics(battery: batt)
-        let text = PowerSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(battery: batt)
+        let text = PowerSection.clipboardText(metrics)
         #expect(text.contains("State: Charging"))
     }
 
@@ -297,8 +297,8 @@ struct SectionClipboardTests {
             timeRemaining: nil,
             condition: "Normal"
         )
-        let m = Self.sampleMetrics(battery: batt)
-        let text = PowerSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(battery: batt)
+        let text = PowerSection.clipboardText(metrics)
         #expect(text.contains("State: Plugged In"))
     }
 
@@ -313,8 +313,8 @@ struct SectionClipboardTests {
             timeRemaining: nil,
             condition: "Normal"
         )
-        let m = Self.sampleMetrics(battery: batt)
-        let text = PowerSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(battery: batt)
+        let text = PowerSection.clipboardText(metrics)
         #expect(text.contains("State: Battery"))
     }
 
@@ -330,8 +330,8 @@ struct SectionClipboardTests {
             condition: "Normal",
             wattage: 45.5
         )
-        let m = Self.sampleMetrics(battery: batt)
-        let text = PowerSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(battery: batt)
+        let text = PowerSection.clipboardText(metrics)
         #expect(text.contains("45.5W"))
     }
 
@@ -347,8 +347,8 @@ struct SectionClipboardTests {
             condition: "Normal",
             wattage: nil
         )
-        let m = Self.sampleMetrics(battery: batt)
-        let text = PowerSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(battery: batt)
+        let text = PowerSection.clipboardText(metrics)
         #expect(!text.contains("W"))
     }
 
@@ -387,8 +387,8 @@ struct SectionClipboardTests {
             activeInterface: "en0",
             localIP: "192.168.1.100"
         )
-        let m = Self.sampleMetrics(network: net)
-        let text = NetworkSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(network: net)
+        let text = NetworkSection.clipboardText(metrics)
         #expect(text.hasPrefix("[Network]"))
     }
 
@@ -399,8 +399,8 @@ struct SectionClipboardTests {
             activeInterface: "en0",
             localIP: "192.168.1.100"
         )
-        let m = Self.sampleMetrics(network: net)
-        let text = NetworkSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(network: net)
+        let text = NetworkSection.clipboardText(metrics)
         #expect(text.contains("Down:"))
         #expect(text.contains("Up:"))
         #expect(text.contains("5.0 MB/s"))
@@ -414,8 +414,8 @@ struct SectionClipboardTests {
             activeInterface: "en0",
             localIP: "10.0.0.1"
         )
-        let m = Self.sampleMetrics(network: net)
-        let text = NetworkSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(network: net)
+        let text = NetworkSection.clipboardText(metrics)
         #expect(text.contains("Interface: en0"))
         #expect(text.contains("IP: 10.0.0.1"))
     }
@@ -427,8 +427,8 @@ struct SectionClipboardTests {
             activeInterface: "",
             localIP: ""
         )
-        let m = Self.sampleMetrics(network: net)
-        let text = NetworkSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(network: net)
+        let text = NetworkSection.clipboardText(metrics)
         #expect(!text.contains("Interface:"))
     }
 
@@ -438,8 +438,8 @@ struct SectionClipboardTests {
         let procs = [
             ProcessMetric(id: 100, name: "Safari", cpuPercent: 25.3),
         ]
-        let m = Self.sampleMetrics(topProcesses: procs)
-        let text = ProcessesSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(topProcesses: procs)
+        let text = ProcessesSection.clipboardText(metrics)
         #expect(text.hasPrefix("[Top Processes]"))
     }
 
@@ -449,16 +449,16 @@ struct SectionClipboardTests {
             ProcessMetric(id: 200, name: "Xcode", cpuPercent: 18.7),
             ProcessMetric(id: 300, name: "Finder", cpuPercent: 5.1),
         ]
-        let m = Self.sampleMetrics(topProcesses: procs)
-        let text = ProcessesSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(topProcesses: procs)
+        let text = ProcessesSection.clipboardText(metrics)
         #expect(text.contains("1. Safari 25.3% (pid 100)"))
         #expect(text.contains("2. Xcode 18.7% (pid 200)"))
         #expect(text.contains("3. Finder 5.1% (pid 300)"))
     }
 
     @Test func processesClipboardTextEmptyProcesses() {
-        let m = Self.sampleMetrics(topProcesses: [])
-        let text = ProcessesSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(topProcesses: [])
+        let text = ProcessesSection.clipboardText(metrics)
         #expect(text.contains("No data"))
     }
 
@@ -470,8 +470,8 @@ struct SectionClipboardTests {
                 cpuPercent: Double(50 - $0 * 10)
             )
         }
-        let m = Self.sampleMetrics(topProcesses: procs)
-        let text = ProcessesSection.clipboardText(m)
+        let metrics = Self.sampleMetrics(topProcesses: procs)
+        let text = ProcessesSection.clipboardText(metrics)
         // Should show only first 3
         #expect(text.contains("1. P0"))
         #expect(text.contains("2. P1"))

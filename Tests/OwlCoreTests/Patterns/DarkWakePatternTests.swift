@@ -134,10 +134,10 @@ struct DarkWakePatternTests {
             _ = detector.process(real)
 
             // 10 noise messages per real event
-            for j in 0..<10 {
+            for idx in 0..<10 {
                 let noise = TestFixtures.DarkWake.entry(
                     TestFixtures.DarkWake.pmrdNoise,
-                    timestamp: t0.addingTimeInterval(Double(i) * 60 + Double(j) + 1)
+                    timestamp: t0.addingTimeInterval(Double(i) * 60 + Double(idx) + 1)
                 )
                 _ = detector.process(noise)
             }
