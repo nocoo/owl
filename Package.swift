@@ -22,6 +22,9 @@ let package = Package(
             name: "OwlCore",
             dependencies: ["HIDThermalBridge"],
             path: "Sources/OwlCore",
+            swiftSettings: [
+                .swiftLanguageMode(.v5)
+            ],
             linkerSettings: [
                 .linkedFramework("IOKit")
             ]
@@ -31,7 +34,10 @@ let package = Package(
             name: "Owl",
             dependencies: ["OwlCore"],
             path: "Sources/Owl",
-            exclude: ["Resources"]
+            exclude: ["Resources"],
+            swiftSettings: [
+                .swiftLanguageMode(.v5)
+            ]
         ),
         // Unit + Integration tests for OwlCore
         .testTarget(

@@ -328,7 +328,7 @@ public enum L10n {
 
     /// Current resolved language. Observe via `NotificationCenter`
     /// with `L10n.didChangeNotification`.
-    nonisolated(unsafe) public static var current: AppLanguage = .en
+    public private(set) static var current: AppLanguage = .en
 
     /// Posted when the active language changes.
     public static let didChangeNotification = Notification.Name(
