@@ -43,7 +43,10 @@ let package = Package(
         .testTarget(
             name: "OwlCoreTests",
             dependencies: ["OwlCore"],
-            path: "Tests/OwlCoreTests"
+            path: "Tests/OwlCoreTests",
+            swiftSettings: [
+                .swiftLanguageMode(.v5)
+            ]
         )
     ]
 )
