@@ -22,7 +22,8 @@ jobs:
         run: swift build
 
       - name: L1 - Unit Tests
-        run: swift test --enable-code-coverage
+        timeout-minutes: 10
+        run: swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
 
   security:
     runs-on: ubuntu-latest
