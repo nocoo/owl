@@ -23,3 +23,13 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || realpath "$0")")"
 "$SCRIPT_DIR/check-coverage.sh" 90
 
 echo "=== Pre-commit passed: L1 ✓ G1 ✓ ==="
+
+# G2a: Secrets leak detection
+echo "▶ [G2a] Running gitleaks..."
+if command -v gitleaks &> /dev/null; then
+    gitleaks protect --staged --no-banner
+    echo "✓ [G2a] gitleaks passed (no leaks)"
+else
+    echo "✗ [G2a] gitleaks not installed — install: brew install gitleaks"
+    exit 1
+fi
