@@ -1,3 +1,3 @@
-# OSV Scanner configuration
-# Add [[IgnoredVulns]] entries for transitive deps that cannot be upgraded
-
+# osv-scanner configuration
+# Owl has no external dependencies (pure SPM local packages).
+# This file exists for 6DQ G2b compliance. No lockfile to scan.
