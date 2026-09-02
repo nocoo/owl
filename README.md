@@ -19,15 +19,15 @@
 
 ## 这是什么
 
-Owl 监听 macOS 统一日志流（Unified Log），通过 14 个模式检测器实时识别系统异常，并在菜单栏以颜色变化呈现告警。
+Owl 监听 macOS 统一日志流（Unified Log）与系统指标，通过 19 个模式（14 个日志 + 5 个指标）实时识别系统异常，并在菜单栏以颜色变化呈现告警。
 
 macOS 已经在日志中记录了所有重要的系统事件——热节流、进程崩溃、内存压力杀死、蓝牙断连——只是没人看。Owl 替你看。
 
 ```
-┌─────────────┐     ┌───────────────┐     ┌──────────────┐     ┌────────────┐
-│  log stream  │────▶│  14 Patterns  │────▶│  4 Detector  │────▶│  Menu Bar  │
-│  (ndjson)    │     │  (filter)     │     │  Engines     │     │  (alerts)  │
-└─────────────┘     └───────────────┘     └──────────────┘     └────────────┘
+┌─────────────┐     ┌────────────────────┐     ┌──────────────────┐     ┌────────────┐
+│  log stream  │────▶│  14 Log Patterns   │────▶│  Detector Engines │────▶│  Menu Bar  │
+│  (ndjson)    │     │  + 5 Metrics       │     │  + MetricsDetector│     │  (alerts)  │
+└─────────────┘     └────────────────────┘     └──────────────────┘     └────────────┘
 ```
 
 **性能**：内存 ~12 MB，零外部依赖，100% 原生 Swift。
@@ -48,6 +48,11 @@ macOS 已经在日志中记录了所有重要的系统事件——热节流、�
 - **网络连接失败** — 全局统计 ping 失败和网络异常
 - **USB 设备错误** — 按设备 ID 分组追踪 abortGated 错误
 - **DarkWake 异常唤醒** — 检测系统频繁异常唤醒
+- **持续高 CPU** — CPU 使用率超过 80% 持续 60 秒告警，叠加热压力时升级为严重
+- **热状态** — 监测 `ProcessInfo.ThermalState` 升至 fair/serious/critical
+- **内存压力** — 内存使用率 >85% 警告、>95% 严重
+- **Swap 使用** — Swap >4 GB 警告、>8 GB 严重
+- **磁盘使用** — 根卷占用 >85% 警告、>95% 严重
 
 ## 安装
 
@@ -73,6 +78,11 @@ Owl 以菜单栏应用运行（无 Dock 图标）。点击猫头鹰图标查看�
 | 12 | Network Failure | Rate | 网络连接失败 |
 | 13 | USB Device Error | Rate | USB 设备错误 |
 | 14 | DarkWake | Rate | 系统异常唤醒 |
+| 15 | Sustained High CPU | SustainedCPU | CPU >80% 持续 60 秒；叠加热压力升级 |
+| 16 | Thermal State | ThermalState | `ProcessInfo.ThermalState` 状态转换 |
+| 17 | Memory Pressure | MetricsThreshold | 内存 >85% / >95% |
+| 18 | Swap Usage | MetricsThreshold | Swap >4 GB / >8 GB |
+| 19 | Disk Usage | MetricsThreshold | 磁盘 >85% / >95% |
 
 ## 项目结构
 
@@ -81,13 +91,13 @@ owl/
 ├── Sources/
 │   ├── Owl/                    # 应用入口 (AppDelegate, Menu Bar)
 │   └── OwlCore/                # 核心库 (全部可测试逻辑)
-│       ├── Detectors/          # Threshold / Rate / Signature / State 四种引擎
+│       ├── Detectors/          # Threshold / Rate / Signature / State + MetricsDetector 引擎
 │       ├── Models/             # LogEntry, Alert, Severity
-│       ├── Patterns/           # 14 个模式配置 + PatternCatalog
+│       ├── Patterns/           # 14 log + 5 metrics 模式 + PatternCatalog / MetricsCatalog
 │       ├── Pipeline/           # DetectorPipeline, AlertStateManager
 │       ├── Services/           # LogStreamReader, SystemMetricsPoller
 │       ├── Settings/           # AppSettings, DetectorCatalog
-│       └── UI/                 # SwiftUI views, AppState, StatusItemMapper
+│       └── UI/                 # SwiftUI views, AppState, StatusItemConfig
 ├── Tests/OwlCoreTests/         # 485 tests / 42 suites
 ├── scripts/                    # build, notarize, DMG 打包
 └── docs/                       # 设计文档
