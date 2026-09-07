@@ -65,10 +65,11 @@ cp "$EXECUTABLE" "$MACOS_DIR/Owl"
 echo "==> Copying Info.plist..."
 cp "$PROJECT_DIR/Sources/Owl/Resources/Info.plist" "$CONTENTS_DIR/Info.plist"
 
-# Generate .icns from owl.png if available
-ICON_SOURCE="$PROJECT_DIR/owl.png"
+# Native macOS icons include their own rounded silhouette and canvas inset.
+ICON_SOURCE="$PROJECT_DIR/assets/brand/app-icon-macos.png"
+LOGO_SOURCE="$PROJECT_DIR/logo.png"
 if [[ -f "$ICON_SOURCE" ]]; then
-    echo "==> Generating app icon from owl.png..."
+    echo "==> Generating app icon from the macOS presentation..."
     ICONSET_DIR="$BUILD_DIR/Owl.iconset"
     rm -rf "$ICONSET_DIR"
     mkdir -p "$ICONSET_DIR"
@@ -94,12 +95,12 @@ if [[ -f "$ICON_SOURCE" ]]; then
     fi
     echo "    Icon generated: $RESOURCES_DIR/AppIcon.icns"
 else
-    echo "    WARN: owl.png not found, skipping icon generation"
+    echo "    WARN: macOS presentation not found, skipping icon generation"
 fi
 
-# Copy owl.png to Resources for runtime use
-if [[ -f "$ICON_SOURCE" ]]; then
-    cp "$ICON_SOURCE" "$RESOURCES_DIR/owl.png"
+# Small popover marks use the transparent foreground.
+if [[ -f "$LOGO_SOURCE" ]]; then
+    cp "$LOGO_SOURCE" "$RESOURCES_DIR/logo.png"
 fi
 
 if [[ -n "$SIGN_IDENTITY" ]]; then

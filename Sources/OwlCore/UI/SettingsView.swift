@@ -26,7 +26,7 @@ public struct SettingsView: View {
                 launchAtLogin: $viewModel.launchAtLogin,
                 language: $viewModel.language,
                 appearance: $viewModel.appearance,
-                logoImage: logoImage ?? appIcon
+                logoImage: appIcon ?? logoImage
             )
             .tabItem {
                 Label(

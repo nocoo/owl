@@ -32,11 +32,8 @@ public struct GeneralTab: View {
                     Image(nsImage: logoImage)
                         .resizable()
                         .interpolation(.high)
-                        .aspectRatio(contentMode: .fit)
+                        .scaledToFit()
                         .frame(width: 120, height: 120)
-                        .clipShape(
-                            RoundedRectangle(cornerRadius: 26)
-                        )
                         .shadow(radius: 4, y: 2)
                 } else {
                     Image(systemName: "bird.fill")

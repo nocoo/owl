@@ -118,12 +118,11 @@ public struct PopoverContentView: View {
             if let logoImage {
                 Image(nsImage: logoImage)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .scaledToFit()
                     .frame(
                         width: OwlLayout.popoverLogoSize,
                         height: OwlLayout.popoverLogoSize
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
             } else {
                 Image(systemName: "bird.fill")
                     .font(.system(size: 20))

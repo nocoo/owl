@@ -1,8 +1,8 @@
 import SwiftUI
 
-// MARK: - Palette (derived from owl.png logo)
+// MARK: - Product status palette
 
-/// Four base accent colors extracted from the Owl logo.
+/// Product status colors retained from the original Owl palette.
 ///
 /// - ``green``: Teal-green from the feathers (#3AA17C)
 /// - ``amber``: Warm gold from the body (#CB9D46)

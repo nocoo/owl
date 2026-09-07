@@ -1,4 +1,4 @@
-<p align="center"><img src="owl.png" width="128" height="128" /></p>
+<p align="center"><img src="assets/brand/icon-rounded.png" alt="Owl" width="128" height="128" /></p>
 
 <h1 align="center">Owl</h1>
 

@@ -48,11 +48,11 @@ extension AppDelegate {
         return loadLogoImage()
     }
 
-    /// Load owl.png logo from bundle Resources or project root.
+    /// Load the transparent logo from bundle Resources or project root.
     static func loadLogoImage() -> NSImage? {
         // Try bundle Resources first
         if let url = Bundle.main.url(
-            forResource: "owl", withExtension: "png"
+            forResource: "logo", withExtension: "png"
         ) { return NSImage(contentsOf: url) }
         // Fallback: search near executable (dev builds)
         let base = Bundle.main.executableURL?
@@ -68,7 +68,7 @@ extension AppDelegate {
         ]
         for dir in searchDirs {
             if let iconURL = dir?
-                .appendingPathComponent("owl.png"),
+                .appendingPathComponent("logo.png"),
                 let img = NSImage(contentsOf: iconURL) {
                 return img
             }

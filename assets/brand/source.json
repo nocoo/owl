@@ -1,0 +1,49 @@
+{
+	"study": "owl/2026-09-07-01",
+	"finishing": "01",
+	"model": "gpt-image-2",
+	"method": "generated-redesign",
+	"generationCalls": 1,
+	"nativeDimensions": [
+		2048,
+		2048
+	],
+	"generation": {
+		"path": "raw/generated.png",
+		"sha256": "6638f897f7188f9c38be09988c4342c6079f0304fd466a35f9ed47015bb96043"
+	},
+	"sourceRevisionBefore": "73c292ea59ed8ccaf8dfd1e6d1d57f80e8be7ed3",
+	"previous": {
+		"original": "/logos/originals/owl.png",
+		"sourceUrl": "https://github.com/nocoo/owl/blob/73c292ea59ed8ccaf8dfd1e6d1d57f80e8be7ed3/owl.png",
+		"sha256": "f579214edd8876dacaa55d27c35c3598d3f809e651e4d3537d6d228823b5f413",
+		"width": 2048,
+		"height": 2048
+	},
+	"masters": {
+		"logo.png": {
+			"sha256": "c0a00da0eaadabc6ca5d88210ccbcbbbcedc6cb6465f0976980c30f9e6e7e0a8",
+			"width": 2048,
+			"height": 2048
+		},
+		"assets/brand/icon.png": {
+			"sha256": "17c1ad45a633ef110cf1986c4143eb0d67e65f82ab867a9f2daeedcec5a3f703",
+			"width": 2048,
+			"height": 2048
+		},
+		"assets/brand/icon-rounded.png": {
+			"sha256": "a6a7626bfda4abcae468c9c61b8113674a2fbd1369e0a6ef161a583b8ba5b095",
+			"width": 2048,
+			"height": 2048
+		}
+	},
+	"protectedFeatureClearancePx": 193.5,
+	"intentionalEdges": [],
+	"acceptance": {
+		"decisionSource": "owner-delegated batch acceptance",
+		"ownerReviewedExactBytes": false,
+		"scope": "Surety, Owl, Ellie, Giraffe, and Steed redesign batch"
+	},
+	"review": "https://hexly.ai/logos/owl",
+	"archive": "https://github.com/nocoo/hexly.ai/tree/main/artwork/logo-family/owl/2026-09-07-01"
+}
