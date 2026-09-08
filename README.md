@@ -1,157 +1,102 @@
-<p align="center"><img src="assets/brand/icon-rounded.png" alt="Owl" width="128" height="128" /></p>
-
+<p align="center">
+  <img src="assets/brand/icon-rounded.png" width="128" height="128" alt="Owl logo" />
+</p>
 <h1 align="center">Owl</h1>
-
-<p align="center"><strong>macOS 菜单栏系统健康监控器</strong><br>实时日志分析 · 异常模式检测 · 零依赖原生应用</p>
-
+<p align="center">在 macOS 菜单栏查看系统指标、进程和异常告警。</p>
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-macOS_14+-000000?logo=apple&logoColor=white" />
-  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" />
-  <img src="https://img.shields.io/badge/tests-485-brightgreen" />
-  <img src="https://img.shields.io/github/license/nocoo/owl" />
+  <a href="docs/README.en.md">English</a>
 </p>
-
-<p align="center">
-  <img src="https://s.zhe.to/dcd0e6e42358/20260307/bd240b86-6874-4f0c-a147-9000629cc37c.jpg" width="720" />
-</p>
-
----
 
 ## 这是什么
 
-Owl 监听 macOS 统一日志流（Unified Log），通过 14 个模式检测器实时识别系统异常，并在菜单栏以颜色变化呈现告警。
+Owl 是 macOS 14 及以上版本的菜单栏应用。它读取统一日志流并采样系统指标，将反复崩溃、资源压力、设备连接异常等信号整理为告警，方便排查 Mac 变慢、发热或睡眠异常的原因。
 
-macOS 已经在日志中记录了所有重要的系统事件——热节流、进程崩溃、内存压力杀死、蓝牙断连——只是没人看。Owl 替你看。
-
-```
-┌─────────────┐     ┌───────────────┐     ┌──────────────┐     ┌────────────┐
-│  log stream  │────▶│  14 Patterns  │────▶│  4 Detector  │────▶│  Menu Bar  │
-│  (ndjson)    │     │  (filter)     │     │  Engines     │     │  (alerts)  │
-└─────────────┘     └───────────────┘     └──────────────┘     └────────────┘
-```
-
-**性能**：内存 ~12 MB，零外部依赖，100% 原生 Swift。
+采集与分析在本机完成，无需账号或外部服务。检测范围取决于 macOS 提供的日志和硬件指标；温度等读数在部分设备上可能不可用。偏好设置保存在 UserDefaults，近期告警保存在当前进程内存中，重启应用后不会恢复。
 
 ## 功能
 
-- **热节流检测** — 内核功率预算低于阈值时发出警告
-- **进程崩溃循环** — 追踪 launchd 服务反复崩溃重启
-- **磁盘刷写延迟** — APFS tx_flush 超过阈值时告警
-- **WiFi 信号衰退** — RSSI 值持续低于安全范围
-- **沙盒违规风暴** — 统计进程被 Sandbox/SystemPolicy 拒绝的签名多样性
-- **睡眠断言泄漏** — 追踪 powerd Created/Released 配对，检测未释放断言
-- **进程崩溃信号** — 检测 QUIT/SIGABRT/SIGSEGV 等异常退出
-- **蓝牙断连** — 按 MAC 地址分组追踪设备断连频率
-- **TCC 权限风暴** — 检测应用被系统反复拒绝权限请求
-- **Jetsam 内存杀** — 单次杀死即时告警，频繁杀死升级为严重
-- **应用挂起** — 追踪 WindowServer 报告的 App Not Responding
-- **网络连接失败** — 全局统计 ping 失败和网络异常
-- **USB 设备错误** — 按设备 ID 分组追踪 abortGated 错误
-- **DarkWake 异常唤醒** — 检测系统频繁异常唤醒
+- **系统概览**：CPU 与各核心使用率、负载、内存和交换空间、磁盘、网络收发、电池及可用温度传感器。
+- **异常告警**：按阈值、事件频率、拒绝签名和状态配对分析日志，同时检测持续高 CPU、系统热状态、内存压力、交换空间和磁盘占用。
+- **菜单栏反馈**：通过图标颜色和状态文字查看严重程度，打开面板查看活跃告警、近期记录，并复制详情。
+- **进程查看**：查看当前资源占用较高的进程，以及累计 CPU 时间、内存和运行实例统计。
+- **按需设置**：逐项启停检测器，切换中英文和外观，配置登录启动及系统通知。
+- **分级采样**：面板打开时采集完整指标；关闭后降低采样频率，保留异常检测需要的数据。
 
-## 安装
+日志检测覆盖以下信号：
 
-从 [Releases](https://github.com/nocoo/owl/releases) 下载最新 `Owl.dmg`，打开后将 `Owl.app` 拖入 `/Applications`。
+| 类别 | 信号 |
+| --- | --- |
+| 进程与权限 | 崩溃重启循环、异常退出信号、应用无响应、沙盒和 TCC 权限拒绝 |
+| 资源压力 | 热节流、APFS 刷写延迟、Jetsam 内存终止 |
+| 网络与设备 | Wi-Fi 信号衰退、连接失败、蓝牙断连、USB 设备错误 |
+| 睡眠 | 未释放的睡眠断言、频繁 DarkWake 唤醒 |
 
-Owl 以菜单栏应用运行（无 Dock 图标）。点击猫头鹰图标查看系统状态、活跃告警和历史记录。右键点击可进入设置或退出。
+## 使用
 
-## 可检测模式
+从 [GitHub Releases](https://github.com/nocoo/owl/releases) 下载发布页提供的 `Owl-*.dmg`，打开后将 `Owl.app` 放入 `/Applications`。发布包对应各自的版本，最新源码见 main 分支。
 
-| # | 模式 | 算法 | 说明 |
-|---|------|------|------|
-| 1 | Thermal Throttling | Threshold | 内核功率预算阈值检测 |
-| 2 | Crash Loop | Rate | launchd 服务崩溃频率 |
-| 3 | Disk Flush Delay | Threshold | APFS tx_flush 延迟 |
-| 4 | WiFi Degradation | Threshold | RSSI 信号强度 |
-| 5 | Sandbox Violation | Signature | 沙盒拒绝签名多样性 |
-| 6 | Sleep Assertion Leak | State | 睡眠断言配对追踪 |
-| 7 | Crash Signals | Rate | 进程异常退出信号 |
-| 8 | Bluetooth Disconnect | Rate | 蓝牙设备断连频率 |
-| 9 | TCC Permission Storm | Rate | 权限请求拒绝频率 |
-| 10 | Jetsam Memory Kill | Threshold + Rate | 内存压力杀死（混合检测） |
-| 11 | App Hang | Rate | 应用无响应事件 |
-| 12 | Network Failure | Rate | 网络连接失败 |
-| 13 | USB Device Error | Rate | USB 设备错误 |
-| 14 | DarkWake | Rate | 系统异常唤醒 |
-
-## 项目结构
-
-```
-owl/
-├── Sources/
-│   ├── Owl/                    # 应用入口 (AppDelegate, Menu Bar)
-│   └── OwlCore/                # 核心库 (全部可测试逻辑)
-│       ├── Detectors/          # Threshold / Rate / Signature / State 四种引擎
-│       ├── Models/             # LogEntry, Alert, Severity
-│       ├── Patterns/           # 14 个模式配置 + PatternCatalog
-│       ├── Pipeline/           # DetectorPipeline, AlertStateManager
-│       ├── Services/           # LogStreamReader, SystemMetricsPoller
-│       ├── Settings/           # AppSettings, DetectorCatalog
-│       └── UI/                 # SwiftUI views, AppState, StatusItemMapper
-├── Tests/OwlCoreTests/         # 485 tests / 42 suites
-├── scripts/                    # build, notarize, DMG 打包
-└── docs/                       # 设计文档
-```
-
-## 技术栈
-
-| 层 | 技术 |
-|----|------|
-| 语言 | [Swift 6](https://www.swift.org/) + swift-tools-version 5.9 |
-| UI 框架 | [SwiftUI](https://developer.apple.com/xcode/swiftui/) (MenuBarExtra) |
-| 日志采集 | `/usr/bin/log stream --style ndjson`（内核侧谓词过滤） |
-| 并发模型 | [Swift Concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) (Actor, AsyncSequence) |
-| 系统接口 | [IOKit](https://developer.apple.com/documentation/iokit) (CPU/内存/磁盘指标) |
-| 构建 | [Swift Package Manager](https://www.swift.org/documentation/package-manager/) |
-| 测试 | [Swift Testing](https://developer.apple.com/xcode/swift-testing/) |
+启动后点击菜单栏图标打开面板，右键点击进入设置或退出。系统通知需要在 macOS 中允许通知，并在 Owl 设置中启用；关闭通知不影响菜单栏告警。
 
 ## 开发
 
-**环境要求**：macOS 14 Sonoma 或更高版本，Xcode 16+
-
-**快速开始**：
+需要 macOS 14+、支持 Swift 6 的 Xcode 工具链（Xcode 16+）。项目使用 Swift Package Manager，没有第三方 Swift 包依赖。
 
 ```bash
 git clone https://github.com/nocoo/owl.git
 cd owl
-swift build -c release --product Owl
-nohup .build/release/Owl > /dev/null 2>&1 &
+swift build
+swift run Owl
 ```
 
-**常用命令**：
+直接运行 SPM 可执行文件可检查界面和采集逻辑，但它没有完整 app bundle，系统通知会被禁用。
 
-| 命令 | 说明 |
-|------|------|
-| `swift build` | Debug 构建 |
-| `swift build -c release --product Owl` | Release 构建 |
-| `swift test` | 运行全部 485 个测试 |
-| `swift test --filter Integration` | 仅运行集成测试 |
-| `./scripts/build.sh` | 构建 .app bundle |
-| `./scripts/package-dmg.sh` | 打包 DMG |
-| `./scripts/release-gh.sh` | 打包并发布到 GitHub Releases |
-| `./scripts/notarize.sh` | 公证 .app |
-| `./scripts/notarize.sh --dmg` | 公证 .dmg |
+构建 app bundle：
+
+```bash
+bash scripts/build.sh --sign "Apple Development: Your Name (TEAMID)"
+```
+
+输出为 `build/release/Owl.app`。脚本默认选择 `Apple Development` 签名身份；请指定本机实际可用的身份。DMG 打包与公证入口分别见 [package-dmg.sh](scripts/package-dmg.sh) 和 [notarize.sh](scripts/notarize.sh)。
+
+主要代码位于：
+
+| 路径 | 内容 |
+| --- | --- |
+| [Sources/Owl](Sources/Owl) | AppKit 菜单栏、应用生命周期与通知 |
+| [Sources/OwlCore](Sources/OwlCore) | 指标采集、检测器、告警状态及 SwiftUI 界面 |
+| [Sources/HIDThermalBridge](Sources/HIDThermalBridge) | Apple Silicon 温度传感器的 Objective-C 桥接 |
+| [Tests/OwlCoreTests](Tests/OwlCoreTests) | 单元测试与检测管道集成测试 |
 
 ## 测试
 
-| 层 | 内容 | 触发时机 |
-|----|------|----------|
-| L1 | 485 个单元 + 集成测试 (Swift Testing) | `swift test` / pre-commit |
-| L2 | SwiftLint strict mode（零违规） | pre-commit |
-| L3 | 11 个端到端集成测试（日志流 → Pipeline → 告警） | `swift test --filter Integration` |
+在配置好 Xcode 工具链的 macOS 上运行：
+
+```bash
+swift test
+swift test --filter EndToEnd
+```
+
+第一条运行全部测试；第二条只运行日志条目到检测管道、告警状态的集成测试。集成测试使用构造的日志数据；部分系统指标和传感器测试会读取当前 Mac。菜单栏交互和系统通知需在 app bundle 中手动检查。
+
+## 技术栈
+
+| 技术 | 用途 |
+| --- | --- |
+| Swift / Swift Concurrency | 应用逻辑、异步日志流与指标采样 |
+| SwiftUI / AppKit | 面板、设置窗口与菜单栏 |
+| macOS Unified Logging | 通过 `log stream` 读取系统事件 |
+| IOKit / Mach / libproc | 硬件、内存、CPU 与进程指标 |
+| Objective-C / IOHID | Apple Silicon 温度读取 |
+| UserDefaults | 本地偏好设置 |
+| Swift Package Manager / Swift Testing | 构建与自动化测试 |
 
 ## 文档
 
-| 文档 | 内容 |
-|------|------|
-| [01-overview.md](docs/01-overview.md) | 项目概述 |
-| [02-architecture.md](docs/02-architecture.md) | 技术架构 |
-| [03-patterns.md](docs/03-patterns.md) | 可检测模式目录 |
-| [04-detection-algorithms.md](docs/04-detection-algorithms.md) | 检测算法设计 |
-| [05-ui-design.md](docs/05-ui-design.md) | 菜单栏 UI 设计 |
-| [06-distribution.md](docs/06-distribution.md) | 构建与分发 |
-| [07-development-plan.md](docs/07-development-plan.md) | 开发计划 |
+- [架构设计](docs/02-architecture.md)
+- [日志模式设计](docs/03-patterns.md)
+- [检测算法](docs/04-detection-algorithms.md)
+- [品牌资源](assets/brand/README.md)
 
-## License
+## 许可证
 
-[MIT](LICENSE) © 2026
+[MIT](LICENSE)
