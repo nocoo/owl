@@ -5,35 +5,24 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-and-test:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
-      - name: G1 - SwiftLint (strict)
-        run: swiftlint lint --strict
-
-      - name: Build
-        run: swift build
-
-      - name: L1 - Unit Tests
-        timeout-minutes: 10
-        run: swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
+    uses: nocoo/base-ci/.github/workflows/test-job.yml@ab52d72877d386c9a8fd224e9ac868e88be90539
+    with:
+      runner: "macos-15"
+      runtime: "none"
+      timeout-minutes: 15
+      pre-command: |
+        brew install swiftlint
+        swiftlint lint --strict
+      command: |
+        swift build
+        swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
 
   security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: G2 - Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
+    uses: nocoo/base-ci/.github/workflows/security.yml@ab52d72877d386c9a8fd224e9ac868e88be90539
+    with:
+      gitleaks-config: ".gitleaks.toml"
+      skip-osv: true
