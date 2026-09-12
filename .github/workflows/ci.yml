@@ -25,4 +25,5 @@ jobs:
     uses: nocoo/base-ci/.github/workflows/security.yml@ab52d72877d386c9a8fd224e9ac868e88be90539
     with:
       gitleaks-config: ".gitleaks.toml"
+      scan-history: true
       scan-dependencies: false
