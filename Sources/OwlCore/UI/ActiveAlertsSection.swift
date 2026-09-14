@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Section displaying active alerts, or an "all clear" empty state.
+/// Section displaying active alerts.
 public struct ActiveAlertsSection: View {
     let alerts: [Alert]
 
@@ -9,29 +9,6 @@ public struct ActiveAlertsSection: View {
     }
 
     public var body: some View {
-        if alerts.isEmpty {
-            emptyState
-        } else {
-            alertList
-        }
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 4) {
-            Image(systemName: "checkmark.circle")
-                .font(OwlFont.emptyIcon)
-                .foregroundStyle(OwlSeverityColor.normal)
-            Text(L10n.tr(.systemRunningNormally))
-                .font(OwlFont.emptyTitle)
-            Text(L10n.tr(.noAnomaliesDetected))
-                .font(OwlFont.emptyBody)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-    }
-
-    private var alertList: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(L10n.tr(.activeAlerts))
