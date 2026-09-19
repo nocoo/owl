@@ -150,7 +150,6 @@ nohup .build/release/Owl > /dev/null 2>&1 &
 | [04-detection-algorithms.md](docs/04-detection-algorithms.md) | 检测算法设计 |
 | [05-ui-design.md](docs/05-ui-design.md) | 菜单栏 UI 设计 |
 | [06-distribution.md](docs/06-distribution.md) | 构建与分发 |
-| [07-development-plan.md](docs/07-development-plan.md) | 开发计划 |
 
 ## License
 
