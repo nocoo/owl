@@ -20,7 +20,7 @@ Direction: [architecture](docs/02-architecture.md). Frameworks must preserve thi
 
 ## Setup and commands
 
-UI/lifecycle in `Sources/Owl` (AppKit and SwiftUI); sampling/detectors in `Sources/OwlCore` (Unified Logging, IOKit, Mach/libproc); native bridge in `Sources/HIDThermalBridge` (Objective-C); tests in `Tests/OwlCoreTests` (Swift Testing, no third-party Swift package). Run at repository root on macOS 14+ with Swift 6/Xcode 16+. Installed hooks require SwiftLint and gitleaks; select full Xcode per command with `DEVELOPER_DIR` when SourceKit is unavailable under Command Line Tools. App bundling needs a valid local signing identity.
+UI/lifecycle in `Sources/Owl` (AppKit and SwiftUI); sampling/detectors in `Sources/OwlCore` (Unified Logging, IOKit, Mach/libproc); native bridge in `Sources/HIDThermalBridge` (Objective-C); tests in `Tests/OwlCoreTests` (Swift Testing, no third-party Swift package). Run at repository root on macOS 14+ with Swift 6/Xcode 16+. Installed hooks require SwiftLint and gitleaks; select full Xcode per command with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` and `XCODE_DEFAULT_TOOLCHAIN_OVERRIDE=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain` when SourceKit is unavailable under Command Line Tools. These per-command variables were required by SwiftLint during the 2026-09-23 validation; use them for normal commit/push hooks on the same setup. App bundling needs a valid local signing identity.
 
 ```bash
 swift build
