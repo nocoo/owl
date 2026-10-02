@@ -76,15 +76,7 @@ enum OwlFont {
         size: 10, weight: .semibold, design: .monospaced
     )
 
-    // -- Throughput rows --
-    static let throughputLabel = Font.system(
-        size: 11, design: .monospaced
-    )
-    static let throughputValue = Font.system(
-        size: 9, design: .monospaced
-    )
-
-    // -- Sparkline speed rows (same as throughput) --
+    // -- Sparkline speed rows --
     static let speedLabel = Font.system(
         size: 11, design: .monospaced
     )
@@ -135,39 +127,6 @@ enum OwlFont {
     static let loadValue = Font.system(
         size: 10, design: .monospaced
     )
-    static let loadTopology = Font.system(
-        size: 9, design: .monospaced
-    )
-
-    // -- Settings --
-    static let settingsBody = Font.system(size: 14)
-    static let settingsToggleName = Font.system(size: 14)
-    static let settingsToggleDescription = Font.system(size: 12)
-    static let settingsSectionHeader = Font.system(
-        size: 14, weight: .semibold
-    )
-
-    // -- Process tab --
-    static let processTabHeader = Font.system(
-        size: 14, weight: .semibold
-    )
-    static let processTabUptime = Font.system(
-        size: 16, weight: .medium, design: .monospaced
-    )
-    static let processTabSubtitle = Font.system(size: 12)
-    static let processTableHeader = Font.system(
-        size: 12, weight: .semibold, design: .monospaced
-    )
-    static let processTableRow = Font.system(
-        size: 12, design: .monospaced
-    )
-
-    // -- General tab --
-    static let generalTitle = Font.system(
-        size: 16, weight: .bold
-    )
-    static let generalVersion = Font.system(size: 12)
-    static let generalLink = Font.system(size: 12)
 }
 
 // MARK: - Section Colors
