@@ -101,7 +101,6 @@ public enum L10nKey: Sendable {
     case powerCharging
     case powerPlugged
     case powerBattery
-    case powerUnavailable
     case powerNA
     case powerNormal
     case powerWatt
@@ -147,7 +146,6 @@ public enum L10nKey: Sendable {
     case tabProcesses
 
     // General tab
-    case sectionAbout
     case sectionStartup
     case sectionMonitoring
     case launchAtLogin
@@ -311,7 +309,6 @@ public enum L10nKey: Sendable {
 
     // Notifications
     case notificationsEnabled
-    case notificationsEnabledDesc
 
     // Recovery / global
     case alertRecoveredSuffix
@@ -423,7 +420,6 @@ public enum L10n {
         case .powerCharging: return "Charging"
         case .powerPlugged: return "Plugged"
         case .powerBattery: return "Battery"
-        case .powerUnavailable: return "Unavailable"
         case .powerNA: return "N/A"
         case .powerNormal: return "Normal"
         case .powerWatt: return "Watt"
@@ -470,7 +466,6 @@ public enum L10n {
         case .tabProcesses: return "Processes"
 
         // General tab
-        case .sectionAbout: return "About"
         case .sectionStartup: return "Startup"
         case .sectionMonitoring: return "Monitoring"
         case .launchAtLogin: return "Launch at Login"
@@ -740,8 +735,6 @@ public enum L10n {
         // Notifications
         case .notificationsEnabled:
             return "System Notifications"
-        case .notificationsEnabledDesc:
-            return "Show macOS notification banners for alerts"
 
         // Recovery / global
         case .alertRecoveredSuffix: return "Recovered"
@@ -806,7 +799,6 @@ public enum L10n {
         case .powerCharging: return "充电中"
         case .powerPlugged: return "已接入"
         case .powerBattery: return "电池"
-        case .powerUnavailable: return "不可用"
         case .powerNA: return "N/A"
         case .powerNormal: return "正常"
         case .powerWatt: return "功率"
@@ -850,7 +842,6 @@ public enum L10n {
         case .tabProcesses: return "进程"
 
         // General tab
-        case .sectionAbout: return "关于"
         case .sectionStartup: return "启动"
         case .sectionMonitoring: return "监控"
         case .launchAtLogin: return "开机启动"
@@ -1078,7 +1069,6 @@ public enum L10n {
 
         // Notifications
         case .notificationsEnabled: return "系统通知"
-        case .notificationsEnabledDesc: return "在告警触发时显示 macOS 通知横幅"
 
         // Recovery / global
         case .alertRecoveredSuffix: return "已恢复"
