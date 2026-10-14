@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-and-test:
-    uses: nocoo/base-ci/.github/workflows/test-job.yml@ad43150de3a2be2fa464b5cd2f921dc4fa9f8f0f
+    uses: nocoo/base-ci/.github/workflows/test-job.yml@0394178ebcff0418c442d84a84119220f31f8987 # v2026.9
     with:
       runner: "macos-15"
       runtime: "none"
@@ -22,7 +22,7 @@ jobs:
         swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
 
   security:
-    uses: nocoo/base-ci/.github/workflows/security.yml@ad43150de3a2be2fa464b5cd2f921dc4fa9f8f0f
+    uses: nocoo/base-ci/.github/workflows/security.yml@0394178ebcff0418c442d84a84119220f31f8987 # v2026.9
     with:
       gitleaks-config: ".gitleaks.toml"
       scan-history: true
