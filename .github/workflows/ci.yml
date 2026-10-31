@@ -11,7 +11,7 @@ jobs:
   build-and-test:
     uses: nocoo/base-ci/.github/workflows/test-job.yml@0394178ebcff0418c442d84a84119220f31f8987 # v2026.9
     with:
-      runner: "macos-15"
+      runner: "macos-26"
       runtime: "none"
       timeout-minutes: 15
       pre-command: |
