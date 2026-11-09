@@ -48,7 +48,7 @@ G2 requires dependency and secret scans, with missing required scanners failing.
 
 Husky sets `core.hooksPath` to `.husky/_` after `npm install` (`prepare`). `.husky/pre-commit` and `.husky/pre-push` delegate to `scripts/pre-commit.sh` and `scripts/pre-push.sh`. Legacy `.githooks/` symlinks to the same scripts remain for manual `core.hooksPath=.githooks` setups.
 
-Pre-commit exports the staged index to a temporary tree, unsets Git hook environment, optionally symlinks a warm `.build` when staged `Package.swift` matches the worktree, then runs unified L1 plus staged gitleaks. Any step failure exits nonzero and removes the snapshot on exit, interrupt or signal. Target wall time for ordinary commits is under 30s with a warm `.build`.
+Pre-commit exports the staged index to a temporary tree, unsets Git hook environment, reuses a shared Clang module cache under `.build/owl-precommit-module-cache` (never symlinks the full `.build` tree), then runs unified L1 plus staged gitleaks. Any step failure exits nonzero and removes the snapshot on exit, interrupt or signal. Target wall time for ordinary commits is under 30s with warm incremental caches on the developer machine.
 
 `scripts/check-coverage.sh` accepts either `.build/arm64-apple-macosx/debug/codecov/Owl.json` (legacy native backend path) or `.build/out/Products/Debug/codecov/Owl.json` (default `swift build` output). Four-metric ≥95% enforcement is still not implemented in the gate script.
 

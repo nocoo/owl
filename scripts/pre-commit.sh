@@ -41,11 +41,11 @@ script_dir="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || re
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX
 unset GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
 
-if [ -d "$repo/.build" ] && [ -f "$snapshot/Package.swift" ] && [ -f "$repo/Package.swift" ]; then
-    if cmp -s "$snapshot/Package.swift" "$repo/Package.swift"; then
-        ln -s "$repo/.build" "$snapshot/.build"
-    fi
-fi
+# Share only the Clang module cache with the worktree; never symlink the full .build tree
+# (dual module caches break Objective-C bridge builds against IOKit).
+module_cache="$repo/.build/owl-precommit-module-cache"
+mkdir -p "$module_cache"
+export CLANG_MODULE_CACHE_PATH="$module_cache"
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:${PATH:-}"
 if [ -n "${DEVELOPER_DIR:-}" ]; then
