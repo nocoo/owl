@@ -1,0 +1,17 @@
+{
+  "name": "owl",
+  "private": true,
+  "description": "Git hooks (Husky) for Owl L1 pre-commit gates",
+  "scripts": {
+    "prepare": "sh scripts/prepare-husky.sh",
+    "test:l1-gate": "bash scripts/verify-l1-gate.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nocoo/owl.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

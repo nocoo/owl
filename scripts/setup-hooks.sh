@@ -1,16 +1,12 @@
 #!/bin/bash
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOOKS_DIR="$(cd "$SCRIPT_DIR/../.git/hooks" 2>/dev/null && pwd)"
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
-if [ -z "$HOOKS_DIR" ]; then
-    echo "Error: .git/hooks directory not found"
+if ! command -v npm >/dev/null 2>&1; then
+    echo "Error: npm is required to install Husky hooks (Node.js LTS)." >&2
     exit 1
 fi
 
-ln -sf "$SCRIPT_DIR/pre-commit.sh" "$HOOKS_DIR/pre-commit"
-ln -sf "$SCRIPT_DIR/pre-push.sh" "$HOOKS_DIR/pre-push"
-
-echo "✓ Git hooks installed"
-
+(cd "$repo_root" && npm install && npm run prepare)
+echo "✓ Husky Git hooks installed (core.hooksPath → .husky)"

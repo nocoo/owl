@@ -24,3 +24,6 @@ DerivedData/
 build/
 *.dmg
 *.zip
+
+# Node (Husky hook installer)
+node_modules/
