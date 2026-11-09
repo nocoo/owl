@@ -2,14 +2,29 @@
 set -e
 
 THRESHOLD=${1:-90}
-CODECOV_JSON=".build/arm64-apple-macosx/debug/codecov/Owl.json"
 
-echo "▶ Checking code coverage (threshold: ${THRESHOLD}%)..."
+find_codecov_json() {
+    local candidate
+    for candidate in \
+        ".build/arm64-apple-macosx/debug/codecov/Owl.json" \
+        ".build/out/Products/Debug/codecov/Owl.json"
+    do
+        if [ -f "$candidate" ]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
 
-if [ ! -f "$CODECOV_JSON" ]; then
+CODECOV_JSON="$(find_codecov_json)" || {
     echo "✗ Coverage data not found. Run tests with --enable-code-coverage first."
+    echo "  Checked: .build/arm64-apple-macosx/debug/codecov/Owl.json"
+    echo "           .build/out/Products/Debug/codecov/Owl.json"
     exit 1
-fi
+}
+
+echo "▶ Checking code coverage (threshold: ${THRESHOLD}%, report: ${CODECOV_JSON})..."
 
 # Calculate coverage for testable source files only.
 # Excluded: UI/ (SwiftUI views), Tests/, .build/, L10n.swift (generated i18n),
