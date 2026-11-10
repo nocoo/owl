@@ -40,7 +40,7 @@ G2 requires dependency and secret scans, with missing required scanners failing.
 
 | Dimension | Status | Required proof and current evidence/gap |
 |---|---|---|
-| L1 Swift / Obj-C | planned | Pre-commit gates the Git index (`git checkout-index`), runs SwiftLint strict, unit tests with coverage and staged gitleaks; failures block commit. Installed via `npm install` / Husky. Line coverage floor remains 90% on scoped non-UI sources; four-metric ≥95%, compiler strict mode and Obj-C lint remain gaps. CI excludes EndToEnd and hardware suites. Probe: `npm run test:l1-gate`. |
+| L1 Swift / Obj-C | planned | Pre-commit gates the Git index (`git checkout-index`), runs SwiftLint strict, unit tests with coverage and staged gitleaks; failures block commit. Installed via `npm install` / Husky (`core.hooksPath` → `.husky/_`). Line coverage floor remains 90% on scoped non-UI sources; four-metric ≥95%, compiler strict mode and Obj-C lint remain gaps. CI excludes EndToEnd and hardware suites; macOS CI asserts Husky install, local/`npm run test:l1-gate` runs isolated index-vs-worktree probes. |
 | L2 native pipeline | enforced | Pre-push runs EndToEnd tests from constructed logs through detectors/alerts; these are in-process integration, not HTTP/UI tests. |
 | L3 menu-bar / notifications | manual | Check menu-bar interactions, preferences and notifications in an app bundle; no native UI runner. |
 | G2 | planned | Hooks and CI run gitleaks; CI disables dependency scanning. No third-party Swift packages are declared. |

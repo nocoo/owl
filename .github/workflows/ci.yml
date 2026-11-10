@@ -13,15 +13,16 @@ jobs:
     with:
       runner: "macos-26"
       runtime: "none"
-      timeout-minutes: 20
+      timeout-minutes: 15
       pre-command: |
         brew install swiftlint gitleaks
         npm install
+        test -x .husky/pre-commit
+        test "$(git config core.hooksPath)" = ".husky/_"
         swiftlint lint --strict
       command: |
         swift build
         swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
-        OWL_L1_GATE_CI=1 npm run test:l1-gate
 
   security:
     uses: nocoo/base-ci/.github/workflows/security.yml@0394178ebcff0418c442d84a84119220f31f8987 # v2026.9
