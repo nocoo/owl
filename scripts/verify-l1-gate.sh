@@ -99,31 +99,35 @@ else
     printf '%s' "$original" >"$probe_dir/$target"
 fi
 
-# --- Healthy snapshot (full L1; reuse CI workspace when clean for warm caches) ---
-if [ "${CI:-}" = "true" ] && [ -z "$(git -C "$repo" status --porcelain)" ]; then
-    healthy_dir="$repo"
+# --- Healthy snapshot (full L1; skip second compile on CI — job already ran unit tests) ---
+if [ "${OWL_L1_GATE_CI:-}" = "1" ]; then
+    check "healthy L1 deferred on CI" 1 "unit tests and coverage already executed in this job"
 else
-    healthy_dir="$owned/healthy"
-    cp -a "$clone_dir/." "$healthy_dir/"
-    git -C "$healthy_dir" config user.email "l1-gate@example.com"
-    git -C "$healthy_dir" config user.name "l1-gate"
+    if [ "${CI:-}" = "true" ] && [ -z "$(git -C "$repo" status --porcelain)" ]; then
+        healthy_dir="$repo"
+    else
+        healthy_dir="$owned/healthy"
+        cp -a "$clone_dir/." "$healthy_dir/"
+        git -C "$healthy_dir" config user.email "l1-gate@example.com"
+        git -C "$healthy_dir" config user.name "l1-gate"
+    fi
+    start_ms="$(now_ms)"
+    scratch="$healthy_dir/.tmp"
+    mkdir -p "$scratch"
+    set +e
+    healthy_out="$(TMPDIR="$scratch" bash "$healthy_dir/.husky/pre-commit" 2>&1)"
+    healthy_status=$?
+    set -e
+    end_ms="$(now_ms)"
+    elapsed_ms=$((end_ms - start_ms))
+    check "healthy index snapshot passes" "$([ "$healthy_status" -eq 0 ] && echo 1 || echo 0)" "${healthy_out:0:240}"
+    if [ "${CI:-}" = "true" ]; then
+        check "healthy L1 timing recorded (CI)" 1 "${elapsed_ms}ms — local warm target is <30s"
+    else
+        check "healthy run under 30s (warm cache)" "$([ "$elapsed_ms" -lt 30000 ] && echo 1 || echo 0)" "${elapsed_ms}ms"
+    fi
+    echo "timing healthy L1 gate: ${elapsed_ms}ms"
 fi
-start_ms="$(now_ms)"
-scratch="$healthy_dir/.tmp"
-mkdir -p "$scratch"
-set +e
-healthy_out="$(TMPDIR="$scratch" bash "$healthy_dir/.husky/pre-commit" 2>&1)"
-healthy_status=$?
-set -e
-end_ms="$(now_ms)"
-elapsed_ms=$((end_ms - start_ms))
-check "healthy index snapshot passes" "$([ "$healthy_status" -eq 0 ] && echo 1 || echo 0)" "${healthy_out:0:240}"
-if [ "${CI:-}" = "true" ]; then
-    check "healthy L1 timing recorded (CI)" 1 "${elapsed_ms}ms — local warm target is <30s"
-else
-    check "healthy run under 30s (warm cache)" "$([ "$elapsed_ms" -lt 30000 ] && echo 1 || echo 0)" "${elapsed_ms}ms"
-fi
-echo "timing healthy L1 gate: ${elapsed_ms}ms"
 
 index_after="$(git -C "$repo" diff --cached --name-only)"
 check "repository index untouched" "$([ "$index_before" = "$index_after" ] && echo 1 || echo 0)"
