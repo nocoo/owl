@@ -99,16 +99,20 @@ else
     printf '%s' "$original" >"$probe_dir/$target"
 fi
 
-# --- Healthy snapshot (full L1, warm .build if present) ---
-healthy_dir="$owned/healthy"
-cp -a "$clone_dir/." "$healthy_dir/"
-git -C "$healthy_dir" config user.email "l1-gate@example.com"
-git -C "$healthy_dir" config user.name "l1-gate"
+# --- Healthy snapshot (full L1; reuse CI workspace when clean for warm caches) ---
+if [ "${CI:-}" = "true" ] && [ -z "$(git -C "$repo" status --porcelain)" ]; then
+    healthy_dir="$repo"
+else
+    healthy_dir="$owned/healthy"
+    cp -a "$clone_dir/." "$healthy_dir/"
+    git -C "$healthy_dir" config user.email "l1-gate@example.com"
+    git -C "$healthy_dir" config user.name "l1-gate"
+fi
 start_ms="$(now_ms)"
 scratch="$healthy_dir/.tmp"
 mkdir -p "$scratch"
 set +e
-healthy_out="$(TMPDIR="$scratch" sh "$healthy_dir/.husky/pre-commit" 2>&1)"
+healthy_out="$(TMPDIR="$scratch" bash "$healthy_dir/.husky/pre-commit" 2>&1)"
 healthy_status=$?
 set -e
 end_ms="$(now_ms)"
