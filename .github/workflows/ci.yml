@@ -1,3 +1,6 @@
+# CI slot standard v1 (nocoo/base-ci docs/slots.md): macOS native slots via repo reusable workflow.
+# Caller job key `quality` yields canonical checks: quality / S1: Typecheck, … quality / Z1: Gate.
+# nocoo/base-ci v2026.12 pin: 1ea10ecab22b72512399485391603fe03a161016 (composite action in native-quality.yml only).
 name: CI
 
 on:
@@ -7,26 +10,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
-jobs:
-  build-and-test:
-    uses: nocoo/base-ci/.github/workflows/test-job.yml@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
-    with:
-      runner: "macos-26"
-      runtime: "none"
-      timeout-minutes: 15
-      pre-command: |
-        brew install swiftlint gitleaks
-        npm install
-        test -x .husky/pre-commit
-        test "$(git config core.hooksPath)" = ".husky/_"
-        swiftlint lint --strict
-      command: |
-        swift build
-        swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
+permissions:
+  contents: read
 
-  security:
-    uses: nocoo/base-ci/.github/workflows/security.yml@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
-    with:
-      gitleaks-config: ".gitleaks.toml"
-      scan-history: true
-      scan-dependencies: false
+jobs:
+  quality:
+    uses: ./.github/workflows/native-quality.yml
