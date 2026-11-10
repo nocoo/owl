@@ -12,13 +12,6 @@ on:
 permissions:
   contents: read
 
-# Non-impl slots use a repo variable gate so actionlint accepts the job `if:` (not constant `false`).
-env:
-  CI_SLOT_G2: "0"
-  CI_SLOT_L15: "0"
-  CI_SLOT_L3: "0"
-  CI_SLOT_P1: "0"
-
 jobs:
   s1-typecheck:
     uses: nocoo/base-ci/.github/workflows/test-job.yml@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
@@ -57,7 +50,7 @@ jobs:
 
   # G2 na — slot declared in Z1; job must stay disabled/skipped
   g2-dependency-vulnerabilities:
-    if: ${{ env.CI_SLOT_G2 == '1' }}
+    if: ${{ github.event_name == 'repository_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - run: echo 'G2 na'
@@ -88,7 +81,7 @@ jobs:
         swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
 
   l15-worker-runtime:
-    if: ${{ env.CI_SLOT_L15 == '1' }}
+    if: ${{ github.event_name == 'repository_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - run: echo 'L1.5 na'
@@ -104,13 +97,13 @@ jobs:
       command: swift test --filter EndToEnd
 
   l3-browser-e2e:
-    if: ${{ env.CI_SLOT_L3 == '1' }}
+    if: ${{ github.event_name == 'repository_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - run: echo 'L3 na'
 
   p1-package-check:
-    if: ${{ env.CI_SLOT_P1 == '1' }}
+    if: ${{ github.event_name == 'repository_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - run: echo 'P1 na'
