@@ -44,6 +44,7 @@ Owl 是 macOS 14 及以上版本的菜单栏应用。它读取统一日志流并
 ```bash
 git clone https://github.com/nocoo/owl.git
 cd owl
+npm install   # installs Husky pre-commit / pre-push hooks
 swift build
 swift run Owl
 ```

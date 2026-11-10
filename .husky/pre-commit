@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+root="$(git rev-parse --show-toplevel)"
+exec bash "$root/scripts/pre-commit.sh"

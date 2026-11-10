@@ -15,7 +15,10 @@ jobs:
       runtime: "none"
       timeout-minutes: 15
       pre-command: |
-        brew install swiftlint
+        brew install swiftlint gitleaks
+        npm install
+        test -x .husky/pre-commit
+        test "$(git config core.hooksPath)" = ".husky/_"
         swiftlint lint --strict
       command: |
         swift build

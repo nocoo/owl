@@ -8,7 +8,7 @@ Direction: [architecture](docs/02-architecture.md). Frameworks must preserve thi
 
 - This file is the only project handbook; nested files do not compete with it. Do not create a `CLAUDE.md` alias or copy.
 - This file is the quality contract; hooks, CI and config are enforcement. Close implementation gaps without lowering the contract. Historical test results are not evidence of a current passing run.
-- Human docs: [README.md](README.md) and [detection algorithms](docs/04-detection-algorithms.md). Native package: `Package.swift` (Swift tools 6.0, macOS 14+, Swift 5 language mode). Enforcement: `scripts/pre-commit.sh`, `scripts/pre-push.sh`, `.github/workflows/ci.yml`. Coverage/security: `scripts/check-coverage.sh`, `.swiftlint.yml`, `.gitleaks.toml`. Accidents: [Retrospective.md](Retrospective.md). Machine workflow: global `AGENTS.md` and Git rules.
+- Human docs: [README.md](README.md) and [detection algorithms](docs/04-detection-algorithms.md). Native package: `Package.swift` (Swift tools 6.0, macOS 14+, Swift 5 language mode). Enforcement: `.husky/pre-commit` → `scripts/pre-commit.sh`, `.husky/pre-push` → `scripts/pre-push.sh`, `package.json` `prepare` (Husky), `.github/workflows/ci.yml`. Coverage/security: `scripts/check-coverage.sh`, `.swiftlint.yml`, `.gitleaks.toml`. Accidents: [Retrospective.md](Retrospective.md). Machine workflow: global `AGENTS.md` and Git rules.
 
 ## Project invariants
 
@@ -40,17 +40,19 @@ G2 requires dependency and secret scans, with missing required scanners failing.
 
 | Dimension | Status | Required proof and current evidence/gap |
 |---|---|---|
-| L1 Swift / Obj-C | planned | Hook checks non-UI line coverage at 90%; all four ≥95% metrics and bridge coverage remain gaps. Hooks/CI enforce SwiftLint strict, but strict compiler/format and Objective-C analysis are not established. CI excludes EndToEnd and hardware suites. |
+| L1 Swift / Obj-C | planned | Pre-commit gates the Git index (`git checkout-index`), runs SwiftLint strict, unit tests with coverage and staged gitleaks; failures block commit. Installed via `npm install` / Husky (`core.hooksPath` → `.husky/_`). Line coverage floor remains 90% on scoped non-UI sources; four-metric ≥95%, compiler strict mode and Obj-C lint remain gaps. CI excludes EndToEnd and hardware suites; macOS CI asserts Husky install, local/`npm run test:l1-gate` runs isolated index-vs-worktree probes. |
 | L2 native pipeline | enforced | Pre-push runs EndToEnd tests from constructed logs through detectors/alerts; these are in-process integration, not HTTP/UI tests. |
 | L3 menu-bar / notifications | manual | Check menu-bar interactions, preferences and notifications in an app bundle; no native UI runner. |
 | G2 | planned | Hooks and CI run gitleaks; CI disables dependency scanning. No third-party Swift packages are declared. |
 | D1 | planned | Settings tests use fresh named UserDefaults suites; some tests read this Mac's sensors. Full isolated desktop/cleanup policy is not automated. |
 
-Tracked `.githooks/` entrypoints link to `scripts/pre-commit.sh` and `scripts/pre-push.sh`. This checkout has executable `.git/hooks/pre-commit` and `.git/hooks/pre-push` links to those scripts; they run through Git's fallback even though `core.hooksPath` is unset. Pre-commit runs working-tree SwiftLint, unit tests, 90% line coverage and staged secret scanning; pre-push runs EndToEnd integration tests and history secrets. Neither uses the required index snapshot/stdin-ref scope.
+Husky sets `core.hooksPath` to `.husky/_` after `npm install` (`prepare`). `.husky/pre-commit` and `.husky/pre-push` delegate to `scripts/pre-commit.sh` and `scripts/pre-push.sh`. Legacy `.githooks/` symlinks to the same scripts remain for manual `core.hooksPath=.githooks` setups.
 
-The coverage script hardcodes `.build/arm64-apple-macosx/debug/codecov/Owl.json`; Swift 6.4 defaults to `swiftbuild` and emits `.build/out/Products/Debug/codecov/Owl.json`. Before committing on this toolchain, run the fresh native coverage command above on the current source; the supported but deprecated native backend supplies the legacy path. The ordinary hook still reruns unit tests through `swiftbuild` and reads that separate native report. Record both runs; backend-aware report discovery remains an enforcement gap.
+Pre-commit exports the staged index to a temporary tree, unsets Git hook environment, reuses a shared Clang module cache under `.build/owl-precommit-module-cache` (never symlinks the full `.build` tree), then runs unified L1 plus staged gitleaks. Any step failure exits nonzero and removes the snapshot on exit, interrupt or signal. Target wall time for ordinary commits is under 30s with warm incremental caches on the developer machine.
 
-Target hooks: pre-commit checks unified L1 against the index snapshot (`git checkout-index`) in <30s; pre-push checks L2 and G2 in parallel against every stdin push ref/commit in <3min, plus build where applicable. L3 runs in CI or an explicit manual lane.
+`scripts/check-coverage.sh` accepts either `.build/arm64-apple-macosx/debug/codecov/Owl.json` (legacy native backend path) or `.build/out/Products/Debug/codecov/Owl.json` (default `swift build` output). Four-metric ≥95% enforcement is still not implemented in the gate script.
+
+Pre-push still runs on the working tree: EndToEnd integration tests and repository gitleaks. Target: stdin push-ref scope and parallel L2/G2 under 3 minutes remain future work. L3 runs in CI or an explicit manual lane.
 Never bypass commit/push hooks, force-push, or use autofix in checks. Documentation changes do not authorize deploying or implementing new gates.
 
 ## Resources and isolation
