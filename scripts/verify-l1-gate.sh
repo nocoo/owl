@@ -82,7 +82,7 @@ if [ ! -f "$probe_dir/$target" ]; then
     check "lint probe target present" 0 "missing $target"
 else
     original="$(cat "$probe_dir/$target")"
-    printf '%s\n// l1-gate: force_unwrapping probe below\nlet _l1GateProbe: String! = nil\n' "$original" >"$probe_dir/$target"
+    printf '%s\n// l1-gate probe\n    fatalError()\n' "$original" >"$probe_dir/$target"
     git -C "$probe_dir" add -- "$target"
     printf '%s' "$original" >"$probe_dir/$target"
     scratch="$probe_dir/.tmp"
@@ -92,8 +92,9 @@ else
     hook_status=$?
     set -e
     check "staged lint defect rejects commit" "$([ "$hook_status" -ne 0 ] && echo 1 || echo 0)" "$output"
+    check "lint rejection is from SwiftLint" "$(echo "$output" | grep -qi 'swiftlint\|fatal_error_message\|violation' && echo 1 || echo 0)" "$output"
     check "lint probe keeps worktree fix" "$(cmp -s <(printf '%s' "$original") "$probe_dir/$target" && echo 1 || echo 0)"
-    check "lint probe keeps staged defect" "$(git -C "$probe_dir" show ":$target" | grep -q '_l1GateProbe' && echo 1 || echo 0)"
+    check "lint probe keeps staged defect" "$(git -C "$probe_dir" show ":$target" | grep -q 'fatalError()' && echo 1 || echo 0)"
     check "lint probe cleans snapshot" "$(snapshot_gone "$scratch" && echo 1 || echo 0)" "$(ls -A "$scratch" 2>/dev/null || true)"
     git -C "$probe_dir" restore --staged "$target" 2>/dev/null || true
     printf '%s' "$original" >"$probe_dir/$target"

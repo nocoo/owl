@@ -13,7 +13,7 @@ jobs:
     with:
       runner: "macos-26"
       runtime: "none"
-      timeout-minutes: 15
+      timeout-minutes: 20
       pre-command: |
         brew install swiftlint gitleaks
         npm install
