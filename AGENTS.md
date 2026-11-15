@@ -27,32 +27,33 @@ swift build
 swift run Owl
 swiftlint lint --strict
 swift test --build-system native --enable-code-coverage --filter '^(?!.*EndToEnd).*$'
-bash scripts/check-coverage.sh 90 # current line-only gate; full 6DQ target below
+bash scripts/check-coverage.sh 90 # current line-only gate; full system1-quality target below
 swift test --filter EndToEnd
 bash scripts/build.sh --sign 'Apple Development: Your Name (TEAMID)'
 ```
 
 ## Testing and quality contract
 
-6DQ keeps its name with unified L1, L2/L3, G2 and D1; the owner merged former G1 into L1 on 2026-09-21. Statuses: `enforced`, `planned`, `manual`, or `N/A`; partial enforcement below does not certify the full required bar.
-Unified L1 requires statements, branches, functions and lines each ≥95%, with no skipped/focused tests; strict check-only types and lint/format with zero errors/warnings; installed hooks and failure rejection. Preserve any stricter package threshold. Native tools must identify unmeasured metrics as gaps.
-G2 requires dependency and secret scans, with missing required scanners failing.
+Quality follows `system1-quality` (12 slots `S1..Z1` in `.github/workflows/quality-slots.yml`, `nocoo/base-ci v2026.15` for pinned actions). Statuses: `impl`, `na`, `manual`, or `planned`.
 
-| Dimension | Status | Required proof and current evidence/gap |
-|---|---|---|
-| L1 Swift / Obj-C | planned | Pre-commit gates the Git index (`git checkout-index`), runs SwiftLint strict, unit tests with coverage and staged gitleaks; failures block commit. Installed via `npm install` / Husky (`core.hooksPath` → `.husky/_`). Line coverage floor remains 90% on scoped non-UI sources; four-metric ≥95%, compiler strict mode and Obj-C lint remain gaps. CI excludes EndToEnd and hardware suites; macOS CI asserts Husky install, local/`npm run test:l1-gate` runs isolated index-vs-worktree probes. |
-| L2 native pipeline | enforced | Pre-push runs EndToEnd tests from constructed logs through detectors/alerts; these are in-process integration, not HTTP/UI tests. |
-| L3 menu-bar / notifications | manual | Check menu-bar interactions, preferences and notifications in an app bundle; no native UI runner. |
-| G2 | planned | Hooks and CI run gitleaks; CI disables dependency scanning. No third-party Swift packages are declared. |
-| D1 | planned | Settings tests use fresh named UserDefaults suites; some tests read this Mac's sensors. Full isolated desktop/cleanup policy is not automated. |
+| Slot | Status | Implementation / Evidence |
+| --- | --- | --- |
+| S1: Typecheck | impl | `swift build` (plus Husky hook installation assertion in CI) |
+| S2: Lint | impl | `swiftlint lint --strict` |
+| S3: Workflow Lint | impl | `actionlint`, immutable `nocoo/base-ci` SHA check, and `yamllint` |
+| G1: Secret Scan | impl | `gitleaks detect --no-banner --verbose --redact --config=.gitleaks.toml` |
+| G2: Dependency Vulnerabilities | na | SwiftPM has no third-party dependencies; `package-lock.json` is Husky devDependency only |
+| B1: Build | impl | `swift build -c release` |
+| L1: Unit Tests & Coverage | impl | `OwlCoreTests` (excluding hardware/E2E suites) with coverage; local `check-coverage.sh 90` |
+| L2: Runtime | na | Not a Cloudflare Worker project |
+| L3: Integration | impl | `swift test --filter EndToEnd` (constructed logs through detectors/alerts) |
+| L4: E2E | na (manual) | Native AppKit/SwiftUI menu-bar app; verified manually |
+| P1: Package Check | na | Private package; SwiftPM executable not published to npm |
+| Z1: Gate | impl | Aggregates all 11 slot outcomes and verifies `tested-sha` |
 
 Husky sets `core.hooksPath` to `.husky/_` after `npm install` (`prepare`). `.husky/pre-commit` and `.husky/pre-push` delegate to `scripts/pre-commit.sh` and `scripts/pre-push.sh`. Legacy `.githooks/` symlinks to the same scripts remain for manual `core.hooksPath=.githooks` setups.
 
-Pre-commit exports the staged index to a temporary tree, unsets Git hook environment, reuses a shared Clang module cache under `.build/owl-precommit-module-cache` (never symlinks the full `.build` tree), then runs unified L1 plus staged gitleaks. Any step failure exits nonzero and removes the snapshot on exit, interrupt or signal. Target wall time for ordinary commits is under 30s with warm incremental caches on the developer machine.
-
-`scripts/check-coverage.sh` accepts either `.build/arm64-apple-macosx/debug/codecov/Owl.json` (legacy native backend path) or `.build/out/Products/Debug/codecov/Owl.json` (default `swift build` output). Four-metric ≥95% enforcement is still not implemented in the gate script.
-
-Pre-push still runs on the working tree: EndToEnd integration tests and repository gitleaks. Target: stdin push-ref scope and parallel L2/G2 under 3 minutes remain future work. L3 runs in CI or an explicit manual lane.
+Pre-commit exports the staged index to a temporary tree, unsets Git hook environment, reuses a shared Clang module cache under `.build/owl-precommit-module-cache` (never symlinks the full `.build` tree), then runs L1 plus staged gitleaks. Pre-push runs EndToEnd integration tests (`L3`) and repository gitleaks (`G1`).
 Never bypass commit/push hooks, force-push, or use autofix in checks. Documentation changes do not authorize deploying or implementing new gates.
 
 ## Resources and isolation

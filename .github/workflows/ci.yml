@@ -1,6 +1,6 @@
-# CI slot standard v1 (nocoo/base-ci docs/slots.md): macOS native slots via repo reusable workflow.
-# Caller job key `quality` yields canonical checks: quality / S1: Typecheck, … quality / Z1: Gate.
-# nocoo/base-ci v2026.12 pin: 1ea10ecab22b72512399485391603fe03a161016 (composite action in native-quality.yml only).
+# CI slot standard v1.3.0 (system1-quality): macOS native slots via repo reusable workflow.
+# Caller job key `quality` yields canonical checks: quality / S1: Typecheck, ... quality / Z1: Gate.
+# nocoo/base-ci v2026.15 pin: 777bbe4f9bacab8a91d8c01974480a6ee23d28e0 (composite action in quality-slots.yml only).
 name: CI
 
 on:
@@ -15,4 +15,4 @@ permissions:
 
 jobs:
   quality:
-    uses: ./.github/workflows/native-quality.yml
+    uses: ./.github/workflows/quality-slots.yml

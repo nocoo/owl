@@ -1,0 +1,302 @@
+# CI slot standard v1.3.0 (system1-quality): canonical job names for GitHub checks (quality / S1: Typecheck, ...).
+# macOS Swift toolchain inlined — not nocoo/base-ci quality.yml (ubuntu-only).
+name: Native quality slots
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  s1-typecheck:
+    name: "S1: Typecheck"
+    runs-on: macos-26
+    timeout-minutes: 15
+    outputs:
+      tested-sha: ${{ steps.record-sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pre-command
+        shell: bash
+        run: |
+          brew install swiftlint gitleaks
+          npm install
+          test -x .husky/pre-commit
+          test "$(git config core.hooksPath)" = ".husky/_"
+      - name: Typecheck
+        shell: bash
+        run: swift build
+      - name: Record tested SHA
+        id: record-sha
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  s2-lint:
+    name: "S2: Lint"
+    runs-on: macos-26
+    timeout-minutes: 15
+    outputs:
+      tested-sha: ${{ steps.record-sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pre-command
+        shell: bash
+        run: brew install swiftlint
+      - name: Lint
+        shell: bash
+        run: swiftlint lint --strict
+      - name: Record tested SHA
+        id: record-sha
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  s3-workflow-lint:
+    name: "S3: Workflow Lint"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tested-sha: ${{ steps.record-sha.outputs.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install verified actionlint
+        run: |
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            -o "$RUNNER_TEMP/actionlint.tar.gz"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+      - name: Validate workflow syntax
+        run: |
+          "$RUNNER_TEMP/actionlint" .github/workflows/ci.yml .github/workflows/quality-slots.yml
+      - name: Check immutable shared workflow references
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, yaml
+          files = list(pathlib.Path(".github/workflows").glob("*.y*ml"))
+          references = []
+          for path in files:
+              data = yaml.safe_load(path.read_text())
+              for job in data.get("jobs", {}).values():
+                  references.extend(item["uses"] for item in [job, *job.get("steps", [])] if "uses" in item)
+          for ref in references:
+              if ref.startswith("nocoo/base-ci/") and not re.fullmatch(r"nocoo/base-ci/[^@]+@[a-f0-9]{40}", ref):
+                  raise SystemExit(f"Shared CI reference must use a full commit SHA: {ref}")
+          required = ".github/workflows/quality-slots.yml"
+          if not any(required in ref for ref in references):
+              raise SystemExit(f"Missing required reusable workflow: {required}")
+          print(f"Validated {len(files)} workflow files and immutable base-ci references")
+          PY
+      - name: Check YAML style
+        run: |
+          python3 -m pip install --quiet 'yamllint==1.38.0'
+          yamllint -d '{extends: default, rules: {line-length: disable, document-start: disable, truthy: disable}}' .github/workflows/*.yml
+      - name: Record tested SHA
+        id: record-sha
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  g1-secret-scan:
+    name: "G1: Secret Scan"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      tested-sha: ${{ steps.record-sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install security scanners (gitleaks + osv-scanner)
+        uses: nocoo/base-ci/.github/actions/setup-security-scanners@777bbe4f9bacab8a91d8c01974480a6ee23d28e0 # v2026.15
+      - name: Gitleaks secret scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          gitleaks detect --no-banner --verbose --redact --config=.gitleaks.toml
+      - name: Record tested SHA
+        id: record-sha
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  g2-dependency-vulnerabilities:
+    name: "G2: Dependency Vulnerabilities"
+    if: ${{ vars.ENABLE_G2 == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "na — SwiftPM has no third-party dependencies; package-lock is Husky devDependency only"
+
+  b1-build:
+    name: "B1: Build"
+    runs-on: macos-26
+    timeout-minutes: 15
+    outputs:
+      tested-sha: ${{ steps.record-sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pre-command
+        shell: bash
+        run: brew install swiftlint
+      - name: Build
+        shell: bash
+        run: swift build -c release
+      - name: Record tested SHA
+        id: record-sha
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  l1-unit-tests:
+    name: "L1: Unit Tests & Coverage"
+    runs-on: macos-26
+    timeout-minutes: 15
+    outputs:
+      tested-sha: ${{ steps.record-sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pre-command
+        shell: bash
+        run: |
+          brew install swiftlint gitleaks jq
+          npm install
+          test -x .husky/pre-commit
+          test "$(git config core.hooksPath)" = ".husky/_"
+      - name: Unit tests
+        shell: bash
+        run: |
+          swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
+      - name: Record tested SHA
+        id: record-sha
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  l2-runtime:
+    name: "L2: Runtime"
+    if: ${{ vars.ENABLE_L2 == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "na — not a Worker project"
+
+  l3-integration:
+    name: "L3: Integration"
+    runs-on: macos-26
+    timeout-minutes: 15
+    outputs:
+      tested-sha: ${{ steps.record-sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pre-command
+        shell: bash
+        run: brew install swiftlint
+      - name: Integration tests (EndToEnd)
+        shell: bash
+        run: swift test --filter EndToEnd
+      - name: Record tested SHA
+        id: record-sha
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  l4-e2e:
+    name: "L4: E2E"
+    if: ${{ vars.ENABLE_L4 == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "na — native AppKit/SwiftUI menu-bar app, verified manually"
+
+  p1-package-check:
+    name: "P1: Package Check"
+    if: ${{ vars.ENABLE_P1 == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "na — private package, SwiftPM executable not published to npm"
+
+  z1-gate:
+    name: "Z1: Gate"
+    needs:
+      - s1-typecheck
+      - s2-lint
+      - s3-workflow-lint
+      - g1-secret-scan
+      - g2-dependency-vulnerabilities
+      - b1-build
+      - l1-unit-tests
+      - l2-runtime
+      - l3-integration
+      - l4-e2e
+      - p1-package-check
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: "Z1: Require every implemented slot job on this commit"
+        env:
+          S1_RESULT: ${{ needs.s1-typecheck.result }}
+          S2_RESULT: ${{ needs.s2-lint.result }}
+          S3_RESULT: ${{ needs.s3-workflow-lint.result }}
+          G1_RESULT: ${{ needs.g1-secret-scan.result }}
+          G2_RESULT: ${{ needs.g2-dependency-vulnerabilities.result }}
+          B1_RESULT: ${{ needs.b1-build.result }}
+          L1_RESULT: ${{ needs.l1-unit-tests.result }}
+          L2_RESULT: ${{ needs.l2-runtime.result }}
+          L3_RESULT: ${{ needs.l3-integration.result }}
+          L4_RESULT: ${{ needs.l4-e2e.result }}
+          P1_RESULT: ${{ needs.p1-package-check.result }}
+          S1_SHA: ${{ needs.s1-typecheck.outputs.tested-sha }}
+          S2_SHA: ${{ needs.s2-lint.outputs.tested-sha }}
+          S3_SHA: ${{ needs.s3-workflow-lint.outputs.tested-sha }}
+          G1_SHA: ${{ needs.g1-secret-scan.outputs.tested-sha }}
+          B1_SHA: ${{ needs.b1-build.outputs.tested-sha }}
+          L1_SHA: ${{ needs.l1-unit-tests.outputs.tested-sha }}
+          L3_SHA: ${{ needs.l3-integration.outputs.tested-sha }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          require_success() {
+            local label="$1" result="$2"
+            if [ "$result" != success ]; then
+              echo "::error::Z1: Gate — $label result was '$result' (expected success)."
+              exit 1
+            fi
+          }
+          require_skipped() {
+            local label="$1" result="$2"
+            if [ "$result" != skipped ]; then
+              echo "::error::Z1: Gate — $label result was '$result' (expected skipped)."
+              exit 1
+            fi
+          }
+          require_success "S1: Typecheck" "$S1_RESULT"
+          require_success "S2: Lint" "$S2_RESULT"
+          require_success "S3: Workflow Lint" "$S3_RESULT"
+          require_success "G1: Secret Scan" "$G1_RESULT"
+          require_skipped "G2: Dependency Vulnerabilities" "$G2_RESULT"
+          require_success "B1: Build" "$B1_RESULT"
+          require_success "L1: Unit Tests & Coverage" "$L1_RESULT"
+          require_skipped "L2: Runtime" "$L2_RESULT"
+          require_success "L3: Integration" "$L3_RESULT"
+          require_skipped "L4: E2E" "$L4_RESULT"
+          require_skipped "P1: Package Check" "$P1_RESULT"
+          for sha in "$S1_SHA" "$S2_SHA" "$S3_SHA" "$G1_SHA" "$B1_SHA" "$L1_SHA" "$L3_SHA"; do
+            if [ "$sha" != "$EXPECTED_SHA" ]; then
+              echo "::error::Z1: Gate — tested-sha mismatch (got '$sha', expected '$EXPECTED_SHA')."
+              exit 1
+            fi
+          done
+          echo "Z1: Gate — all slots match declaration on $EXPECTED_SHA"
