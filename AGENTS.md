@@ -1,72 +1,53 @@
 # Owl
 
-Local macOS menu-bar metrics, process inspection and anomaly alerts.
-Profile: native-hybrid.
-Direction: [architecture](docs/02-architecture.md). Frameworks must preserve this handbook.
+Local macOS menu-bar metrics, process inspection, and anomaly alerts (`Package.swift`: Swift tools 6.0, macOS 14+, Swift 5 language mode).
+Docs: [README.md](README.md) · [Architecture](docs/02-architecture.md) · [Detection Algorithms](docs/04-detection-algorithms.md) · [Distribution](docs/06-distribution.md) · [Retrospective](Retrospective.md)
 
-## Scope and instruction sources
+## Commands
 
-- This file is the only project handbook; nested files do not compete with it. Do not create a `CLAUDE.md` alias or copy.
-- This file is the quality contract; hooks, CI and config are enforcement. Close implementation gaps without lowering the contract. Historical test results are not evidence of a current passing run.
-- Human docs: [README.md](README.md) and [detection algorithms](docs/04-detection-algorithms.md). Native package: `Package.swift` (Swift tools 6.0, macOS 14+, Swift 5 language mode). Enforcement: `.husky/pre-commit` → `scripts/pre-commit.sh`, `.husky/pre-push` → `scripts/pre-push.sh`, `package.json` `prepare` (Husky), `.github/workflows/ci.yml`. Coverage/security: `scripts/check-coverage.sh`, `.swiftlint.yml`, `.gitleaks.toml`. Accidents: [Retrospective.md](Retrospective.md). Machine workflow: global `AGENTS.md` and Git rules.
+Layout: `Sources/Owl` (thin AppKit/SwiftUI shell), `Sources/OwlCore` (Unified Logging, IOKit, Mach/libproc), `Sources/HIDThermalBridge` (Objective-C IOHID bridge), `Tests/OwlCoreTests` (Swift Testing, zero third-party Swift packages). Run from root on macOS 14+ with Swift 6 / Xcode 16+; local hooks require `swiftlint`, `gitleaks`, and `jq`. When SourceKit is unavailable under Command Line Tools, prefix commands (including commit/push hooks) with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer XCODE_DEFAULT_TOOLCHAIN_OVERRIDE=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain`. App bundling needs a valid local signing identity.
 
-## Project invariants
-
-- Collect/analyze locally without accounts or external services; unavailable hardware metrics degrade honestly.
-- Preferences use UserDefaults; recent alerts remain in process memory and are not restored after restart.
-- Keep logic in OwlCore and the app shell thin; retain the Objective-C IOHID bridge for Apple Silicon temperatures.
-- Convert `proc_taskinfo` Mach ticks using `mach_timebase_info`; total user/system already include live-thread time.
-- Guard notification APIs when `Bundle.main.bundleIdentifier` is missing; unbundled SPM executables cannot use normal notifications.
-
-## Setup and commands
-
-UI/lifecycle in `Sources/Owl` (AppKit and SwiftUI); sampling/detectors in `Sources/OwlCore` (Unified Logging, IOKit, Mach/libproc); native bridge in `Sources/HIDThermalBridge` (Objective-C); tests in `Tests/OwlCoreTests` (Swift Testing, no third-party Swift package). Run at repository root on macOS 14+ with Swift 6/Xcode 16+. Installed hooks require SwiftLint and gitleaks; select full Xcode per command with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` and `XCODE_DEFAULT_TOOLCHAIN_OVERRIDE=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain` when SourceKit is unavailable under Command Line Tools. These per-command variables were required by SwiftLint during the 2026-09-23 validation; use them for normal commit/push hooks on the same setup. App bundling needs a valid local signing identity.
-
-```bash
-swift build
-swift run Owl
-swiftlint lint --strict
-swift test --build-system native --enable-code-coverage --filter '^(?!.*EndToEnd).*$'
-bash scripts/check-coverage.sh 90 # current line-only gate; full system1-quality target below
-swift test --filter EndToEnd
-bash scripts/build.sh --sign 'Apple Development: Your Name (TEAMID)'
+```sh
+npm install                                      # installs Husky hooks via prepare
+swift build                                      # S1
+swift run Owl                                    # unbundled local run
+swiftlint lint --strict                          # S2 (0 warnings, .swiftlint.yml)
+swift test --build-system native --enable-code-coverage --filter '^(?!.*EndToEnd).*$' # L1
+bash scripts/check-coverage.sh 90                # L1 line-coverage gate
+swift test --filter EndToEnd                     # L3
+gitleaks detect --no-banner --verbose --redact --config=.gitleaks.toml # G1
+swift build -c release                           # B1
+bash scripts/build.sh --sign 'Apple Development: Your Name (TEAMID)'   # signed Owl.app
 ```
 
-## Testing and quality contract
+## Invariants
 
-Quality follows `system1-quality` (12 slots `S1..Z1` in `.github/workflows/quality-slots.yml`, `nocoo/base-ci v2026.15` for pinned actions). Statuses: `impl`, `na`, `manual`, or `planned`.
+- Collect and analyze strictly locally with no accounts or external services; unavailable hardware metrics degrade honestly.
+- Preferences persist in `UserDefaults`; recent alerts stay in process memory and are not restored after restart.
+- Keep business logic in `OwlCore` and the `Sources/Owl` app shell thin; retain the Objective-C `HIDThermalBridge` for Apple Silicon temperatures.
+- Convert `proc_taskinfo` Mach ticks via `mach_timebase_info`; `pti_total_user`/`pti_total_system` already include live-thread time (never add `pti_threads_*`).
+- Guard all `UNUserNotificationCenter` calls when `Bundle.main.bundleIdentifier` is nil; unbundled SwiftPM executables crash without a bundle proxy.
+- Signed bundles use `scripts/build.sh`; [DMG packaging](scripts/package-dmg.sh) and [notarization](scripts/notarize.sh) require separate release authorization.
+- Never alter global credentials, claim notarization from an SPM build, bypass hooks, or run autofix in checks; historical test results are not evidence of a current passing run.
 
-| Slot | Status | Implementation / Evidence |
+## Quality & Local Gates
+
+Follows `system1-quality`; macOS native CI slots and `nocoo/base-ci` scanner pin live in `.github/workflows/quality-slots.yml` (invoked by `.github/workflows/ci.yml`; `quality / Z1: Gate` required on `main`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
+
+- **Exceptions**: `G2` is `N/A` (no third-party SwiftPM deps; Husky dev-only lockfile), `L2` is `N/A` (not a Worker), `P1` is `N/A` (private executable), and `L4 E2E` is `manual` (native menu-bar UI).
+- **L1 boundary**: CI skips `EndToEnd` and hardware suites; local `check-coverage.sh 90` checks 90% lines excluding `UI/`, `Tests/`, `L10n.swift`, `OwlApp*.swift` (95% 4-metric target `planned`).
+- **Local hooks**: `npm install` (`prepare`) sets `core.hooksPath=.husky/_` (asserted in CI `S1`/`L1`); `.husky/*` and legacy `.githooks/*` delegate to `scripts/pre-commit.sh` and `scripts/pre-push.sh`.
+- **Pre-commit**: checks staged `gitleaks` (`G1`), exports staged index with hook env unset, shares `.build/owl-precommit-module-cache` (never symlink `.build`), then runs `S2` + `L1` (`90%` lines).
+- **Pre-push & discipline**: pre-push runs `EndToEnd` (`L3`) and repo `gitleaks` (`G1`). Close gaps without lowering the contract; docs changes do not authorize releases or new gates.
+
+## Resources & Isolation
+
+| Lane | State / Context | Boundary |
 | --- | --- | --- |
-| S1: Typecheck | impl | `swift build` (plus Husky hook installation assertion in CI) |
-| S2: Lint | impl | `swiftlint lint --strict` |
-| S3: Workflow Lint | impl | `actionlint`, immutable `nocoo/base-ci` SHA check, and `yamllint` |
-| G1: Secret Scan | impl | `gitleaks detect --no-banner --verbose --redact --config=.gitleaks.toml` |
-| G2: Dependency Vulnerabilities | na | SwiftPM has no third-party dependencies; `package-lock.json` is Husky devDependency only |
-| B1: Build | impl | `swift build -c release` |
-| L1: Unit Tests & Coverage | impl | `OwlCoreTests` (excluding hardware/E2E suites) with coverage; local `check-coverage.sh 90` |
-| L2: Runtime | na | Not a Cloudflare Worker project |
-| L3: Integration | impl | `swift test --filter EndToEnd` (constructed logs through detectors/alerts) |
-| L4: E2E | na (manual) | Native AppKit/SwiftUI menu-bar app; verified manually |
-| P1: Package Check | na | Private package; SwiftPM executable not published to npm |
-| Z1: Gate | impl | Aggregates all 11 slot outcomes and verifies `tested-sha` |
-
-Husky sets `core.hooksPath` to `.husky/_` after `npm install` (`prepare`). `.husky/pre-commit` and `.husky/pre-push` delegate to `scripts/pre-commit.sh` and `scripts/pre-push.sh`. Legacy `.githooks/` symlinks to the same scripts remain for manual `core.hooksPath=.githooks` setups.
-
-Pre-commit exports the staged index to a temporary tree, unsets Git hook environment, reuses a shared Clang module cache under `.build/owl-precommit-module-cache` (never symlinks the full `.build` tree), then runs L1 plus staged gitleaks. Pre-push runs EndToEnd integration tests (`L3`) and repository gitleaks (`G1`).
-Never bypass commit/push hooks, force-push, or use autofix in checks. Documentation changes do not authorize deploying or implementing new gates.
-
-## Resources and isolation
-
-Use fresh preference suites, constructed logs and test-owned temporary paths. Hardware tests may read this Mac; never reset everyday preferences. Run native acceptance in a separate test app context.
-
-## Operations / release
-
-Use `scripts/build.sh` for signed app bundles. [DMG packaging](scripts/package-dmg.sh) and [notarization](scripts/notarize.sh) require separate release authorization. Do not change global credentials or claim notarization from a SwiftPM build.
+| Daily app | `UserDefaults` (`com.nocoo.owl`), in-memory alerts | Preserve everyday preferences; never reset during tests |
+| Automated tests | Fresh preference suites, constructed logs, temp dirs | Test-owned paths only; hardware tests may read this Mac only |
+| Native acceptance | Separate test app context (`Owl.app`) | Signed via `scripts/build.sh`; DMG/notarization needs authorization |
 
 ## Retrospective
 
-Move accident narratives to [Retrospective.md](Retrospective.md); keep at most about ten concise recurring project rules here. Put architecture and operational detail in linked docs.
-
-- Convert Mach time and do not double-count live threads.
-- Keep notifications safe in unbundled executables.
+Record incident narratives in [Retrospective.md](Retrospective.md); promote recurring project constraints to `Invariants` above and enforceable safeguards to tests/hooks.
