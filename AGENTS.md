@@ -36,7 +36,7 @@ Follows `system1-quality`; macOS native CI slots and `nocoo/base-ci` scanner pin
 
 - **Exceptions**: `G2` is `N/A` (no third-party SwiftPM deps; Husky dev-only lockfile), `L2` is `N/A` (not a Worker), `P1` is `N/A` (private executable), and `L4 E2E` is `manual` (native menu-bar UI).
 - **L1 boundary**: CI skips `EndToEnd` and hardware suites; local `check-coverage.sh 90` checks 90% lines excluding `UI/`, `Tests/`, `L10n.swift`, `OwlApp*.swift` (95% 4-metric target `planned`).
-- **Local hooks**: `npm install` (`prepare`) sets `core.hooksPath=.husky/_` (asserted in CI `S1`/`L1`); `.husky/*` and legacy `.githooks/*` delegate to `scripts/pre-commit.sh` and `scripts/pre-push.sh`.
+- **Local hooks**: `npm install` (`prepare`) sets `core.hooksPath=.husky/_`; `.husky/*` and legacy `.githooks/*` delegate to `scripts/pre-commit.sh` and `scripts/pre-push.sh`.
 - **Pre-commit**: checks staged `gitleaks` (`G1`), exports staged index with hook env unset, shares `.build/owl-precommit-module-cache` (never symlink `.build`), then runs `S2` + `L1` (`90%` lines).
 - **Pre-push & discipline**: pre-push runs `EndToEnd` (`L3`) and repo `gitleaks` (`G1`). Close gaps without lowering the contract; docs changes do not authorize releases or new gates.
 

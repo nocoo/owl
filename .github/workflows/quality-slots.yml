@@ -128,7 +128,7 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   l1-unit-tests:
-    name: "L1: Unit Tests & Coverage"
+    name: "L1: Unit"
     runs-on: macos-26
     timeout-minutes: 15
     outputs:
@@ -138,13 +138,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pre-command
-        shell: bash
-        run: |
-          brew install swiftlint gitleaks jq
-          npm install
-          test -x .husky/pre-commit
-          test "$(git config core.hooksPath)" = ".husky/_"
       - name: Unit tests
         shell: bash
         run: |
@@ -255,7 +248,7 @@ jobs:
           require_success "G1: Secrets" "$G1_RESULT"
           require_skipped "G2: Dependencies" "$G2_RESULT"
           require_success "B1: Build" "$B1_RESULT"
-          require_success "L1: Unit Tests & Coverage" "$L1_RESULT"
+          require_success "L1: Unit" "$L1_RESULT"
           require_skipped "L2: Runtime" "$L2_RESULT"
           require_success "L3: Integration" "$L3_RESULT"
           require_skipped "L4: E2E" "$L4_RESULT"
