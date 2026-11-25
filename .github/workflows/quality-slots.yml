@@ -1,4 +1,4 @@
-# CI slot standard v1.3.0 (system1-quality): canonical job names for GitHub checks (quality / S1: Typecheck, ...).
+# CI slot standard v1.3.0 (system1-quality): canonical job names for GitHub checks (quality / S1: Types, ...).
 # macOS Swift toolchain inlined — not nocoo/base-ci quality.yml (ubuntu-only).
 name: Native quality slots
 
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   s1-typecheck:
-    name: "S1: Typecheck"
+    name: "S1: Types"
     runs-on: macos-26
     timeout-minutes: 15
     outputs:
@@ -20,13 +20,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pre-command
-        shell: bash
-        run: |
-          brew install swiftlint gitleaks
-          npm install
-          test -x .husky/pre-commit
-          test "$(git config core.hooksPath)" = ".husky/_"
       - name: Typecheck
         shell: bash
         run: swift build
@@ -46,9 +39,26 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pre-command
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.local/share/swiftlint
+          key: ${{ runner.os }}-swiftlint-0.65.1
+      - name: Install verified SwiftLint
         shell: bash
-        run: brew install swiftlint
+        run: |
+          set -euo pipefail
+          mkdir -p "${HOME}/.local/share/swiftlint"
+          echo "${HOME}/.local/share/swiftlint" >> "$GITHUB_PATH"
+          export PATH="${HOME}/.local/share/swiftlint:${PATH}"
+          if ! command -v swiftlint >/dev/null || [ "$(swiftlint version)" != "0.65.1" ]; then
+            curl -fsSL -o /tmp/swiftlint.zip \
+              https://github.com/realm/SwiftLint/releases/download/0.65.1/portable_swiftlint.zip
+            echo "c1e429b0599cf1b516f369a2d9ec04eaf0e436f3c12b637df8851fa52ff694d0  /tmp/swiftlint.zip" | shasum -a 256 -c -
+            rm -rf "${HOME}/.local/share/swiftlint"
+            mkdir -p "${HOME}/.local/share/swiftlint"
+            unzip -q /tmp/swiftlint.zip -d "${HOME}/.local/share/swiftlint"
+          fi
+          test "$(swiftlint version)" = "0.65.1"
       - name: Lint
         shell: bash
         run: swiftlint lint --strict
@@ -58,7 +68,7 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   s3-workflow-lint:
-    name: "S3: Workflow Lint"
+    name: "S3: Workflow"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -67,45 +77,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Install verified actionlint
-        run: |
-          curl --fail --silent --show-error --location --retry 3 \
-            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
-            -o "$RUNNER_TEMP/actionlint.tar.gz"
-          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check
-          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
-      - name: Validate workflow syntax
-        run: |
-          "$RUNNER_TEMP/actionlint" .github/workflows/ci.yml .github/workflows/quality-slots.yml
-      - name: Check immutable shared workflow references
-        run: |
-          python3 - <<'PY'
-          import pathlib, re, yaml
-          files = list(pathlib.Path(".github/workflows").glob("*.y*ml"))
-          references = []
-          for path in files:
-              data = yaml.safe_load(path.read_text())
-              for job in data.get("jobs", {}).values():
-                  references.extend(item["uses"] for item in [job, *job.get("steps", [])] if "uses" in item)
-          for ref in references:
-              if ref.startswith("nocoo/base-ci/") and not re.fullmatch(r"nocoo/base-ci/[^@]+@[a-f0-9]{40}", ref):
-                  raise SystemExit(f"Shared CI reference must use a full commit SHA: {ref}")
-          required = ".github/workflows/quality-slots.yml"
-          if not any(required in ref for ref in references):
-              raise SystemExit(f"Missing required reusable workflow: {required}")
-          print(f"Validated {len(files)} workflow files and immutable base-ci references")
-          PY
-      - name: Check YAML style
-        run: |
-          python3 -m pip install --quiet 'yamllint==1.38.0'
-          yamllint -d '{extends: default, rules: {line-length: disable, document-start: disable, truthy: disable}}' .github/workflows/*.yml
+      - uses: nocoo/base-ci/.github/actions/lint-workflows@dc858360aa7812db61fd9d825943e4efd4dcd0e7 # v2026.17
+        with:
+          required-reusable-workflow: ".github/workflows/quality-slots.yml"
       - name: Record tested SHA
         id: record-sha
         if: always()
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   g1-secret-scan:
-    name: "G1: Secret Scan"
+    name: "G1: Secrets"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -115,21 +96,15 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
-      - name: Install security scanners (gitleaks + osv-scanner)
-        uses: nocoo/base-ci/.github/actions/setup-security-scanners@6424d395d36a815d931f10e557762eb635d511c0 # v2026.16
-      - name: Gitleaks secret scan
-        shell: bash
-        run: |
-          set -euo pipefail
-          gitleaks detect --no-banner --verbose --redact --config=.gitleaks.toml
+          fetch-depth: 1
+      - uses: nocoo/base-ci/.github/actions/scan-secrets@dc858360aa7812db61fd9d825943e4efd4dcd0e7 # v2026.17
       - name: Record tested SHA
         id: record-sha
         if: always()
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   g2-dependency-vulnerabilities:
-    name: "G2: Dependency Vulnerabilities"
+    name: "G2: Dependencies"
     if: ${{ vars.ENABLE_G2 == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -146,9 +121,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pre-command
-        shell: bash
-        run: brew install swiftlint
       - name: Build
         shell: bash
         run: swift build -c release
@@ -202,9 +174,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pre-command
-        shell: bash
-        run: brew install swiftlint
       - name: Integration tests (EndToEnd)
         shell: bash
         run: swift test --filter EndToEnd
@@ -282,11 +251,11 @@ jobs:
               exit 1
             fi
           }
-          require_success "S1: Typecheck" "$S1_RESULT"
+          require_success "S1: Types" "$S1_RESULT"
           require_success "S2: Lint" "$S2_RESULT"
-          require_success "S3: Workflow Lint" "$S3_RESULT"
-          require_success "G1: Secret Scan" "$G1_RESULT"
-          require_skipped "G2: Dependency Vulnerabilities" "$G2_RESULT"
+          require_success "S3: Workflow" "$S3_RESULT"
+          require_success "G1: Secrets" "$G1_RESULT"
+          require_skipped "G2: Dependencies" "$G2_RESULT"
           require_success "B1: Build" "$B1_RESULT"
           require_success "L1: Unit Tests & Coverage" "$L1_RESULT"
           require_skipped "L2: Runtime" "$L2_RESULT"
