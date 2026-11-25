@@ -78,8 +78,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: nocoo/base-ci/.github/actions/lint-workflows@dc858360aa7812db61fd9d825943e4efd4dcd0e7 # v2026.17
-        with:
-          required-reusable-workflow: ".github/workflows/quality-slots.yml"
       - name: Record tested SHA
         id: record-sha
         if: always()
