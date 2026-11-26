@@ -24,11 +24,32 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Restore git commit mtimes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          files = {f for f in subprocess.run(["git", "ls-files", "-z"], capture_output=True, check=True).stdout.decode().split("\0") if f}
+          mtimes = {}
+          out = subprocess.run(["git", "log", "--format=COMMIT:%ct", "--name-only"], capture_output=True, text=True, check=True).stdout
+          cur_ts = None
+          for line in out.splitlines():
+              if line.startswith("COMMIT:"):
+                  cur_ts = int(line[7:])
+              elif line and line in files and line not in mtimes and cur_ts is not None:
+                  mtimes[line] = cur_ts
+                  if len(mtimes) == len(files):
+                      break
+          for f, ts in mtimes.items():
+              if os.path.exists(f):
+                  os.utime(f, (ts, ts))
+          PY
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build
-          key: ${{ runner.os }}-swift-debug-${{ hashFiles('Package.swift', 'Sources/**') }}
-          restore-keys: ${{ runner.os }}-swift-debug-
+          key: ${{ runner.os }}-swift-debug-v2-${{ hashFiles('Package.swift', 'Sources/**') }}
+          restore-keys: ${{ runner.os }}-swift-debug-v2-
       - name: Typecheck
         shell: bash
         run: swift build
@@ -128,11 +149,32 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Restore git commit mtimes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          files = {f for f in subprocess.run(["git", "ls-files", "-z"], capture_output=True, check=True).stdout.decode().split("\0") if f}
+          mtimes = {}
+          out = subprocess.run(["git", "log", "--format=COMMIT:%ct", "--name-only"], capture_output=True, text=True, check=True).stdout
+          cur_ts = None
+          for line in out.splitlines():
+              if line.startswith("COMMIT:"):
+                  cur_ts = int(line[7:])
+              elif line and line in files and line not in mtimes and cur_ts is not None:
+                  mtimes[line] = cur_ts
+                  if len(mtimes) == len(files):
+                      break
+          for f, ts in mtimes.items():
+              if os.path.exists(f):
+                  os.utime(f, (ts, ts))
+          PY
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build
-          key: ${{ runner.os }}-swift-release-${{ hashFiles('Package.swift', 'Sources/**') }}
-          restore-keys: ${{ runner.os }}-swift-release-
+          key: ${{ runner.os }}-swift-release-v2-${{ hashFiles('Package.swift', 'Sources/**') }}
+          restore-keys: ${{ runner.os }}-swift-release-v2-
       - name: Build
         shell: bash
         run: swift build -c release
@@ -152,15 +194,42 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Restore git commit mtimes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          files = {f for f in subprocess.run(["git", "ls-files", "-z"], capture_output=True, check=True).stdout.decode().split("\0") if f}
+          mtimes = {}
+          out = subprocess.run(["git", "log", "--format=COMMIT:%ct", "--name-only"], capture_output=True, text=True, check=True).stdout
+          cur_ts = None
+          for line in out.splitlines():
+              if line.startswith("COMMIT:"):
+                  cur_ts = int(line[7:])
+              elif line and line in files and line not in mtimes and cur_ts is not None:
+                  mtimes[line] = cur_ts
+                  if len(mtimes) == len(files):
+                      break
+          for f, ts in mtimes.items():
+              if os.path.exists(f):
+                  os.utime(f, (ts, ts))
+          PY
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build
-          key: ${{ runner.os }}-swift-cov-${{ hashFiles('Package.swift', 'Sources/**', 'Tests/**') }}
-          restore-keys: ${{ runner.os }}-swift-cov-
+          key: ${{ runner.os }}-swift-cov-v2-${{ hashFiles('Package.swift', 'Sources/**', 'Tests/**') }}
+          restore-keys: ${{ runner.os }}-swift-cov-v2-
       - name: Unit tests
         shell: bash
         run: |
           swift test --enable-code-coverage --filter 'OwlCoreTests' --skip 'EndToEnd' --skip 'SystemMetricsPoller' --skip 'LogStreamReader' --skip 'TopProcessProvider' --skip 'ProcessStatsProvider' --skip 'BatteryProvider' --skip 'SMCTemperature' --skip 'HIDTemperature'
+          PROFDATA="$(dirname "$(swift test --show-codecov-path)")/default.profdata"
+          BIN_PATH="$(swift build --show-bin-path)"
+          XCTEST="$(find "$BIN_PATH" -maxdepth 4 -path '*.xctest/Contents/MacOS/*' -type f | head -n 1)"
+          test -f "$PROFDATA"
+          test -n "$XCTEST"
+          xcrun llvm-cov report "$XCTEST" -instr-profile="$PROFDATA" | tail -n 5
       - name: Record tested SHA
         id: record-sha
         if: always()
@@ -186,11 +255,32 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Restore git commit mtimes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          files = {f for f in subprocess.run(["git", "ls-files", "-z"], capture_output=True, check=True).stdout.decode().split("\0") if f}
+          mtimes = {}
+          out = subprocess.run(["git", "log", "--format=COMMIT:%ct", "--name-only"], capture_output=True, text=True, check=True).stdout
+          cur_ts = None
+          for line in out.splitlines():
+              if line.startswith("COMMIT:"):
+                  cur_ts = int(line[7:])
+              elif line and line in files and line not in mtimes and cur_ts is not None:
+                  mtimes[line] = cur_ts
+                  if len(mtimes) == len(files):
+                      break
+          for f, ts in mtimes.items():
+              if os.path.exists(f):
+                  os.utime(f, (ts, ts))
+          PY
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build
-          key: ${{ runner.os }}-swift-cov-${{ hashFiles('Package.swift', 'Sources/**', 'Tests/**') }}
-          restore-keys: ${{ runner.os }}-swift-cov-
+          key: ${{ runner.os }}-swift-cov-v2-${{ hashFiles('Package.swift', 'Sources/**', 'Tests/**') }}
+          restore-keys: ${{ runner.os }}-swift-cov-v2-
       - name: Integration tests (EndToEnd)
         shell: bash
         run: swift test --enable-code-coverage --filter EndToEnd
