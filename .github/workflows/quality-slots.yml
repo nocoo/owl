@@ -4,9 +4,14 @@ name: Native quality slots
 
 on:
   workflow_call:
+    outputs:
+      tested-sha:
+        description: Commit SHA verified by quality gate
+        value: ${{ jobs.z1-gate.outputs.tested-sha }}
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   s1-typecheck:
@@ -20,6 +25,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build
+          key: ${{ runner.os }}-swift-debug-${{ hashFiles('Package.swift', 'Sources/**') }}
+          restore-keys: ${{ runner.os }}-swift-debug-
       - name: Typecheck
         shell: bash
         run: swift build
@@ -39,7 +49,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.local/share/swiftlint
           key: ${{ runner.os }}-swiftlint-0.65.1
@@ -77,7 +87,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: nocoo/base-ci/.github/actions/lint-workflows@dc858360aa7812db61fd9d825943e4efd4dcd0e7 # v2026.17
+      - uses: nocoo/base-ci/.github/actions/lint-workflows@bfaac83b5a4d5c7ed26320bb5b09f3ca0a01932c # v2026.18
       - name: Record tested SHA
         id: record-sha
         if: always()
@@ -95,7 +105,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 1
-      - uses: nocoo/base-ci/.github/actions/scan-secrets@dc858360aa7812db61fd9d825943e4efd4dcd0e7 # v2026.17
+      - uses: nocoo/base-ci/.github/actions/scan-secrets@bfaac83b5a4d5c7ed26320bb5b09f3ca0a01932c # v2026.18
       - name: Record tested SHA
         id: record-sha
         if: always()
@@ -119,6 +129,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build
+          key: ${{ runner.os }}-swift-release-${{ hashFiles('Package.swift', 'Sources/**') }}
+          restore-keys: ${{ runner.os }}-swift-release-
       - name: Build
         shell: bash
         run: swift build -c release
@@ -138,6 +153,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build
+          key: ${{ runner.os }}-swift-cov-${{ hashFiles('Package.swift', 'Sources/**', 'Tests/**') }}
+          restore-keys: ${{ runner.os }}-swift-cov-
       - name: Unit tests
         shell: bash
         run: |
@@ -156,6 +176,8 @@ jobs:
 
   l3-integration:
     name: "L3: Integration"
+    needs:
+      - l1-unit-tests
     runs-on: macos-26
     timeout-minutes: 15
     outputs:
@@ -165,9 +187,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build
+          key: ${{ runner.os }}-swift-cov-${{ hashFiles('Package.swift', 'Sources/**', 'Tests/**') }}
+          restore-keys: ${{ runner.os }}-swift-cov-
       - name: Integration tests (EndToEnd)
         shell: bash
-        run: swift test --filter EndToEnd
+        run: swift test --enable-code-coverage --filter EndToEnd
       - name: Record tested SHA
         id: record-sha
         if: always()
@@ -204,59 +231,25 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      tested-sha: ${{ steps.gate.outputs.tested-sha }}
     steps:
-      - name: "Z1: Require every implemented slot job on this commit"
-        env:
-          S1_RESULT: ${{ needs.s1-typecheck.result }}
-          S2_RESULT: ${{ needs.s2-lint.result }}
-          S3_RESULT: ${{ needs.s3-workflow-lint.result }}
-          G1_RESULT: ${{ needs.g1-secret-scan.result }}
-          G2_RESULT: ${{ needs.g2-dependency-vulnerabilities.result }}
-          B1_RESULT: ${{ needs.b1-build.result }}
-          L1_RESULT: ${{ needs.l1-unit-tests.result }}
-          L2_RESULT: ${{ needs.l2-runtime.result }}
-          L3_RESULT: ${{ needs.l3-integration.result }}
-          L4_RESULT: ${{ needs.l4-e2e.result }}
-          P1_RESULT: ${{ needs.p1-package-check.result }}
-          S1_SHA: ${{ needs.s1-typecheck.outputs.tested-sha }}
-          S2_SHA: ${{ needs.s2-lint.outputs.tested-sha }}
-          S3_SHA: ${{ needs.s3-workflow-lint.outputs.tested-sha }}
-          G1_SHA: ${{ needs.g1-secret-scan.outputs.tested-sha }}
-          B1_SHA: ${{ needs.b1-build.outputs.tested-sha }}
-          L1_SHA: ${{ needs.l1-unit-tests.outputs.tested-sha }}
-          L3_SHA: ${{ needs.l3-integration.outputs.tested-sha }}
-          EXPECTED_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          require_success() {
-            local label="$1" result="$2"
-            if [ "$result" != success ]; then
-              echo "::error::Z1: Gate — $label result was '$result' (expected success)."
-              exit 1
-            fi
-          }
-          require_skipped() {
-            local label="$1" result="$2"
-            if [ "$result" != skipped ]; then
-              echo "::error::Z1: Gate — $label result was '$result' (expected skipped)."
-              exit 1
-            fi
-          }
-          require_success "S1: Types" "$S1_RESULT"
-          require_success "S2: Lint" "$S2_RESULT"
-          require_success "S3: Workflow" "$S3_RESULT"
-          require_success "G1: Secrets" "$G1_RESULT"
-          require_skipped "G2: Dependencies" "$G2_RESULT"
-          require_success "B1: Build" "$B1_RESULT"
-          require_success "L1: Unit" "$L1_RESULT"
-          require_skipped "L2: Runtime" "$L2_RESULT"
-          require_success "L3: Integration" "$L3_RESULT"
-          require_skipped "L4: E2E" "$L4_RESULT"
-          require_skipped "P1: Package Check" "$P1_RESULT"
-          for sha in "$S1_SHA" "$S2_SHA" "$S3_SHA" "$G1_SHA" "$B1_SHA" "$L1_SHA" "$L3_SHA"; do
-            if [ "$sha" != "$EXPECTED_SHA" ]; then
-              echo "::error::Z1: Gate — tested-sha mismatch (got '$sha', expected '$EXPECTED_SHA')."
-              exit 1
-            fi
-          done
-          echo "Z1: Gate — all slots match declaration on $EXPECTED_SHA"
+      - name: Verify quality slots
+        id: gate
+        uses: nocoo/base-ci/.github/actions/z1-gate@bfaac83b5a4d5c7ed26320bb5b09f3ca0a01932c # v2026.18
+        with:
+          needs-json: ${{ toJSON(needs) }}
+          expected-sha: ${{ github.sha }}
+          required-jobs: |
+            s1-typecheck=S1: Types
+            s2-lint=S2: Lint
+            s3-workflow-lint=S3: Workflow
+            g1-secret-scan=G1: Secrets
+            b1-build=B1: Build
+            l1-unit-tests=L1: Unit
+            l3-integration=L3: Integration
+          skipped-jobs: |
+            g2-dependency-vulnerabilities=G2: Dependencies
+            l2-runtime=L2: Runtime
+            l4-e2e=L4: E2E
+            p1-package-check=P1: Package Check
