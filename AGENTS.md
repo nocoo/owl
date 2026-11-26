@@ -32,7 +32,7 @@ bash scripts/build.sh --sign 'Apple Development: Your Name (TEAMID)'   # signed 
 
 ## Quality & Local Gates
 
-Follows `system1-quality`; macOS native CI slots and `nocoo/base-ci` `v2026.19` (`98fc023423f82b010f17e0ebbc9dd580fe68736a`) pin live in `.github/workflows/quality-slots.yml` (invoked by `.github/workflows/ci.yml`; checkout-free `z1-gate` produces `quality / Z1: Gate` required on `main`). `S1`/`B1`/`L1`/`L3` cache `.build` via `actions/cache`, and `L3` reuses `L1`'s coverage-built `.build` cache. Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
+Follows `system1-quality`; macOS native CI slots and `nocoo/base-ci` `v2026.20` (`e5876a604547b1ddb0916f16dd841a4f832609a0`) pin live in `.github/workflows/quality-slots.yml` (invoked by `.github/workflows/ci.yml`; checkout-free `z1-gate` produces `quality / Z1: Gate` required on `main`). `S1`/`B1`/`L1`/`L3` cache `.build` via `actions/cache`, and `L3` reuses `L1`'s coverage-built `.build` cache. Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
 - **Exceptions**: `G2` is `N/A` (no third-party SwiftPM deps; Husky dev-only lockfile), `L2` is `N/A` (not a Worker), `P1` is `N/A` (private executable), and `L4 E2E` is `manual` (native menu-bar UI).
 - **L1 boundary**: CI skips `EndToEnd` and hardware suites; local `check-coverage.sh 90` checks 90% lines excluding `UI/`, `Tests/`, `L10n.swift`, `OwlApp*.swift` (95% 4-metric target `planned`).
